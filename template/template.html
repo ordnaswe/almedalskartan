@@ -1,0 +1,2056 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Almedalskartan | Influera</title>
+<style id="leaflet-css">__LEAFLET_CSS__</style>
+<style>
+  :root{
+    --bg:#F7F3E8;
+    --bg2:#FBF8EF;
+    --bg3:#EFEADC;
+    --gold:#8A7237;
+    --gold-bright:#C8A95A;
+    --gold-d:#6F5A2A;
+    --text:#1F2618;
+    --muted:#6A6F60;
+    --border:rgba(138,114,55,0.32);
+    --border-s:rgba(138,114,55,0.15);
+    --red:#9B2D3B;
+    --influera-red:#E1241D;
+    --influera-yellow:#FBC02D;
+    --shadow:0 4px 16px rgba(31,38,24,0.10);
+  }
+  *{box-sizing:border-box}
+  html{height:100%}
+  body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;font-size:13.5px;line-height:1.45;-webkit-font-smoothing:antialiased;display:flex;flex-direction:column}
+  a{color:var(--gold);text-decoration:none}
+  a:hover{text-decoration:underline}
+  button{font-family:inherit;color:inherit}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-track{background:var(--bg)}
+  ::-webkit-scrollbar-thumb{background:rgba(138,114,55,0.25);border-radius:4px}
+  ::-webkit-scrollbar-thumb:hover{background:rgba(138,114,55,0.45)}
+
+  /* Header */
+  header{display:flex;align-items:center;justify-content:space-between;padding:8px 18px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#FBF8EF,#F7F3E8);position:sticky;top:0;z-index:900;gap:10px}
+  .brand{display:flex;align-items:center;gap:11px;min-width:0;flex:1}
+  .brand-mark{width:26px;height:34px;flex-shrink:0;display:block}
+  .brand-text{display:flex;flex-direction:column;gap:1px;min-width:0}
+  .brand-title{font-weight:700;letter-spacing:1.6px;font-size:13px;text-transform:uppercase;color:var(--text);line-height:1.1}
+  .brand-by{font-size:9.5px;letter-spacing:1.8px;text-transform:uppercase;color:var(--muted);line-height:1.1}
+  .brand-by strong{color:var(--gold);font-weight:600}
+  .header-right{display:flex;gap:8px;align-items:center;font-size:10.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted);flex-shrink:0}
+  .header-meta{color:var(--muted);white-space:nowrap}
+
+  /* Profile picker */
+  .profile-wrap{position:relative}
+  .profile-btn{background:transparent;border:1px solid var(--border);color:var(--text);padding:6px 11px;font-size:11px;letter-spacing:1.3px;text-transform:uppercase;cursor:pointer;border-radius:1px;display:flex;align-items:center;gap:7px}
+  .profile-btn:hover{border-color:var(--gold);color:var(--gold)}
+  .profile-gear{opacity:0.55;flex-shrink:0;margin-left:2px;transition:opacity .15s,transform .25s}
+  .profile-btn:hover .profile-gear{opacity:1;transform:rotate(45deg)}
+  .profile-dot{width:8px;height:8px;background:var(--gold);border-radius:50%}
+  .profile-menu{position:absolute;right:0;top:calc(100% + 6px);background:var(--bg2);border:1px solid var(--gold);border-radius:2px;min-width:240px;box-shadow:var(--shadow);z-index:950;display:none;padding:6px 0;max-height:80vh;overflow-y:auto}
+  .profile-menu.open{display:block}
+  .profile-item{padding:8px 14px;font-size:12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;letter-spacing:0.5px}
+  .profile-item:hover{background:rgba(138,114,55,0.10)}
+  .profile-item.active{color:var(--gold);font-weight:600}
+  .profile-item .pi-count{font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .profile-divider{height:1px;background:var(--border-s);margin:4px 0}
+  .profile-action{padding:8px 14px;font-size:10.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--gold);cursor:pointer}
+  .profile-action:hover{background:rgba(138,114,55,0.10)}
+
+  /* Font size controls inside profile menu */
+  .font-size-row{padding:10px 14px;display:flex;flex-direction:column;gap:7px}
+  .font-size-label{font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .font-size-btns{display:flex;gap:4px}
+  .font-size-btn{flex:1;background:transparent;border:1px solid var(--border);color:var(--text);padding:5px 6px;font-family:inherit;cursor:pointer;border-radius:1px;font-weight:600;font-variant-numeric:tabular-nums}
+  .font-size-btn:hover{border-color:var(--gold);color:var(--gold)}
+  .font-size-btn.active{background:var(--gold);color:#FBF8EF;border-color:var(--gold)}
+  .font-size-btn[data-fs="sm"]{font-size:11px}
+  .font-size-btn[data-fs="md"]{font-size:13px}
+  .font-size-btn[data-fs="lg"]{font-size:15px}
+  .font-size-btn[data-fs="xl"]{font-size:17px}
+
+  /* Font size scaling: scale typography-heavy elements */
+  /* sm (mindre) */
+  html[data-fs="sm"] .card-title{font-size:12px}
+  html[data-fs="sm"] .card-time{font-size:10px}
+  html[data-fs="sm"] .card-place{font-size:10px}
+  html[data-fs="sm"] .d-title{font-size:16px}
+  html[data-fs="sm"] .d-text{font-size:11.5px}
+  html[data-fs="sm"] .speaker-name{font-size:11.5px}
+  html[data-fs="sm"] .speaker-meta{font-size:10px}
+  html[data-fs="sm"] .footer-text,html[data-fs="sm"] .footer-fine{font-size:11px}
+  html[data-fs="sm"] .empty{font-size:11px}
+  /* md is the default, no overrides */
+  /* lg (större) */
+  html[data-fs="lg"] .card-title{font-size:15px}
+  html[data-fs="lg"] .card-time{font-size:12px}
+  html[data-fs="lg"] .card-place{font-size:12.5px}
+  html[data-fs="lg"] .card-meta .tag{font-size:10.5px}
+  html[data-fs="lg"] .d-title{font-size:20px}
+  html[data-fs="lg"] .d-text{font-size:14px}
+  html[data-fs="lg"] .d-when{font-size:13px}
+  html[data-fs="lg"] .speaker-name{font-size:14px}
+  html[data-fs="lg"] .speaker-meta{font-size:12.5px}
+  html[data-fs="lg"] .footer-text,html[data-fs="lg"] .footer-fine{font-size:13.5px}
+  html[data-fs="lg"] .empty{font-size:13.5px}
+  html[data-fs="lg"] .topic-name{font-size:14px}
+  /* xl (extra stor) */
+  html[data-fs="xl"] .card-title{font-size:17px}
+  html[data-fs="xl"] .card-time{font-size:13.5px}
+  html[data-fs="xl"] .card-place{font-size:14px}
+  html[data-fs="xl"] .card-meta .tag{font-size:11.5px}
+  html[data-fs="xl"] .d-title{font-size:22px}
+  html[data-fs="xl"] .d-text{font-size:16px}
+  html[data-fs="xl"] .d-when{font-size:14.5px}
+  html[data-fs="xl"] .speaker-name{font-size:16px}
+  html[data-fs="xl"] .speaker-meta{font-size:14px}
+  html[data-fs="xl"] .footer-text,html[data-fs="xl"] .footer-fine{font-size:15px}
+  html[data-fs="xl"] .empty{font-size:15px}
+  html[data-fs="xl"] .topic-name{font-size:15.5px}
+  html[data-fs="xl"] .d-label,html[data-fs="xl"] .d-pill{font-size:11.5px}
+
+  /* Toolbar */
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;padding:9px 22px;background:var(--bg2);border-bottom:1px solid var(--border);align-items:center}
+  .tbl-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-right:4px}
+  .tbl-group{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+  .chip{background:transparent;border:1px solid var(--border);color:var(--text);padding:5px 10px;font-size:11px;letter-spacing:1.4px;text-transform:uppercase;cursor:pointer;border-radius:1px;transition:all .15s}
+  .chip:hover{border-color:var(--gold);color:var(--gold)}
+  .chip.active{background:var(--gold);color:#FBF8EF;border-color:var(--gold);font-weight:600}
+  .chip.alt{border-color:var(--gold);color:var(--gold)}
+  .chip.alt:hover{background:var(--gold);color:#FBF8EF}
+  .chip-pill{display:inline-flex;align-items:center;gap:6px}
+  .chip-badge{background:rgba(138,114,55,0.15);border:1px solid var(--gold);color:var(--gold);padding:1px 6px;font-size:10px;border-radius:1px;font-weight:600;letter-spacing:0}
+  .chip.active .chip-badge{background:#FBF8EF;color:var(--gold);border-color:#FBF8EF}
+  .search{background:#FFFFFF;border:1px solid var(--border);color:var(--text);padding:5px 10px;font-size:12px;border-radius:1px;min-width:200px;font-family:inherit}
+  .search:focus{outline:none;border-color:var(--gold)}
+  .range-row{display:flex;align-items:center;gap:8px}
+  .range-row input[type=range]{width:110px;accent-color:var(--gold)}
+  .range-val{font-size:11px;color:var(--gold);letter-spacing:1px;font-variant-numeric:tabular-nums;min-width:42px}
+  .toolbar-right{margin-left:auto;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+
+  /* Layout */
+  .layout{display:grid;grid-template-columns:360px 1fr 400px;height:calc(100vh - 100px);min-height:500px;overflow:hidden;flex-shrink:0}
+  @media (max-width:1280px){.layout{grid-template-columns:320px 1fr 360px}}
+  @media (max-width:1024px){
+    .layout{grid-template-columns:1fr;grid-template-rows:auto auto auto;height:auto}
+    .map-wrap{order:1;height:32vh;min-height:200px}
+    .sidebar{order:2;max-height:none;min-height:0}
+    .detail{order:3;border-left:none;border-top:1px solid var(--border)}
+    /* Master-detail pattern on mobile: only list OR detail visible, never both */
+    body:not(.has-selection) .detail{display:none}
+    body.has-selection .sidebar{display:none}
+    /* "Back to list" affordance shown only on mobile */
+    .mobile-back{display:flex !important}
+  }
+  @media (max-width:760px){
+    header{padding:6px 12px;gap:8px}
+    .brand-mark{width:22px;height:28px}
+    .brand-title{font-size:12px;letter-spacing:1.2px}
+    .brand-by{font-size:8.5px;letter-spacing:1.4px}
+    .header-meta{display:none}
+    .profile-btn{padding:4px 8px;font-size:10px;letter-spacing:1px}
+    .toolbar{padding:6px 10px;gap:5px}
+    .tbl-label{display:none}
+    .chip{padding:4px 9px;font-size:10.5px;letter-spacing:1.1px}
+    /* Day chips: aggressive shrink + horizontal scroll backup so 6 chips always fit on one row */
+    #dayChips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;max-width:100%;padding:1px}
+    #dayChips::-webkit-scrollbar{display:none}
+    #dayChips .chip{padding:3px 7px;font-size:9.5px;letter-spacing:0.3px;flex-shrink:0}
+    /* Action button row: tighten */
+    .toolbar-right .chip{padding:3px 8px;font-size:9.5px;letter-spacing:0.5px}
+    /* Time slider: take full row width on mobile, sliders flex equally */
+    .range-row{gap:6px;width:100%;flex:1 0 100%;justify-content:space-between}
+    .range-row input[type=range]{flex:1;min-width:0;width:auto}
+    .range-val{font-size:10px;min-width:36px;letter-spacing:0.5px;flex-shrink:0}
+    .search{min-width:0;width:100%;flex:1 0 100%;padding:6px 10px;font-size:12px}
+    .tab{padding:13px 8px;font-size:11.5px;letter-spacing:1.5px}
+    .tab-count{margin-left:7px;font-size:11px;font-weight:700;color:var(--text)}
+    .tab.active .tab-count{color:var(--influera-red)}
+    .sort-bar{padding:9px 14px;font-size:11px;letter-spacing:1.3px}
+    .map-wrap{height:28vh;min-height:180px}
+    .d-title{font-size:15px}
+  }
+
+  /* Sidebar (event list) */
+  .sidebar{background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;min-height:0}
+  .tabs{display:flex;border-bottom:1px solid var(--border)}
+  .tab{flex:1;padding:11px 8px;background:transparent;border:none;color:var(--muted);font-size:10.5px;letter-spacing:1.8px;text-transform:uppercase;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
+  .tab:hover{color:var(--text)}
+  .tab.active{color:var(--text);border-bottom-color:var(--influera-red)}
+  .tab-count{margin-left:5px;color:var(--gold-d);font-size:10px}
+  .sort-bar{display:flex;align-items:center;gap:8px;padding:7px 14px;background:var(--bg);border-bottom:1px solid var(--border-s);font-size:10.5px;color:var(--muted);letter-spacing:1.4px;text-transform:uppercase}
+  .sort-mode{color:var(--gold);font-weight:600}
+  .page-bar{display:flex;align-items:center;gap:8px;padding:6px 14px;background:var(--bg);border-bottom:1px solid var(--border-s);font-size:10.5px;justify-content:space-between}
+  .page-size{display:flex;align-items:center;gap:5px}
+  .page-label{font-size:10px;color:var(--muted);letter-spacing:1.4px;text-transform:uppercase;margin-right:3px}
+  .page-size-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:3px 8px;font-size:10.5px;letter-spacing:0.5px;cursor:pointer;border-radius:1px;font-family:inherit;font-variant-numeric:tabular-nums;font-weight:600}
+  .page-size-btn:hover{border-color:var(--gold);color:var(--gold)}
+  .page-size-btn.active{background:var(--gold);color:#FBF8EF;border-color:var(--gold)}
+  .page-nav{display:flex;align-items:center;gap:4px}
+  .page-arrow{background:transparent;border:1px solid var(--border);color:var(--text);width:26px;height:24px;font-size:16px;line-height:1;cursor:pointer;border-radius:1px;font-family:inherit;display:flex;align-items:center;justify-content:center;padding:0}
+  .page-arrow:hover:not(:disabled){border-color:var(--gold);color:var(--gold)}
+  .page-arrow:disabled{opacity:0.3;cursor:not-allowed}
+  .page-info{font-size:10.5px;color:var(--muted);letter-spacing:0.5px;font-variant-numeric:tabular-nums;min-width:50px;text-align:center}
+  .agenda-actions{padding:8px 14px;background:var(--bg);border-bottom:1px solid var(--border-s);display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+  .list{flex:1;overflow-y:auto;padding:4px 0}
+  .card{padding:11px 14px 12px;border-left:3px solid var(--gold);border-bottom:1px solid var(--border-s);background:transparent;cursor:pointer;transition:background .15s,border-color .15s;position:relative}
+  .card:hover{background:rgba(138,114,55,0.07)}
+  .card.selected{background:rgba(138,114,55,0.13);border-left-color:var(--gold);border-left-width:4px}
+  .card.dim{opacity:0.5}
+  .card-row1{display:flex;justify-content:space-between;gap:8px;margin-bottom:4px;align-items:baseline}
+  .card-time{font-size:10.5px;color:var(--gold);letter-spacing:1.5px;font-weight:600;font-variant-numeric:tabular-nums}
+  .card-day{font-size:9.5px;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase}
+  .card-title{font-size:13px;font-weight:500;color:var(--text);margin:0 0 5px 0;line-height:1.35}
+  .card:has(.card-score) .card-title{padding-right:54px}
+  .card:has(.card-score) .card-row1{padding-right:54px}
+  .card-place{font-size:11px;color:var(--muted);margin-bottom:5px;display:flex;align-items:center;gap:4px}
+  .card-place::before{content:"";display:inline-block;width:4px;height:4px;background:var(--gold-d);border-radius:50%}
+  .card-meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;align-items:center}
+  .tag{font-size:9px;letter-spacing:1.3px;text-transform:uppercase;padding:2px 6px;border:1px solid var(--border);color:var(--muted);border-radius:1px}
+  .tag.primary{border-color:var(--gold);color:var(--gold)}
+  .tag.t-type{border-color:rgba(244,239,227,0.2);color:rgba(244,239,227,0.7)}
+  .card-score{position:absolute;top:10px;right:12px;font-size:9.5px;color:var(--gold-d);font-weight:700;letter-spacing:0.3px;font-variant-numeric:tabular-nums;display:flex;flex-direction:column;align-items:flex-end;gap:3px;min-width:42px}
+  .card-score-num{display:flex;align-items:baseline;gap:1px;line-height:1}
+  .card-score-pct{font-size:13.5px;color:var(--text)}
+  .card-score-unit{font-size:9px;color:var(--muted);font-weight:500}
+  .card-score-bar{width:38px;height:3px;background:rgba(138,114,55,0.15);border-radius:2px;overflow:hidden;position:relative}
+  .card-score-fill{position:absolute;left:0;top:0;bottom:0;background:var(--gold);border-radius:2px}
+  .card-score.high .card-score-pct{color:var(--influera-red)}
+  .card-score.high .card-score-fill{background:var(--influera-red)}
+  .empty{padding:30px 18px;color:var(--muted);font-size:12px;text-align:center;line-height:1.6}
+
+  /* Map */
+  .map-wrap{position:relative;background:#E8E2D2;min-height:300px}
+  #map{width:100%;height:100%;min-height:300px}
+  .map-legend{position:absolute;left:14px;bottom:14px;background:rgba(251,248,239,0.96);border:1px solid var(--border);padding:9px 12px;font-size:10px;color:var(--muted);letter-spacing:1.3px;text-transform:uppercase;z-index:400;border-radius:1px;line-height:1.7;backdrop-filter:blur(4px)}
+  .legend-row{display:flex;align-items:center;gap:8px}
+  .legend-dot{width:10px;height:10px;border-radius:50%;background:var(--gold-bright);box-shadow:0 0 4px rgba(138,114,55,0.5);border:1px solid var(--gold-d)}
+  .legend-dot.user{background:#2563EB;box-shadow:0 0 4px rgba(37,99,235,0.5);border-color:#1D4ED8}
+  .legend-dot.hot{background:var(--influera-red);box-shadow:0 0 6px rgba(225,36,29,0.5);border-color:#A81812}
+
+  /* Map markers */
+  .marker-cluster{background:var(--gold-bright);color:var(--text);width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;border:2px solid var(--gold-d);box-shadow:0 2px 6px rgba(31,38,24,0.30);font-variant-numeric:tabular-nums;font-family:'Inter',sans-serif}
+  .marker-cluster.hot{background:var(--influera-red);color:#FFFFFF;border-color:#A81812;box-shadow:0 0 12px rgba(225,36,29,0.5),0 2px 6px rgba(31,38,24,0.30)}
+  .marker-cluster.dim{opacity:0.4}
+  .marker-cluster.single{background:transparent;color:var(--gold);border-color:var(--gold);width:18px;height:18px;font-size:0}
+  .marker-cluster.single::before{content:"";width:7px;height:7px;background:var(--gold);border-radius:50%}
+  .marker-pin{background:#2563EB;width:16px;height:16px;border-radius:50%;border:2px solid #FFFFFF;box-shadow:0 2px 6px rgba(31,38,24,0.4)}
+
+  /* Mobile-only back button at top of detail panel */
+  .mobile-back{display:none;width:100%;align-items:center;gap:10px;padding:11px 22px;background:var(--bg3);border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:inherit;font-size:11.5px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;text-align:left;font-weight:500}
+  .mobile-back:hover{background:rgba(138,114,55,0.12)}
+  .mobile-back .mb-arrow{color:var(--influera-red);font-size:18px;line-height:1;font-weight:700}
+
+  /* Detail panel */
+  .detail{background:var(--bg2);border-left:1px solid var(--border);overflow-y:auto;padding:0}
+  .detail-empty{padding:60px 24px;color:var(--muted);font-size:12px;letter-spacing:1.2px;text-transform:uppercase;text-align:center;line-height:2}
+  .detail-empty .big{display:block;font-size:20px;color:var(--gold);letter-spacing:3px;margin-bottom:14px}
+  .detail-head{padding:18px 22px 16px;border-bottom:1px solid var(--border)}
+  .d-eyebrow{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+  .d-close{background:transparent;border:1px solid var(--border);color:var(--muted);width:22px;height:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:1px;font-size:14px;line-height:1}
+  .d-close:hover{border-color:var(--gold);color:var(--gold)}
+  .d-title{font-size:17px;font-weight:600;line-height:1.3;margin:0 0 12px 0;color:var(--text)}
+  .d-when{display:flex;gap:10px;align-items:baseline;font-size:11.5px;color:var(--muted);letter-spacing:0.5px;flex-wrap:wrap}
+  .d-when strong{color:var(--gold);font-weight:600;letter-spacing:1.2px}
+  .d-section{padding:14px 22px 16px;border-bottom:1px solid var(--border-s)}
+  .d-section:last-child{border-bottom:none}
+  .d-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+  .d-text{font-size:12.5px;color:var(--text);line-height:1.55;white-space:pre-wrap}
+  .d-muted{color:var(--muted)}
+  .d-pill-row{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px}
+  .d-pill{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;padding:3px 8px;border:1px solid var(--border);color:var(--muted);border-radius:1px}
+  .d-pill.on{border-color:var(--gold);color:var(--gold)}
+
+  /* Speaker cards */
+  .speakers{display:flex;flex-direction:column;gap:6px}
+  .speaker{padding:8px 10px;background:rgba(138,114,55,0.06);border-left:2px solid var(--gold);border-radius:1px}
+  .speaker-name{font-size:12.5px;font-weight:600;color:var(--text);line-height:1.3}
+  .speaker-meta{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4}
+  .speaker-org{color:var(--gold-d)}
+
+  .d-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+  .d-btn{background:transparent;border:1px solid var(--gold);color:var(--gold);padding:6px 12px;font-size:10.5px;letter-spacing:1.4px;text-transform:uppercase;cursor:pointer;border-radius:1px;transition:all .15s;text-decoration:none;display:inline-block}
+  .d-btn:hover{background:var(--gold);color:#FBF8EF}
+  .d-btn.saved{background:var(--gold);color:#FBF8EF}
+  .d-btn.alt{border-color:var(--border);color:var(--muted)}
+  .d-btn.alt:hover{border-color:var(--gold);color:var(--gold);background:transparent}
+  .d-btn.hotline{background:transparent;border:1.5px solid var(--influera-red);color:var(--influera-red);padding:9px 14px;font-size:11.5px;letter-spacing:1.4px;font-weight:600;width:100%;justify-content:center;text-decoration:none}
+  .d-btn.hotline:hover{background:var(--influera-red);color:#FFFFFF;text-decoration:none}
+  .d-btn.hotline:hover span{background:#FFFFFF !important}
+
+  .same-place-list{display:flex;flex-direction:column;gap:4px;margin-top:6px}
+  .spl-item{padding:7px 10px;background:rgba(138,114,55,0.06);border-left:2px solid var(--gold-d);font-size:11.5px;cursor:pointer;border-radius:1px;transition:all .15s}
+  .spl-item:hover{background:rgba(138,114,55,0.13);border-left-color:var(--gold)}
+  .spl-time{font-size:10px;color:var(--gold);letter-spacing:1px;font-weight:600}
+
+  /* Modal: ämnesväljare */
+  .modal-overlay{position:fixed;inset:0;background:rgba(31,38,24,0.45);z-index:1000;display:none;align-items:flex-start;justify-content:center;padding:50px 20px;overflow-y:auto;backdrop-filter:blur(3px)}
+  .modal-overlay.open{display:flex}
+  .modal{background:var(--bg2);border:1px solid var(--gold);max-width:680px;width:100%;border-radius:2px;box-shadow:var(--shadow);max-height:calc(100vh - 100px);display:flex;flex-direction:column}
+  .modal-head{padding:16px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .modal-title{font-size:14px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin:0}
+  .modal-sub{font-size:11px;color:var(--muted);margin-top:4px;letter-spacing:0.3px}
+  .modal-body{padding:14px 22px 10px;overflow-y:auto;flex:1}
+  .modal-foot{padding:12px 22px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px}
+
+  /* Topic spak rows */
+  .topic-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;padding:7px 0;border-bottom:1px solid var(--border-s);align-items:center}
+  .topic-row:last-child{border-bottom:none}
+  .topic-info{display:flex;align-items:baseline;gap:8px;min-width:0}
+  .topic-name{font-size:12.5px;color:var(--text);font-weight:500;line-height:1.3;min-width:0;word-wrap:break-word;overflow-wrap:break-word}
+  .topic-count{font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums;flex-shrink:0}
+  .topic-row.active .topic-name{color:var(--gold)}
+  @media (max-width:760px){
+    .topic-row{gap:10px;padding:8px 0}
+    .topic-name{font-size:12px}
+  }
+
+  /* The spak (lever) */
+  .spak{display:flex;gap:3px;align-items:center}
+  .spak-track{display:flex;gap:2px;background:rgba(31,38,24,0.08);padding:3px;border:1px solid var(--border-s);border-radius:2px}
+  .spak-seg{width:22px;height:18px;background:transparent;border:none;cursor:pointer;border-radius:1px;transition:background .12s,box-shadow .12s;padding:0;position:relative}
+  .spak-seg:hover{background:rgba(138,114,55,0.18)}
+  .spak-seg.on{background:var(--gold)}
+  .spak-seg.on.lv1{background:rgba(138,114,55,0.45)}
+  .spak-seg.on.lv2{background:rgba(138,114,55,0.72)}
+  .spak-seg.on.lv3{background:var(--gold);box-shadow:0 0 6px rgba(138,114,55,0.5)}
+  .spak-label{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;min-width:38px;text-align:right;font-variant-numeric:tabular-nums}
+  .spak-label.active{color:var(--gold);font-weight:600}
+
+  .icon-btn{background:transparent;border:1px solid var(--border);color:var(--text);width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:1px}
+  .icon-btn:hover{border-color:var(--gold);color:var(--gold)}
+
+  /* Filter panel: slide-in on desktop, inline-expand on mobile */
+  .filter-panel{
+    position:fixed;top:0;right:0;height:100vh;width:380px;max-width:90vw;
+    background:var(--bg2);border-left:1px solid var(--gold);
+    box-shadow:-8px 0 24px rgba(31,38,24,0.12);
+    z-index:900;display:flex;flex-direction:column;
+    transform:translateX(100%);transition:transform .25s ease;
+    visibility:hidden;
+  }
+  .filter-panel.open{transform:translateX(0);visibility:visible}
+  /* When filter button is active (panel open), show it as filled chip */
+  .chip.alt#filterBtn.active{background:var(--gold);color:#FBF8EF;border-color:var(--gold)}
+  .chip.alt#filterBtn.active .chip-badge{background:#FBF8EF;color:var(--gold);border-color:#FBF8EF}
+  .filter-panel-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;gap:10px;background:var(--bg3)}
+  .filter-panel-title{font-size:14px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin:0}
+  .filter-panel-sub{font-size:11px;color:var(--muted);margin-top:4px;letter-spacing:0.3px;line-height:1.4}
+  .filter-panel-body{flex:1;overflow-y:auto;padding:8px 20px}
+  .filter-panel-foot{padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:space-between;gap:10px;background:var(--bg3)}
+
+  /* Filter modal groups (re-used) */
+  .filter-group{padding:12px 0;border-bottom:1px solid var(--border-s)}
+  .filter-group:last-child{border-bottom:none}
+  .filter-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:9px;font-weight:600}
+  .filter-checks{display:flex;flex-wrap:wrap;gap:8px 14px}
+  .filter-checks label{display:flex;align-items:center;gap:6px;font-size:12.5px;cursor:pointer;color:var(--text)}
+  .filter-checks input[type=checkbox]{accent-color:var(--gold);margin:0}
+  .filter-select{width:100%;background:#FFFFFF;border:1px solid var(--border);color:var(--text);padding:9px 12px;font-size:13px;border-radius:2px;font-family:inherit}
+  .filter-select:focus{outline:none;border-color:var(--gold)}
+
+  /* Mobile: filter becomes inline panel below toolbar instead of slide-in */
+  @media (max-width:1024px){
+    .filter-panel{
+      position:static;top:auto;right:auto;height:auto;width:100%;max-width:100%;
+      box-shadow:none;border-left:none;border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+      transform:none;transition:none;
+      display:none;
+    }
+    .filter-panel.open{display:flex;visibility:visible}
+    .filter-panel-head{padding:12px 16px}
+    .filter-panel-body{max-height:50vh;padding:4px 16px}
+    .filter-panel-foot{padding:10px 16px}
+  }
+
+  /* Site footer */
+  .site-footer{background:var(--bg3);border-top:1px solid var(--border);padding:36px 22px 24px;color:var(--text)}
+  .footer-inner{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:30px}
+  .footer-newsletter{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--influera-red);padding:22px 24px;border-radius:2px}
+  .footer-h{font-size:16px;font-weight:700;letter-spacing:1px;margin:0 0 8px;color:var(--text)}
+  .footer-text{font-size:12.5px;color:var(--muted);margin:0 0 14px;line-height:1.55;max-width:640px}
+  .newsletter-form{display:flex;flex-direction:column;gap:10px;max-width:520px}
+  .footer-input{background:#FFFFFF;border:1px solid var(--border);color:var(--text);padding:10px 12px;font-size:13.5px;font-family:inherit;border-radius:2px;width:100%}
+  .footer-input:focus{outline:none;border-color:var(--gold)}
+  .footer-checks{display:flex;flex-direction:column;gap:7px;margin:2px 0}
+  .footer-check{display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--text);cursor:pointer;line-height:1.4}
+  .footer-check input{margin-top:2px;flex-shrink:0;accent-color:var(--influera-red)}
+  .footer-submit{background:var(--influera-red);color:#FFFFFF;border:none;padding:10px 22px;font-size:11.5px;letter-spacing:1.6px;text-transform:uppercase;font-weight:700;cursor:pointer;border-radius:2px;font-family:inherit;align-self:flex-start;transition:background .15s}
+  .footer-submit:hover{background:#A81812}
+  .footer-submit:disabled{opacity:0.5;cursor:not-allowed}
+  .footer-status{font-size:11.5px;color:var(--gold-d);min-height:14px;letter-spacing:0.2px}
+  .footer-status.ok{color:#2D6A4F}
+  .footer-status.err{color:var(--influera-red)}
+  .footer-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+  .footer-col{min-width:0}
+  .footer-h-small{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:8px;font-weight:700}
+  .footer-fine{font-size:11.5px;color:var(--muted);line-height:1.55;margin:0}
+  .footer-fine a{color:var(--gold);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:2px}
+  .footer-bottom{border-top:1px solid var(--border-s);padding-top:16px;display:flex;gap:10px;align-items:center;font-size:10.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted);flex-wrap:wrap}
+  .footer-sep{color:var(--gold-d)}
+  .footer-bottom a{color:var(--gold)}
+  @media (max-width:760px){
+    .site-footer{padding:24px 14px 18px}
+    .footer-newsletter{padding:18px 16px}
+    .footer-h{font-size:14.5px}
+    .footer-meta{grid-template-columns:1fr;gap:18px}
+  }
+
+  /* Fatal error banner */
+  .fatal{display:none;position:fixed;inset:0;background:var(--bg);color:var(--text);z-index:9999;padding:30px;font-family:'Inter',sans-serif;overflow-y:auto}
+  .fatal.open{display:block}
+  .fatal h1{color:var(--red);font-size:18px;letter-spacing:2px;text-transform:uppercase;margin:0 0 14px}
+  .fatal pre{background:#FFFFFF;border:1px solid var(--red);padding:14px;font-family:Menlo,monospace;font-size:11px;white-space:pre-wrap;word-break:break-all;color:var(--red);border-radius:2px}
+</style>
+</head>
+<body>
+
+<div class="fatal" id="fatal"><h1>Almedalskartan | Tekniskt fel</h1><pre id="fatalMsg"></pre></div>
+
+<header>
+  <div class="brand">
+    <svg class="brand-mark" viewBox="0 0 40 52" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M20 2 C 10 2, 2 10, 2 20 C 2 30, 10 40, 20 50 C 30 40, 38 30, 38 20 C 38 10, 30 2, 20 2 Z" fill="#E1241D"/>
+      <rect x="17" y="10" width="6" height="14" rx="2" fill="#FBC02D"/>
+      <circle cx="20" cy="29" r="3.2" fill="#FBC02D"/>
+    </svg>
+    <div class="brand-text">
+      <div class="brand-title">Almedalskartan</div>
+      <div class="brand-by">av <strong>Influera</strong></div>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="header-meta">22 till 26 juni 2026</span>
+    <span id="storageWarn" style="display:none;font-size:9.5px;letter-spacing:1.4px;color:#e8a52e;border:1px solid #e8a52e;padding:3px 7px;border-radius:1px">Sparas ej i preview</span>
+    <div class="profile-wrap">
+      <button class="profile-btn" id="profileBtn"><span class="profile-dot"></span><span id="profileName">Gäst</span><svg class="profile-gear" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+      <div class="profile-menu" id="profileMenu"></div>
+    </div>
+  </div>
+</header>
+
+<div class="toolbar">
+  <span class="tbl-label">Dag</span>
+  <div class="tbl-group" id="dayChips"></div>
+
+  <span class="tbl-label" style="margin-left:10px">Tid</span>
+  <div class="range-row">
+    <input type="range" id="timeFrom" min="6" max="23" step="0.5" value="6">
+    <span class="range-val" id="timeFromVal">06:00</span>
+    <span style="color:var(--muted);font-size:11px;letter-spacing:1.4px">till</span>
+    <input type="range" id="timeTo" min="6" max="23" step="0.5" value="23">
+    <span class="range-val" id="timeToVal">23:00</span>
+  </div>
+
+  <span class="tbl-label" style="margin-left:10px">Sök</span>
+  <input type="text" class="search" id="search" placeholder="rubrik, arrangör, plats, talare">
+
+  <div class="toolbar-right">
+    <button class="chip alt" id="nowBtn">Nu</button>
+    <button class="chip alt chip-pill" id="topicBtn">Ämnen <span class="chip-badge" id="topicCount">0</span></button>
+    <button class="chip alt" id="geoBtn">Nära mig</button>
+    <button class="chip alt chip-pill" id="filterBtn">Filter <span class="chip-badge" id="filterCount">0</span></button>
+    <button class="chip alt" id="resetBtn">Återställ</button>
+  </div>
+</div>
+
+
+<!-- Filter panel (slide-in on desktop, inline on mobile) -->
+<aside class="filter-panel" id="filterPanel" aria-hidden="true">
+  <div class="filter-panel-head">
+    <div>
+      <h3 class="filter-panel-title">Filter</h3>
+      <div class="filter-panel-sub">Avancerad filtrering. Listan uppdateras direkt.</div>
+    </div>
+    <button class="icon-btn" id="filterClose">✕</button>
+  </div>
+  <div class="filter-panel-body">
+    <div class="filter-group">
+      <div class="filter-label">Sök i fält</div>
+      <div class="filter-checks">
+        <label><input type="checkbox" data-field="search-rubrik" checked> Rubrik</label>
+        <label><input type="checkbox" data-field="search-arr" checked> Arrangör</label>
+        <label><input type="checkbox" data-field="search-med" checked> Medverkande</label>
+        <label><input type="checkbox" data-field="search-plats" checked> Plats</label>
+        <label><input type="checkbox" data-field="search-besk"> Beskrivning</label>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-label">Evenemangstyp</div>
+      <select class="filter-select" id="filterTyp">
+        <option value="">Alla typer</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-label">Organisationstyp</div>
+      <select class="filter-select" id="filterTypOrg">
+        <option value="">Alla organisationstyper</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-label">Språk</div>
+      <select class="filter-select" id="filterSprak">
+        <option value="">Alla språk</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-label">Tillgänglighet</div>
+      <div class="filter-checks" id="filterTillg"></div>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-label">Övriga egenskaper</div>
+      <div class="filter-checks">
+        <label><input type="checkbox" id="filterLive"> Webbsänt</label>
+        <label><input type="checkbox" id="filterMat"> Förtäring erbjuds</label>
+        <label><input type="checkbox" id="filterEko"> Miljödiplomerat</label>
+      </div>
+    </div>
+  </div>
+  <div class="filter-panel-foot">
+    <button class="chip" id="filterReset">Återställ filter</button>
+    <button class="chip active" id="filterApply">Stäng</button>
+  </div>
+</aside>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="tabs">
+      <button class="tab active" data-tab="all">I urval <span class="tab-count" id="cntAll">0</span></button>
+      <button class="tab" data-tab="agenda">Min agenda <span class="tab-count" id="cntAgenda">0</span></button>
+    </div>
+    <div class="sort-bar">
+      <span>Sortering:</span>
+      <span class="sort-mode" id="sortMode">Tid</span>
+      <span style="margin-left:auto;font-size:9.5px" id="resultCount">0 resultat</span>
+    </div>
+    <div class="page-bar" id="pageBar">
+      <div class="page-size">
+        <span class="page-label">Visa</span>
+        <button class="page-size-btn" data-size="20">20</button>
+        <button class="page-size-btn" data-size="50">50</button>
+        <button class="page-size-btn" data-size="100">100</button>
+      </div>
+      <div class="page-nav">
+        <button class="page-arrow" id="pagePrev" aria-label="Föregående sida">‹</button>
+        <span class="page-info" id="pageInfo">1 / 1</span>
+        <button class="page-arrow" id="pageNext" aria-label="Nästa sida">›</button>
+      </div>
+    </div>
+    <div class="agenda-actions" id="agendaActions" style="display:none">
+      <button class="chip alt" id="exportAllBtn">Exportera hela agendan (.ics)</button>
+      <button class="chip alt" id="clearAgendaBtn">Töm agenda</button>
+    </div>
+    <div class="list" id="list"></div>
+  </aside>
+
+  <div class="map-wrap">
+    <div id="map"></div>
+    <div class="map-legend">
+      <div class="legend-row"><div class="legend-dot"></div>Programpunkt</div>
+      <div class="legend-row"><div class="legend-dot hot"></div>Mest viktad</div>
+      <div class="legend-row"><div class="legend-dot user"></div>Din position</div>
+    </div>
+  </div>
+
+  <aside class="detail" id="detail">
+    <div class="detail-empty">
+      <span class="big">ALMEDALSKARTAN</span>
+      Välj en programpunkt i listan<br>eller klicka en pin på kartan
+    </div>
+  </aside>
+</div>
+
+<!-- Footer -->
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-newsletter">
+      <h3 class="footer-h">Få Influeras Almedalsrapport</h3>
+      <p class="footer-text">Engångs-sammanfattning efter Almedalsveckan 2026, och vårt återkommande nyhetsbrev om PR, public affairs, påverkan och opinionsbildning. Du väljer själv vad du vill ha.</p>
+      <form name="influera-newsletter" method="POST" data-netlify="true" netlify-honeypot="bot-field" class="newsletter-form" id="newsletterForm">
+        <input type="hidden" name="form-name" value="influera-newsletter">
+        <p style="display:none"><label>Lämna tomt: <input name="bot-field"></label></p>
+        <input type="email" name="email" required placeholder="din@epost.se" class="footer-input" id="newsletterEmail" autocomplete="email">
+        <div class="footer-checks">
+          <label class="footer-check">
+            <input type="checkbox" name="consent_rapport" value="ja" id="checkRapport">
+            <span>Engångs-rapport om Almedalsveckan 2026 (en gång, efter veckan)</span>
+          </label>
+          <label class="footer-check">
+            <input type="checkbox" name="consent_nyhetsbrev" value="ja" id="checkNyhetsbrev">
+            <span>Återkommande nyhetsbrev om PR, public affairs, påverkan och opinionsbildning (cirka en gång i månaden)</span>
+          </label>
+        </div>
+        <button type="submit" class="footer-submit" id="newsletterSubmit">Anmäl mig</button>
+        <div class="footer-status" id="newsletterStatus"></div>
+      </form>
+    </div>
+
+    <div class="footer-meta">
+      <div class="footer-col">
+        <div class="footer-h-small">Om Almedalskartan</div>
+        <p class="footer-fine">Almedalskartan är ett kostnadsfritt verktyg från <a href="https://www.influera.com" target="_blank" rel="noopener">Influera</a>, en byrå för PR och kommunikation. Sajten är inte officiellt knuten till Almedalsveckan eller Region Gotland.</p>
+      </div>
+      <div class="footer-col">
+        <div class="footer-h-small">Programdata</div>
+        <p class="footer-fine">Programinformationen kommer från <a href="https://almedalsveckan.info" target="_blank" rel="noopener">Region Gotlands officiella program</a> för Almedalsveckan 2026 och uppdateras regelbundet. Vid eventuella avvikelser gäller den officiella källan.</p>
+      </div>
+      <div class="footer-col">
+        <div class="footer-h-small">Personuppgifter</div>
+        <p class="footer-fine">Kontaktuppgifter till arrangörer kommer från det officiella programmet och visas som arrangörerna själva har publicerat dem. Om du anmäler dig till nyhetsbrev lagrar Influera endast din e-postadress för det syfte du valt. Avregistrering är möjlig i varje utskick. Frågor: <a href="mailto:info@influera.se">info@influera.se</a>.</p>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <span>© 2026 Influera</span>
+      <span class="footer-sep">·</span>
+      <span>Almedalskartan</span>
+      <span class="footer-sep">·</span>
+      <a href="https://www.influera.com" target="_blank" rel="noopener">influera.com</a>
+    </div>
+  </div>
+</footer>
+
+<!-- Modal: Ämnesväljare -->
+<div class="modal-overlay" id="topicModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <h3 class="modal-title">Ämnen</h3>
+        <div class="modal-sub">Dra spaken högre för ämnen du vill bevaka mest. Primärt ämne väger fullt, sekundärt halvt.</div>
+      </div>
+      <button class="icon-btn" id="topicClose">✕</button>
+    </div>
+    <div class="modal-body" id="topicBody"></div>
+    <div class="modal-foot">
+      <button class="chip" id="topicReset">Nollställ för session</button>
+      <button class="chip active" id="topicApply">Klar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Skapa profil -->
+<div class="modal-overlay" id="profileModal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-head">
+      <div>
+        <h3 class="modal-title">Ny profil</h3>
+        <div class="modal-sub">Profiler sparas lokalt i denna webbläsare. Varje profil har sin egen agenda och sina egna ämnesvikter.</div>
+      </div>
+      <button class="icon-btn" id="profileModalClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="text" id="profileNameInput" class="search" placeholder="Profilnamn" style="width:100%;padding:10px 12px;font-size:14px" maxlength="40">
+    </div>
+    <div class="modal-foot">
+      <button class="chip" id="profileCancel">Avbryt</button>
+      <button class="chip active" id="profileCreate">Skapa</button>
+    </div>
+  </div>
+</div>
+
+<script>__LEAFLET_JS__</script>
+<script id="data" type="text/plain">__DATA__</script>
+<script>
+(function(){
+'use strict';
+
+// Fatal error reporter: surfaces the real error instead of generic "Script error"
+function fatal(msg){
+  try{
+    document.getElementById('fatalMsg').textContent = String(msg);
+    document.getElementById('fatal').classList.add('open');
+  }catch(e){ alert('Influera fatal: '+msg); }
+}
+window.addEventListener('error', function(ev){
+  var detail = '';
+  if(ev){
+    if(ev.error && ev.error.stack) detail = ev.error.stack;
+    else if(ev.message) detail = ev.message;
+    if(ev.filename) detail += '\n@ '+ev.filename+':'+ev.lineno;
+  }
+  if(!detail) detail = 'Okänt fel (iOS WebView döljer detaljer från sandlådade skript)';
+  fatal(detail);
+});
+
+// Storage shim: fall back to in-memory if localStorage is denied (sandboxed iframes)
+var memStore = {};
+var storageAvail = false;
+try {
+  var testKey = '__influera_test__';
+  localStorage.setItem(testKey, '1');
+  localStorage.removeItem(testKey);
+  storageAvail = true;
+} catch(e){ storageAvail = false; }
+var safeStore = {
+  get: function(k){
+    try { return storageAvail ? localStorage.getItem(k) : (memStore[k] || null); }
+    catch(e){ return memStore[k] || null; }
+  },
+  set: function(k, v){
+    try { if(storageAvail) localStorage.setItem(k, v); else memStore[k] = v; }
+    catch(e){ memStore[k] = v; }
+  },
+  available: function(){ return storageAvail; }
+};
+
+// Check Leaflet loaded
+var hasLeaflet = (typeof L !== 'undefined' && L && L.map);
+
+// Load data
+var DATA;
+try {
+  var rawData = document.getElementById('data').textContent;
+  DATA = JSON.parse(rawData);
+  if(!DATA || !Array.isArray(DATA.events)) throw new Error('Data har fel format');
+} catch(err){
+  fatal('Datat kunde inte läsas in.\n\n' + err.message + '\n\nFörsta 200 tecken av data: ' + (document.getElementById('data').textContent || '').slice(0,200));
+  return;
+}
+
+var EVENTS = DATA.events;
+var TOPICS = DATA.topics;
+
+// ============== Profiles ==============
+var LS_PROFILES = 'influera_almedal_profiles_v1';
+var LS_ACTIVE = 'influera_almedal_active_profile_v1';
+
+function loadProfiles(){
+  try {
+    var p = JSON.parse(safeStore.get(LS_PROFILES) || 'null');
+    if(p && typeof p === 'object') return p;
+  } catch(e){}
+  return { 'Gäst': { agenda: [], weights: {} } };
+}
+function saveProfiles(){
+  try { safeStore.set(LS_PROFILES, JSON.stringify(profiles)); } catch(e){}
+}
+
+function loadActive(){
+  var a = safeStore.get(LS_ACTIVE);
+  return (a && profiles[a]) ? a : 'Gäst';
+}
+function saveActive(){ try { safeStore.set(LS_ACTIVE, state.profile); } catch(e){} }
+
+var profiles = loadProfiles();
+if(!profiles['Gäst']) profiles['Gäst'] = { agenda: [], weights: {} };
+saveProfiles();
+
+// State
+var state = {
+  day: 'all',
+  tFrom: 6, tTo: 23,
+  q: '',
+  tab: 'all',
+  selectedId: null,
+  profile: loadActive(),
+  userPos: null,
+  now: false,
+  weightsMuted: false,
+  page: 1,
+  pageSize: loadPageSize(),
+  // Advanced filters
+  searchFields: { rubrik: true, arr: true, med: true, plats: true, besk: false },
+  filterTyp: '',
+  filterTypOrg: '',
+  filterSprak: '',
+  filterTillg: [],
+  filterLive: false,
+  filterMat: false,
+  filterEko: false,
+  // Accessibility
+  fontSize: loadFontSize()
+};
+
+var LS_FONTSIZE = 'influera_almedal_fontsize_v1';
+function loadFontSize(){
+  try {
+    var f = safeStore.get(LS_FONTSIZE);
+    return ['sm','md','lg','xl'].indexOf(f) >= 0 ? f : 'md';
+  } catch(e){ return 'md'; }
+}
+function saveFontSize(){ try { safeStore.set(LS_FONTSIZE, state.fontSize); } catch(e){} }
+function applyFontSize(){
+  var sizes = { sm: 12, md: 13.5, lg: 15.5, xl: 17.5 };
+  var base = sizes[state.fontSize] || 13.5;
+  document.body.style.fontSize = base + 'px';
+  document.documentElement.setAttribute('data-fs', state.fontSize);
+}
+
+var LS_PAGESIZE = 'influera_almedal_pagesize_v1';
+function loadPageSize(){
+  try {
+    var p = parseInt(safeStore.get(LS_PAGESIZE) || '20', 10);
+    return [20, 50, 100].indexOf(p) >= 0 ? p : 20;
+  } catch(e){ return 20; }
+}
+function savePageSize(){ try { safeStore.set(LS_PAGESIZE, String(state.pageSize)); } catch(e){} }
+function resetPage(){ state.page = 1; }
+
+// Track how many times user has pressed reset since opening the topic modal
+var topicResetClicks = 0;
+
+function currentAgenda(){
+  return new Set(profiles[state.profile].agenda || []);
+}
+function setAgenda(setObj){
+  profiles[state.profile].agenda = Array.from(setObj);
+  saveProfiles();
+}
+function currentWeights(){ return profiles[state.profile].weights || {}; }
+function setWeights(w){ profiles[state.profile].weights = w; saveProfiles(); }
+// Effective weights: empty when session-muted, else profile weights
+function effectiveWeights(){ return state.weightsMuted ? {} : currentWeights(); }
+
+function renderProfileMenu(){
+  var menu = document.getElementById('profileMenu');
+  var names = Object.keys(profiles);
+  document.getElementById('profileName').textContent = state.profile;
+  menu.innerHTML = names.map(function(n){
+    var n_count = (profiles[n].agenda||[]).length;
+    return '<div class="profile-item '+(n===state.profile?'active':'')+'" data-profile="'+escapeAttr(n)+'">' +
+      '<span>'+escapeHtml(n)+'</span>' +
+      '<span class="pi-count">'+n_count+'</span>' +
+    '</div>';
+  }).join('') +
+  '<div class="profile-divider"></div>' +
+  '<div class="profile-action" id="addProfile">+ Ny profil</div>' +
+  (state.profile !== 'Gäst' ? '<div class="profile-action" id="deleteProfile" style="color:var(--red)">Ta bort denna profil</div>' : '') +
+  '<div class="profile-divider"></div>' +
+  '<div class="font-size-row">' +
+    '<span class="font-size-label">Textstorlek</span>' +
+    '<div class="font-size-btns">' +
+      '<button class="font-size-btn '+(state.fontSize==='sm'?'active':'')+'" data-fs="sm" aria-label="Mindre text">A−</button>' +
+      '<button class="font-size-btn '+(state.fontSize==='md'?'active':'')+'" data-fs="md" aria-label="Normal text">A</button>' +
+      '<button class="font-size-btn '+(state.fontSize==='lg'?'active':'')+'" data-fs="lg" aria-label="Större text">A+</button>' +
+      '<button class="font-size-btn '+(state.fontSize==='xl'?'active':'')+'" data-fs="xl" aria-label="Extra stor text">A++</button>' +
+    '</div>' +
+  '</div>';
+
+  menu.querySelectorAll('.profile-item').forEach(function(it){
+    it.addEventListener('click', function(){
+      state.profile = it.getAttribute('data-profile');
+      saveActive();
+      menu.classList.remove('open');
+      renderProfileMenu();
+      render();
+    });
+  });
+  var add = document.getElementById('addProfile');
+  if(add) add.addEventListener('click', function(){
+    menu.classList.remove('open');
+    document.getElementById('profileNameInput').value = '';
+    document.getElementById('profileModal').classList.add('open');
+    setTimeout(function(){ document.getElementById('profileNameInput').focus(); }, 100);
+  });
+  var del = document.getElementById('deleteProfile');
+  if(del) del.addEventListener('click', function(){
+    if(confirm('Ta bort profilen "'+state.profile+'"? Agendan och vikterna försvinner. Detta går inte att ångra.')){
+      delete profiles[state.profile];
+      saveProfiles();
+      state.profile = 'Gäst';
+      saveActive();
+      menu.classList.remove('open');
+      renderProfileMenu();
+      render();
+    }
+  });
+  menu.querySelectorAll('.font-size-btn').forEach(function(b){
+    b.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      state.fontSize = b.getAttribute('data-fs');
+      applyFontSize();
+      saveFontSize();
+      renderProfileMenu();
+    });
+  });
+}
+
+document.getElementById('profileBtn').addEventListener('click', function(e){
+  e.stopPropagation();
+  document.getElementById('profileMenu').classList.toggle('open');
+});
+document.addEventListener('click', function(){
+  document.getElementById('profileMenu').classList.remove('open');
+});
+
+document.getElementById('profileCancel').addEventListener('click', function(){
+  document.getElementById('profileModal').classList.remove('open');
+});
+document.getElementById('profileModalClose').addEventListener('click', function(){
+  document.getElementById('profileModal').classList.remove('open');
+});
+document.getElementById('profileCreate').addEventListener('click', function(){
+  var n = (document.getElementById('profileNameInput').value || '').trim();
+  if(!n){ alert('Ange ett namn'); return; }
+  if(profiles[n]){ alert('Profil finns redan'); return; }
+  profiles[n] = { agenda: [], weights: {} };
+  state.profile = n;
+  saveProfiles();
+  saveActive();
+  document.getElementById('profileModal').classList.remove('open');
+  renderProfileMenu();
+  render();
+});
+document.getElementById('profileNameInput').addEventListener('keydown', function(e){
+  if(e.key === 'Enter') document.getElementById('profileCreate').click();
+});
+
+// Day labels
+var DAY_LABELS = {
+  '2026-06-22':'Mån 22',
+  '2026-06-23':'Tis 23',
+  '2026-06-24':'Ons 24',
+  '2026-06-25':'Tor 25',
+  '2026-06-26':'Fre 26'
+};
+var DAYS = Object.keys(DAY_LABELS);
+
+// Build day chips
+var dayChips = document.getElementById('dayChips');
+dayChips.innerHTML = '<button class="chip active" data-day="all">Alla</button>' +
+  DAYS.map(function(d){ return '<button class="chip" data-day="'+d+'">'+DAY_LABELS[d]+'</button>'; }).join('');
+dayChips.addEventListener('click', function(e){
+  var b = e.target.closest('.chip'); if(!b) return;
+  dayChips.querySelectorAll('.chip').forEach(function(c){ c.classList.remove('active'); });
+  b.classList.add('active');
+  state.day = b.getAttribute('data-day');
+  if(state.now){ state.now = false; document.getElementById('nowBtn').classList.remove('active'); }
+  resetPage();
+  render();
+});
+
+// Time sliders
+var tFrom = document.getElementById('timeFrom');
+var tTo = document.getElementById('timeTo');
+var tFromVal = document.getElementById('timeFromVal');
+var tToVal = document.getElementById('timeToVal');
+function fmtTime(v){
+  var h = Math.floor(v);
+  var m = (v - h) === 0.5 ? '30' : '00';
+  return (h<10?'0':'') + h + ':' + m;
+}
+function updateTime(ev){
+  var a = parseFloat(tFrom.value), b = parseFloat(tTo.value);
+  if(a > b){ if(ev && ev.target === tFrom){ tTo.value = a; b = a; } else { tFrom.value = b; a = b; } }
+  state.tFrom = a; state.tTo = b;
+  tFromVal.textContent = fmtTime(a);
+  tToVal.textContent = fmtTime(b);
+  if(state.now){ state.now = false; document.getElementById('nowBtn').classList.remove('active'); }
+  resetPage();
+  render();
+}
+tFrom.addEventListener('input', updateTime);
+tTo.addEventListener('input', updateTime);
+
+// Search
+var searchInp = document.getElementById('search');
+var searchTimer;
+searchInp.addEventListener('input', function(){
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(function(){
+    state.q = searchInp.value.trim().toLowerCase();
+    resetPage();
+    render();
+  }, 180);
+});
+
+// Tabs
+document.querySelectorAll('.tab').forEach(function(t){
+  t.addEventListener('click', function(){
+    document.querySelectorAll('.tab').forEach(function(x){ x.classList.remove('active'); });
+    t.classList.add('active');
+    state.tab = t.getAttribute('data-tab');
+    document.getElementById('agendaActions').style.display = state.tab === 'agenda' ? 'flex' : 'none';
+    resetPage();
+    render();
+  });
+});
+
+// Agenda bulk actions
+document.getElementById('exportAllBtn').addEventListener('click', function(){
+  var ids = profiles[state.profile].agenda || [];
+  if(ids.length === 0){ alert('Agendan är tom.'); return; }
+  var events = ids.map(function(id){ return EVENTS.find(function(e){ return e.id === id; }); }).filter(Boolean);
+  downloadICS(events, 'influera_agenda_' + state.profile + '.ics');
+});
+document.getElementById('clearAgendaBtn').addEventListener('click', function(){
+  if(!confirm('Töm hela agendan för "'+state.profile+'"?')) return;
+  profiles[state.profile].agenda = [];
+  saveProfiles();
+  renderProfileMenu();
+  render();
+});
+
+// Geo
+document.getElementById('geoBtn').addEventListener('click', function(){
+  if(!navigator.geolocation){ alert('Geolokalisering stöds inte i denna webbläsare'); return; }
+  navigator.geolocation.getCurrentPosition(function(p){
+    state.userPos = [p.coords.latitude, p.coords.longitude];
+    drawUserMarker();
+    if(map) map.setView(state.userPos, 16);
+  }, function(){ alert('Kunde inte hämta din position'); });
+});
+
+// Reset: clears all session filters (date, time, search, location, Now, tab) and mutes topics for session.
+// Topic weights are persisted per profile and are NOT deleted here. Use the Ämnen panel to permanently clear them.
+document.getElementById('resetBtn').addEventListener('click', function(){
+  state.day = 'all'; state.q = ''; state.tFrom = 6; state.tTo = 23; state.tab = 'all';
+  state.now = false;
+  state.userPos = null;
+
+  tFrom.value = 6; tTo.value = 23; searchInp.value = '';
+  tFromVal.textContent = '06:00'; tToVal.textContent = '23:00';
+  dayChips.querySelectorAll('.chip').forEach(function(c){ c.classList.toggle('active', c.getAttribute('data-day')==='all'); });
+  document.querySelectorAll('.tab').forEach(function(t){ t.classList.toggle('active', t.getAttribute('data-tab')==='all'); });
+  document.getElementById('nowBtn').classList.remove('active');
+  document.getElementById('agendaActions').style.display = 'none';
+
+  // Mute topics for this session, keep profile weights intact
+  if(Object.keys(currentWeights()).length > 0){
+    state.weightsMuted = true;
+    updateTopicBadge();
+  }
+
+  // Remove "Nära mig" user-position marker from map
+  if(map && userMarker){
+    try { map.removeLayer(userMarker); } catch(e){}
+    userMarker = null;
+  }
+
+  // Reset advanced filters
+  state.filterTyp = '';
+  state.filterTypOrg = '';
+  state.filterSprak = '';
+  state.filterTillg = [];
+  state.filterLive = false;
+  state.filterMat = false;
+  state.filterEko = false;
+  state.searchFields = { rubrik: true, arr: true, med: true, plats: true, besk: false };
+  updateFilterBadge();
+
+  resetPage();
+  render();
+});
+
+// Nu (just nu)
+document.getElementById('nowBtn').addEventListener('click', function(){
+  state.now = !state.now;
+  this.classList.toggle('active', state.now);
+  if(state.now){
+    state.day = 'all';
+    dayChips.querySelectorAll('.chip').forEach(function(c){ c.classList.remove('active'); });
+  } else {
+    state.day = 'all';
+    dayChips.querySelectorAll('.chip').forEach(function(c){ c.classList.toggle('active', c.getAttribute('data-day')==='all'); });
+  }
+  resetPage();
+  render();
+});
+
+function isInAlmedalen(d){
+  // Almedalsveckan 2026: 22 to 26 June 2026, month 5 (0-indexed June)
+  return d.getFullYear()===2026 && d.getMonth()===5 && d.getDate()>=22 && d.getDate()<=26;
+}
+
+function nuWindow(){
+  // Returns {date:'YYYY-MM-DD', from:hourNum, to:hourNum, inEvent:bool}
+  var n = new Date();
+  var pad = function(x){ return x<10?'0'+x:String(x); };
+  var date = n.getFullYear()+'-'+pad(n.getMonth()+1)+'-'+pad(n.getDate());
+  var hourNum = n.getHours() + n.getMinutes()/60;
+  return { date: date, from: hourNum - 0.25, to: hourNum + 1.0, inEvent: isInAlmedalen(n), nowTime: hourNum };
+}
+
+// ============== ÄMNESVIKTER ==============
+var topicModal = document.getElementById('topicModal');
+var topicBody = document.getElementById('topicBody');
+var topicCountEl = document.getElementById('topicCount');
+
+function buildTopicPanel(){
+  var weights = currentWeights();
+  var stored = Object.keys(weights).length;
+  var bannerHtml = '';
+  if(state.weightsMuted && stored > 0){
+    bannerHtml = '<div style="background:rgba(225,36,29,0.08);border:1px solid var(--influera-red);padding:9px 12px;margin-bottom:10px;border-radius:2px;display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:11.5px">' +
+      '<span style="color:var(--influera-red);letter-spacing:0.3px"><strong>'+stored+' val</strong> är pausade för sessionen. Sparade i profilen.</span>' +
+      '<button class="chip" id="topicReactivate" style="padding:4px 9px;font-size:10px;letter-spacing:1px">Aktivera igen</button>' +
+    '</div>';
+  }
+  topicBody.innerHTML = bannerHtml + TOPICS.map(function(pair){
+    var name = pair[0], count = pair[1];
+    var w = weights[name] || 0;
+    var labels = ['Av','Lite','Mer','Max'];
+    var segs = '';
+    for(var i=0;i<4;i++){
+      var on = i>0 && i<=w;
+      var lvl = i===1?'lv1':i===2?'lv2':i===3?'lv3':'';
+      var dot = i===0 ? '<div style="width:6px;height:6px;border-radius:50%;background:'+(w===0?'#C8A95A':'rgba(244,239,227,0.3)')+';margin:auto"></div>' : '';
+      segs += '<button class="spak-seg '+(on?'on '+lvl:'')+'" data-topic="'+escapeAttr(name)+'" data-val="'+i+'" title="'+labels[i]+'">'+dot+'</button>';
+    }
+    // Dim row visually when muted
+    var rowStyle = state.weightsMuted && w > 0 ? 'opacity:0.5' : '';
+    return '<div class="topic-row '+(w>0?'active':'')+'" style="'+rowStyle+'">' +
+      '<div class="topic-info">' +
+        '<span class="topic-name">'+escapeHtml(name)+'</span>' +
+        '<span class="topic-count">'+count+'</span>' +
+      '</div>' +
+      '<div class="spak">' +
+        '<div class="spak-track">'+segs+'</div>' +
+        '<div class="spak-label '+(w>0?'active':'')+'">'+labels[w]+'</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  var reactBtn = document.getElementById('topicReactivate');
+  if(reactBtn){
+    reactBtn.addEventListener('click', function(){
+      state.weightsMuted = false;
+      topicResetClicks = 0;
+      buildTopicPanel();
+      updateTopicResetButton();
+      updateTopicBadge();
+      resetPage();
+      render();
+    });
+  }
+}
+
+topicBody.addEventListener('click', function(e){
+  var seg = e.target.closest('.spak-seg'); if(!seg) return;
+  var topic = seg.getAttribute('data-topic');
+  var val = parseInt(seg.getAttribute('data-val'), 10);
+  var w = currentWeights();
+  var cur = w[topic] || 0;
+  if(val === cur && val > 0) val = 0;
+  if(val === 0) delete w[topic]; else w[topic] = val;
+  setWeights(w);
+  // Any manual edit reactivates topics if they were muted
+  if(state.weightsMuted){
+    state.weightsMuted = false;
+    topicResetClicks = 0;
+    updateTopicResetButton();
+  }
+  buildTopicPanel();
+  updateTopicBadge();
+  resetPage();
+  render();
+});
+
+function updateTopicResetButton(){
+  var btn = document.getElementById('topicReset');
+  var stored = Object.keys(currentWeights()).length;
+  if(stored === 0){
+    // Nothing to reset
+    btn.textContent = 'Inga val';
+    btn.disabled = true;
+    btn.style.opacity = '0.4';
+    btn.style.cursor = 'default';
+  } else if(topicResetClicks === 0 && !state.weightsMuted){
+    btn.textContent = 'Nollställ för sessionen';
+    btn.disabled = false;
+    btn.style.opacity = '';
+    btn.style.cursor = '';
+    btn.style.color = '';
+    btn.style.borderColor = '';
+  } else {
+    // Either weights are muted (one click done) or user has reached step 2
+    btn.textContent = 'Radera permanent för profil';
+    btn.disabled = false;
+    btn.style.opacity = '';
+    btn.style.cursor = '';
+    btn.style.color = 'var(--influera-red)';
+    btn.style.borderColor = 'var(--influera-red)';
+  }
+}
+
+document.getElementById('topicBtn').addEventListener('click', function(){
+  topicResetClicks = 0;
+  buildTopicPanel();
+  updateTopicResetButton();
+  topicModal.classList.add('open');
+});
+document.getElementById('topicClose').addEventListener('click', function(){
+  topicModal.classList.remove('open');
+  topicResetClicks = 0;
+});
+document.getElementById('topicApply').addEventListener('click', function(){
+  topicModal.classList.remove('open');
+  topicResetClicks = 0;
+});
+document.getElementById('topicReset').addEventListener('click', function(){
+  var stored = Object.keys(currentWeights()).length;
+  if(stored === 0) return;
+
+  if(!state.weightsMuted){
+    // First click: mute for this session, don't delete
+    state.weightsMuted = true;
+    topicResetClicks = 1;
+  } else {
+    // Second click: permanently delete from profile
+    setWeights({});
+    state.weightsMuted = false;
+    topicResetClicks = 0;
+  }
+  buildTopicPanel();
+  updateTopicResetButton();
+  updateTopicBadge();
+  resetPage();
+  render();
+});
+topicModal.addEventListener('click', function(e){
+  if(e.target === topicModal){
+    topicModal.classList.remove('open');
+    topicResetClicks = 0;
+  }
+});
+
+function updateTopicBadge(){
+  var stored = Object.keys(currentWeights()).length;
+  var active = state.weightsMuted ? 0 : stored;
+  topicCountEl.textContent = active;
+  if(active > 0){
+    topicCountEl.style.background = 'var(--gold)';
+    topicCountEl.style.color = '#FBF8EF';
+  } else if(stored > 0){
+    // Muted: weights exist in profile but inactive this session. Show outline only.
+    topicCountEl.style.background = 'rgba(138,114,55,0.10)';
+    topicCountEl.style.color = 'var(--gold-d)';
+  } else {
+    topicCountEl.style.background = 'rgba(138,114,55,0.15)';
+    topicCountEl.style.color = 'var(--gold)';
+  }
+}
+
+// ============== Map ==============
+var map = null;
+var markerLayer = null;
+var userMarker = null;
+
+if(hasLeaflet){
+  try {
+    map = L.map('map', { zoomControl: true, attributionControl: false }).setView([57.6398, 18.2945], 15);
+
+    // Tile loading status overlay
+    var tileStatus = document.createElement('div');
+    tileStatus.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;pointer-events:none;z-index:200;text-align:center;padding:20px;line-height:1.8';
+    tileStatus.textContent = 'Karta laddas...';
+    document.getElementById('map').appendChild(tileStatus);
+
+    var tileLoadCount = 0;
+    var tileErrorCount = 0;
+
+    var tileLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      crossOrigin: true
+    });
+
+    tileLayer.on('tileload', function(){
+      tileLoadCount++;
+      if(tileLoadCount === 1 && tileStatus.parentNode) tileStatus.parentNode.removeChild(tileStatus);
+    });
+    tileLayer.on('tileerror', function(){
+      tileErrorCount++;
+      // After 5 errors with no successful loads, show the user a clear message
+      if(tileLoadCount === 0 && tileErrorCount >= 5 && tileStatus.parentNode){
+        tileStatus.style.lineHeight = '1.6';
+        tileStatus.innerHTML = '<div>Kartbakgrunden kunde inte laddas i denna preview.<br>Markörer och funktioner fungerar.<br>I produktion (Netlify) laddas kartan normalt.</div>';
+      }
+    });
+
+    tileLayer.addTo(map);
+
+    L.control.attribution({ position: 'bottomright', prefix: false })
+      .addAttribution('© OpenStreetMap-bidragsgivare')
+      .addTo(map);
+    markerLayer = L.layerGroup().addTo(map);
+
+    map.on('contextmenu', function(e){
+      var name = prompt('Anteckning för pin:');
+      if(name){
+        L.marker(e.latlng, {
+          icon: L.divIcon({ className:'', html:'<div class="marker-pin" style="background:#D97706"></div>', iconSize:[16,16], iconAnchor:[8,8] })
+        }).bindPopup(escapeHtml(name)).addTo(map);
+      }
+    });
+  } catch(err){
+    map = null; markerLayer = null;
+    document.getElementById('map').innerHTML = '<div style="padding:30px;color:var(--muted);text-align:center;font-size:12px;letter-spacing:1px">Kartan kunde inte initieras: '+escapeHtml(err.message||err)+'</div>';
+  }
+} else {
+  document.getElementById('map').innerHTML = '<div style="padding:30px;color:var(--muted);text-align:center;font-size:12px;letter-spacing:1.4px;text-transform:uppercase;line-height:1.8">Kartfunktionen kunde inte laddas.<br>Listan och filtren fungerar.</div>';
+}
+
+function drawUserMarker(){
+  if(!map) return;
+  if(userMarker){ map.removeLayer(userMarker); }
+  if(!state.userPos) return;
+  userMarker = L.marker(state.userPos, {
+    icon: L.divIcon({ className:'', html:'<div class="marker-pin"></div>', iconSize:[16,16], iconAnchor:[8,8] })
+  }).addTo(map);
+}
+
+// ============== Scoring ==============
+function scoreEvent(e){
+  var w = effectiveWeights();
+  if(Object.keys(w).length === 0) return 0;
+  var s = 0;
+  if(e.amne1 && w[e.amne1]) s += w[e.amne1] * 1.0;
+  if(e.amne2 && w[e.amne2]) s += w[e.amne2] * 0.5;
+  return s;
+}
+
+// Theoretical max score given current weights.
+// Both primary and secondary can be filled by the same topic (this happens in the data),
+// so max = highest weight × 1.0 + highest weight × 0.5 = highest weight × 1.5
+function maxScore(){
+  var w = effectiveWeights();
+  var topWeight = 0;
+  Object.keys(w).forEach(function(k){ if(w[k] > topWeight) topWeight = w[k]; });
+  return topWeight * 1.5;
+}
+
+function scorePercent(e){
+  var m = maxScore();
+  if(m <= 0) return 0;
+  return Math.round(scoreEvent(e) / m * 100);
+}
+
+// ============== Filter / render ==============
+function timeToNum(t){
+  if(!t) return null;
+  var m = String(t).match(/^(\d{1,2}):(\d{2})/);
+  if(!m) return null;
+  return parseInt(m[1],10) + parseInt(m[2],10)/60;
+}
+
+function filtered(){
+  var q = state.q;
+  var agendaSet = currentAgenda();
+  var nu = state.now ? nuWindow() : null;
+  var sf = state.searchFields;
+  return EVENTS.filter(function(e){
+    if(state.tab === 'agenda' && !agendaSet.has(e.id)) return false;
+    if(nu){
+      if(e.dag.indexOf(nu.date) !== 0) return false;
+      var t = timeToNum(e.start);
+      if(t === null) return false;
+      if(t < nu.from || t > nu.to) return false;
+    } else {
+      if(state.day !== 'all' && e.dag.indexOf(state.day) !== 0) return false;
+      var t = timeToNum(e.start);
+      if(t !== null && (t < state.tFrom || t > state.tTo)) return false;
+    }
+    if(q){
+      var parts = [];
+      if(sf.rubrik) parts.push(e.rubrik || '');
+      if(sf.plats) parts.push(e.plats || '');
+      if(sf.arr) parts.push((e.arr || []).join(' '));
+      if(sf.med) parts.push((e.med || []).map(function(m){return m.n+' '+m.o+' '+(m.t||'');}).join(' '));
+      if(sf.besk) parts.push((e.besk || '') + ' ' + (e.info || ''));
+      var hay = parts.join(' ').toLowerCase();
+      if(hay.indexOf(q) === -1) return false;
+    }
+    if(state.filterTyp && e.typ !== state.filterTyp) return false;
+    if(state.filterTypOrg && e.typorg !== state.filterTypOrg) return false;
+    if(state.filterSprak && e.sprak !== state.filterSprak) return false;
+    if(state.filterTillg && state.filterTillg.length){
+      var et = (e.tillg || '');
+      // All selected tokens must be present
+      for(var i=0;i<state.filterTillg.length;i++){
+        if(et.indexOf(state.filterTillg[i]) === -1) return false;
+      }
+    }
+    if(state.filterLive && e.live !== 'Ja') return false;
+    if(state.filterMat && e.mat !== 'Ja') return false;
+    if(state.filterEko && e.eko !== 'Ja') return false;
+    return true;
+  });
+}
+
+function activeFilterCount(){
+  var n = 0;
+  if(state.filterTyp) n++;
+  if(state.filterTypOrg) n++;
+  if(state.filterSprak) n++;
+  if(state.filterTillg && state.filterTillg.length) n += state.filterTillg.length;
+  if(state.filterLive) n++;
+  if(state.filterMat) n++;
+  if(state.filterEko) n++;
+  return n;
+}
+
+function render(){
+  var list = filtered();
+  var hasWeights = Object.keys(effectiveWeights()).length > 0;
+  var sortModeEl = document.getElementById('sortMode');
+  if(hasWeights){
+    list.forEach(function(e){ e._score = scoreEvent(e); });
+    list.sort(function(a,b){
+      if(b._score !== a._score) return b._score - a._score;
+      if(a.dag !== b.dag) return a.dag < b.dag ? -1 : 1;
+      return (a.start || '').localeCompare(b.start || '');
+    });
+    sortModeEl.textContent = 'Ämnesvikt';
+  } else {
+    list.sort(function(a,b){
+      if(a.dag !== b.dag) return a.dag < b.dag ? -1 : 1;
+      return (a.start || '').localeCompare(b.start || '');
+    });
+    sortModeEl.textContent = 'Tid';
+  }
+
+  // If Nu is active, show the live window in the sort bar
+  if(state.now){
+    var nu = nuWindow();
+    sortModeEl.textContent = 'Just nu ' + fmtTime(Math.max(0, nu.from)) + ' till ' + fmtTime(Math.min(23.5, nu.to));
+  }
+
+  document.getElementById('cntAll').textContent = EVENTS.length;
+  document.getElementById('cntAgenda').textContent = currentAgenda().size;
+  document.getElementById('resultCount').textContent = list.length + ' resultat';
+
+  // Pagination math
+  var totalPages = Math.max(1, Math.ceil(list.length / state.pageSize));
+  if(state.page > totalPages) state.page = totalPages;
+  if(state.page < 1) state.page = 1;
+  var startIdx = (state.page - 1) * state.pageSize;
+  var endIdx = Math.min(startIdx + state.pageSize, list.length);
+  var pageItems = list.slice(startIdx, endIdx);
+
+  // Update page bar UI
+  var pageBar = document.getElementById('pageBar');
+  if(list.length === 0){
+    pageBar.style.display = 'none';
+  } else {
+    pageBar.style.display = 'flex';
+    document.getElementById('pageInfo').textContent = state.page + ' / ' + totalPages;
+    document.getElementById('pagePrev').disabled = state.page <= 1;
+    document.getElementById('pageNext').disabled = state.page >= totalPages;
+    document.querySelectorAll('.page-size-btn').forEach(function(b){
+      b.classList.toggle('active', parseInt(b.getAttribute('data-size'),10) === state.pageSize);
+    });
+  }
+
+  var listEl = document.getElementById('list');
+  if(list.length === 0){
+    var emptyMsg;
+    if(state.now){
+      var n2 = nuWindow();
+      if(n2.inEvent){
+        emptyMsg = 'Inga programpunkter just nu.<br><br>Inget startar inom 15 minuter bakåt eller den närmaste timmen.';
+      } else {
+        emptyMsg = 'Almedalsveckan pågår 22 till 26 juni 2026.<br><br>"Nu" filtrerar i realtid under veckan, baserat på enhetens klocka. Just nu är det utanför eventet.';
+      }
+    } else {
+      emptyMsg = 'Inga programpunkter matchar dina filter.<br><br>Pröva att vidga tidsintervallet eller återställa filtren.';
+    }
+    listEl.innerHTML = '<div class="empty">' + emptyMsg + '</div>';
+  } else {
+    listEl.innerHTML = pageItems.map(function(e){
+      var score = e._score || 0;
+      var pct = hasWeights && score > 0 ? scorePercent(e) : 0;
+      var dayLabel = '';
+      for(var k in DAY_LABELS){ if(e.dag.indexOf(k)===0){ dayLabel = DAY_LABELS[k]; break; } }
+      return '<div class="card '+(state.selectedId===e.id?'selected':'')+'" data-id="'+e.id+'">' +
+        (hasWeights && pct > 0 ? (
+          '<div class="card-score'+(pct>=80?' high':'')+'">' +
+            '<div class="card-score-num"><span class="card-score-pct">'+pct+'</span><span class="card-score-unit">%</span></div>' +
+            '<div class="card-score-bar"><div class="card-score-fill" style="width:'+pct+'%"></div></div>' +
+          '</div>'
+        ) : '') +
+        '<div class="card-row1">' +
+          '<span class="card-time">'+escapeHtml(formatHM(e.start))+(e.slut?'-'+escapeHtml(formatHM(e.slut)):'')+'</span>' +
+          '<span class="card-day">'+(dayLabel||e.dag)+'</span>' +
+        '</div>' +
+        '<div class="card-title">'+escapeHtml(e.rubrik)+'</div>' +
+        (e.plats?'<div class="card-place">'+escapeHtml(e.plats)+'</div>':'') +
+        '<div class="card-meta">' +
+          (e.amne1 ? '<span class="tag primary">'+escapeHtml(e.amne1)+'</span>' : '') +
+          (e.amne2 ? '<span class="tag">'+escapeHtml(e.amne2)+'</span>' : '') +
+          (e.typ ? '<span class="tag t-type">'+escapeHtml(e.typ)+'</span>' : '') +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  listEl.querySelectorAll('.card').forEach(function(c){
+    c.addEventListener('click', function(){ selectEvent(c.getAttribute('data-id'), true); });
+  });
+
+  // Map still shows all (filtered) markers, not just current page
+  drawMarkers(list, hasWeights);
+}
+
+function drawMarkers(list, hasWeights){
+  if(!map || !markerLayer) return;
+  markerLayer.clearLayers();
+  var groups = {};
+  list.forEach(function(e){
+    if(typeof e.lat !== 'number' || typeof e.lon !== 'number') return;
+    var key = (e.plats || '').trim() || (e.lat.toFixed(4)+','+e.lon.toFixed(4));
+    if(!groups[key]) groups[key] = { lat:e.lat, lon:e.lon, events:[], plats:e.plats||'' };
+    groups[key].events.push(e);
+  });
+
+  var maxScore = 0;
+  if(hasWeights){
+    Object.keys(groups).forEach(function(k){
+      var s = groups[k].events.reduce(function(a,e){ return a + (e._score||0); }, 0);
+      groups[k].sumScore = s;
+      if(s > maxScore) maxScore = s;
+    });
+  }
+
+  Object.keys(groups).forEach(function(k){
+    var g = groups[k];
+    var n = g.events.length;
+    var isHot = hasWeights && maxScore > 0 && g.sumScore >= maxScore * 0.6 && g.sumScore > 0;
+    var isDim = hasWeights && g.sumScore === 0;
+    var cls = 'marker-cluster' + (n===1?' single':'') + (isHot?' hot':'') + (isDim?' dim':'');
+    var html = n===1 ? '<div class="'+cls+'"></div>' : '<div class="'+cls+'">'+n+'</div>';
+    var m = L.marker([g.lat, g.lon], {
+      icon: L.divIcon({ className:'', html:html, iconSize:[n===1?18:28, n===1?18:28], iconAnchor:[n===1?9:14, n===1?9:14] })
+    });
+    m.on('click', function(){
+      var sorted = g.events.slice().sort(function(a,b){
+        if(a.dag !== b.dag) return a.dag < b.dag ? -1 : 1;
+        return (a.start||'').localeCompare(b.start||'');
+      });
+      selectEvent(sorted[0].id, false);
+    });
+    markerLayer.addLayer(m);
+  });
+}
+
+// ============== Detail panel ==============
+function selectEvent(id, panTo){
+  var e = EVENTS.find(function(x){ return x.id === id; });
+  if(!e) return;
+  state.selectedId = id;
+  document.body.classList.add('has-selection');
+  document.querySelectorAll('.card').forEach(function(c){ c.classList.toggle('selected', c.getAttribute('data-id')===id); });
+
+  var same = EVENTS.filter(function(x){ return x.id !== id && x.plats === e.plats && e.plats && x.dag === e.dag; })
+    .sort(function(a,b){ return (a.start||'').localeCompare(b.start||''); });
+
+  var detailEl = document.getElementById('detail');
+  var saved = currentAgenda().has(id);
+  var score = scoreEvent(e);
+  var hasW = Object.keys(effectiveWeights()).length > 0;
+
+  var medHtml;
+  if(e.med && e.med.length){
+    medHtml = '<div class="speakers">' + e.med.map(function(p){
+      return '<div class="speaker">' +
+        '<div class="speaker-name">'+escapeHtml(p.n)+'</div>' +
+        (p.t || p.o ? '<div class="speaker-meta">' +
+          (p.t ? escapeHtml(p.t) : '') +
+          (p.t && p.o ? ', ' : '') +
+          (p.o ? '<span class="speaker-org">'+escapeHtml(p.o)+'</span>' : '') +
+          '</div>' : '') +
+      '</div>';
+    }).join('') + '</div>';
+  } else {
+    medHtml = '<div class="d-text d-muted">Ingen medverkande angiven i programmet.</div>';
+  }
+
+  var linksRow = '';
+  if(e.web) linksRow += '<a class="d-btn alt" target="_blank" rel="noopener" href="'+escapeAttr(e.web)+'">Webb</a>';
+  if(e.fb)  linksRow += '<a class="d-btn alt" target="_blank" rel="noopener" href="'+escapeAttr(e.fb)+'">Facebook</a>';
+  if(e.li)  linksRow += '<a class="d-btn alt" target="_blank" rel="noopener" href="'+escapeAttr(e.li)+'">LinkedIn</a>';
+  if(e.x)   linksRow += '<a class="d-btn alt" target="_blank" rel="noopener" href="'+escapeAttr(e.x)+'">X</a>';
+
+  var dayLabel = '';
+  for(var k in DAY_LABELS){ if(e.dag.indexOf(k)===0){ dayLabel = DAY_LABELS[k]; break; } }
+
+  detailEl.innerHTML =
+    '<button class="mobile-back" id="mobileBack"><span class="mb-arrow">←</span><span>Tillbaka till listan</span></button>' +
+    '<div class="detail-head">' +
+      '<div class="d-eyebrow">' +
+        '<span>Programpunkt' + (hasW && score>0 ? ' • Match ' + scorePercent(e) + '%' : '') + '</span>' +
+        '<button class="d-close" id="detClose">✕</button>' +
+      '</div>' +
+      '<h2 class="d-title">'+escapeHtml(e.rubrik)+'</h2>' +
+      '<div class="d-when">' +
+        '<strong>'+(dayLabel||e.dag)+'</strong>' +
+        '<span>'+escapeHtml(formatHM(e.start))+(e.slut?'-'+escapeHtml(formatHM(e.slut)):'')+'</span>' +
+        (e.typ ? '<span class="d-muted">| '+escapeHtml(e.typ)+'</span>' : '') +
+      '</div>' +
+      '<div class="d-pill-row" style="margin-top:10px">' +
+        (e.amne1 ? '<span class="d-pill on">'+escapeHtml(e.amne1)+'</span>' : '') +
+        (e.amne2 ? '<span class="d-pill">'+escapeHtml(e.amne2)+'</span>' : '') +
+        (e.sprak ? '<span class="d-pill">Språk: '+escapeHtml(e.sprak)+'</span>' : '') +
+      '</div>' +
+      '<div class="d-actions">' +
+        '<button class="d-btn '+(saved?'saved':'')+'" id="saveBtn">'+(saved?'✓ Sparad'+(state.profile!=='Gäst'?' ('+escapeHtml(state.profile)+')':''):'Spara till agenda')+'</button>' +
+        '<button class="d-btn alt" id="icsBtn">Lägg i kalender (.ics)</button>' +
+        (e.lat && e.lon ? '<button class="d-btn alt" id="panBtn">Visa på karta</button>' : '') +
+      '</div>' +
+      '<a class="d-btn hotline" href="https://www.influera.com/almedalshotline" target="_blank" rel="noopener" style="margin-top:10px;display:inline-flex;align-items:center;gap:7px">' +
+        '<span style="display:inline-block;width:8px;height:8px;background:var(--influera-red);border-radius:50%"></span>' +
+        'Ring Influeras Almedals-hotline' +
+      '</a>' +
+    '</div>' +
+
+    (e.plats ? '<div class="d-section">' +
+      '<div class="d-label">Plats</div>' +
+      '<div class="d-text">'+escapeHtml(e.plats)+(e.platsbeskr ? '\n<span class="d-muted">'+escapeHtml(e.platsbeskr)+'</span>' : '')+'</div>' +
+    '</div>' : '') +
+
+    (e.arr && e.arr.length ? '<div class="d-section">' +
+      '<div class="d-label">Arrangör</div>' +
+      '<div class="d-text">'+e.arr.map(escapeHtml).join(', ')+'</div>' +
+      (linksRow ? '<div class="d-actions">'+linksRow+'</div>' : '') +
+    '</div>' : '') +
+
+    '<div class="d-section">' +
+      '<div class="d-label">Medverkande</div>' +
+      medHtml +
+    '</div>' +
+
+    (e.besk ? '<div class="d-section">' +
+      '<div class="d-label">Samhällsfråga</div>' +
+      '<div class="d-text">'+escapeHtml(e.besk)+'</div>' +
+    '</div>' : '') +
+
+    (e.info && e.info !== e.besk ? '<div class="d-section">' +
+      '<div class="d-label">Mer om evenemanget</div>' +
+      '<div class="d-text">'+escapeHtml(e.info)+'</div>' +
+    '</div>' : '') +
+
+    '<div class="d-section">' +
+      '<div class="d-label">Praktiskt</div>' +
+      '<div class="d-pill-row">' +
+        (e.tillg ? '<span class="d-pill on">Tillgänglighet: '+escapeHtml(e.tillg)+'</span>' : '') +
+        (e.mat === 'Ja' ? '<span class="d-pill on">Förtäring</span>' : '') +
+        (e.eko === 'Ja' ? '<span class="d-pill on">Miljödiplomerat</span>' : '') +
+        (e.live && e.live !== 'Nej' ? '<span class="d-pill on">Webbsändning</span>' : '') +
+      '</div>' +
+      (e.kp1n ? '<div class="d-text d-muted" style="margin-top:8px;font-size:11px">Kontakt: '+escapeHtml(e.kp1n)+(e.kp1e?' ('+escapeHtml(e.kp1e)+')':'')+'</div>' : '') +
+    '</div>' +
+
+    (same.length ? '<div class="d-section">' +
+      '<div class="d-label">Samma plats, samma dag</div>' +
+      '<div class="same-place-list">' +
+      same.slice(0,12).map(function(x){
+        return '<div class="spl-item" data-id="'+x.id+'">' +
+          '<div class="spl-time">'+escapeHtml(formatHM(x.start))+(x.slut?'-'+escapeHtml(formatHM(x.slut)):'')+'</div>' +
+          '<div>'+escapeHtml(x.rubrik)+'</div>' +
+        '</div>';
+      }).join('') +
+      '</div>' +
+    '</div>' : '');
+
+  document.getElementById('detClose').addEventListener('click', clearDetail);
+  var mb = document.getElementById('mobileBack');
+  if(mb) mb.addEventListener('click', clearDetail);
+  document.getElementById('saveBtn').addEventListener('click', function(){
+    var ag = currentAgenda();
+    if(ag.has(id)) ag.delete(id); else ag.add(id);
+    setAgenda(ag);
+    renderProfileMenu();
+    selectEvent(id, false);
+    render();
+  });
+  document.getElementById('icsBtn').addEventListener('click', function(){
+    downloadICS([e], 'influera_'+e.id+'.ics');
+  });
+  if(map && e.lat && e.lon){
+    var panBtn = document.getElementById('panBtn');
+    if(panBtn) panBtn.addEventListener('click', function(){ map.setView([e.lat, e.lon], 18); });
+  }
+  detailEl.querySelectorAll('.spl-item').forEach(function(it){
+    it.addEventListener('click', function(){ selectEvent(it.getAttribute('data-id'), true); });
+  });
+
+  if(panTo && map && e.lat && e.lon){
+    map.setView([e.lat, e.lon], 17);
+  }
+}
+
+function clearDetail(){
+  state.selectedId = null;
+  document.body.classList.remove('has-selection');
+  document.querySelectorAll('.card').forEach(function(c){ c.classList.remove('selected'); });
+  document.getElementById('detail').innerHTML =
+    '<div class="detail-empty">' +
+      '<span class="big">ALMEDALSKARTAN</span>' +
+      'Välj en programpunkt i listan<br>eller klicka en pin på kartan' +
+    '</div>';
+}
+
+// ============== .ics (iCalendar) export ==============
+function pad2(n){ return n<10?'0'+n:String(n); }
+
+function formatHM(t){
+  // Excel/pandas may give "10:30:00" or "10:30", keep HH:MM
+  if(!t) return '';
+  var s = String(t);
+  var m = s.match(/^(\d{1,2}):(\d{2})/);
+  return m ? (pad2(parseInt(m[1],10)) + ':' + m[2]) : s;
+}
+
+function toICSDate(dateStr, timeStr){
+  // dateStr like '2026-06-24' or '2026-06-24 00:00:00'; timeStr like '10:30' or '10:30:00'
+  var dMatch = String(dateStr).match(/(\d{4})-(\d{2})-(\d{2})/);
+  if(!dMatch) return null;
+  var y=dMatch[1], mo=dMatch[2], d=dMatch[3];
+  var tMatch = String(timeStr || '').match(/^(\d{1,2}):(\d{2})/);
+  var hh = tMatch ? pad2(parseInt(tMatch[1],10)) : '00';
+  var mm = tMatch ? tMatch[2] : '00';
+  // Local time in TZID Europe/Stockholm
+  return y + mo + d + 'T' + hh + mm + '00';
+}
+
+function icsEscape(s){
+  return String(s||'').replace(/\\/g,'\\\\').replace(/\n/g,'\\n').replace(/,/g,'\\,').replace(/;/g,'\\;');
+}
+
+function buildICS(events){
+  var now = new Date();
+  var stamp = now.getUTCFullYear() +
+    pad2(now.getUTCMonth()+1) +
+    pad2(now.getUTCDate()) + 'T' +
+    pad2(now.getUTCHours()) +
+    pad2(now.getUTCMinutes()) +
+    pad2(now.getUTCSeconds()) + 'Z';
+
+  var lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Influera//Almedalskartan 2026//SV',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    'BEGIN:VTIMEZONE',
+    'TZID:Europe/Stockholm',
+    'BEGIN:STANDARD',
+    'DTSTART:19701025T030000',
+    'TZOFFSETFROM:+0200',
+    'TZOFFSETTO:+0100',
+    'TZNAME:CET',
+    'RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU',
+    'END:STANDARD',
+    'BEGIN:DAYLIGHT',
+    'DTSTART:19700329T020000',
+    'TZOFFSETFROM:+0100',
+    'TZOFFSETTO:+0200',
+    'TZNAME:CEST',
+    'RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU',
+    'END:DAYLIGHT',
+    'END:VTIMEZONE'
+  ];
+
+  events.forEach(function(e){
+    var dtStart = toICSDate(e.dag, e.start || '08:00');
+    var dtEnd = toICSDate(e.dag, e.slut || addOneHour(e.start || '08:00'));
+    if(!dtStart || !dtEnd) return;
+    var arr = (e.arr || []).join(', ');
+    var place = (e.plats || '') + (e.platsbeskr ? '\n' + e.platsbeskr : '');
+    var med = (e.med || []).map(function(p){ return p.n + (p.t?', '+p.t:'') + (p.o?' ('+p.o+')':''); }).join('\n');
+    var desc = '';
+    if(arr) desc += 'Arrangör: ' + arr + '\n\n';
+    if(e.besk) desc += e.besk + '\n\n';
+    if(med) desc += 'Medverkande:\n' + med + '\n\n';
+    if(e.web) desc += 'Webb: ' + e.web;
+    lines.push('BEGIN:VEVENT');
+    lines.push('UID:almedal-' + e.id + '@influera.app');
+    lines.push('DTSTAMP:' + stamp);
+    lines.push('DTSTART;TZID=Europe/Stockholm:' + dtStart);
+    lines.push('DTEND;TZID=Europe/Stockholm:' + dtEnd);
+    lines.push('SUMMARY:' + icsEscape(e.rubrik));
+    if(place) lines.push('LOCATION:' + icsEscape(place));
+    if(desc) lines.push('DESCRIPTION:' + icsEscape(desc));
+    if(typeof e.lat === 'number' && typeof e.lon === 'number'){
+      lines.push('GEO:' + e.lat.toFixed(6) + ';' + e.lon.toFixed(6));
+    }
+    if(e.web) lines.push('URL:' + e.web);
+    lines.push('END:VEVENT');
+  });
+
+  lines.push('END:VCALENDAR');
+  // RFC 5545 line folding: lines max 75 octets; soft-wrap with CRLF + space
+  var out = lines.map(foldLine).join('\r\n');
+  return out;
+}
+
+function foldLine(line){
+  if(line.length <= 73) return line;
+  var out = '';
+  while(line.length > 73){
+    out += line.slice(0,73) + '\r\n ';
+    line = line.slice(73);
+  }
+  return out + line;
+}
+
+function addOneHour(hm){
+  var m = String(hm).match(/^(\d{1,2}):(\d{2})/);
+  if(!m) return '09:00';
+  var h = parseInt(m[1],10) + 1;
+  if(h > 23) h = 23;
+  return pad2(h) + ':' + m[2];
+}
+
+function downloadICS(events, filename){
+  var ics = buildICS(events);
+  var blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+}
+
+// ============== Utils ==============
+function escapeHtml(s){
+  if(s === null || s === undefined) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function escapeAttr(s){ return escapeHtml(s); }
+
+// Newsletter form
+var newsletterForm = document.getElementById('newsletterForm');
+if(newsletterForm){
+  newsletterForm.addEventListener('submit', function(ev){
+    ev.preventDefault();
+    var status = document.getElementById('newsletterStatus');
+    var submit = document.getElementById('newsletterSubmit');
+    var email = (document.getElementById('newsletterEmail').value || '').trim();
+    var r = document.getElementById('checkRapport').checked;
+    var n = document.getElementById('checkNyhetsbrev').checked;
+
+    if(!email || email.indexOf('@') < 0){
+      status.className = 'footer-status err';
+      status.textContent = 'Ange en giltig e-postadress.';
+      return;
+    }
+    if(!r && !n){
+      status.className = 'footer-status err';
+      status.textContent = 'Välj minst ett alternativ ovan så vi vet vad du vill ha.';
+      return;
+    }
+
+    status.className = 'footer-status';
+    status.textContent = 'Skickar...';
+    submit.disabled = true;
+
+    var formData = new FormData(newsletterForm);
+    fetch('/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams(formData).toString()
+    }).then(function(resp){
+      if(resp.ok){
+        status.className = 'footer-status ok';
+        status.textContent = 'Tack! Vi hör av oss enligt det du valt.';
+        newsletterForm.reset();
+      } else {
+        throw new Error('HTTP ' + resp.status);
+      }
+    }).catch(function(err){
+      status.className = 'footer-status err';
+      status.textContent = 'Något gick fel. Försök igen om en stund, eller mejla info@influera.se.';
+    }).then(function(){
+      submit.disabled = false;
+    });
+  });
+}
+
+// ============== AVANCERAT FILTER ==============
+var TYPE_VALUES = ['Debatt/panelsamtal','Seminarium/föreläsning','Samtal','Träffpunkt','Utfrågning/frågestund','Nätverkande','Workshop','Ekonomiskt seminarium','Tal','Filmvisning med samtal','Teater med samtal','Manifestation/demonstration','Tal i Almedalen'];
+var TYPORG_VALUES = ['Företag','Ideell Organisation','Stat/kommun/region','Samarbete, flera organisationstyper','Intresseorganisation','Näringslivsorganisation','Annan','Massmedier','Facklig Organisation','Politisk Organisation','Politiskt parti','Riksdagsparti'];
+var SPRAK_VALUES = ['Svenska','Svenska och Engelska','Engelska'];
+var TILLG_TOKENS = ['Entré och lokal tillgänglig för rullstol','Toalett tillgänglig för rullstol','Teleslinga','Evenemanget textas','Teckenspråkstolkning'];
+
+function populateFilterModal(){
+  // Dropdowns
+  var typSel = document.getElementById('filterTyp');
+  typSel.innerHTML = '<option value="">Alla typer</option>' + TYPE_VALUES.map(function(v){
+    return '<option value="'+escapeAttr(v)+'"'+(state.filterTyp===v?' selected':'')+'>'+escapeHtml(v)+'</option>';
+  }).join('');
+
+  var typOrgSel = document.getElementById('filterTypOrg');
+  typOrgSel.innerHTML = '<option value="">Alla organisationstyper</option>' + TYPORG_VALUES.map(function(v){
+    return '<option value="'+escapeAttr(v)+'"'+(state.filterTypOrg===v?' selected':'')+'>'+escapeHtml(v)+'</option>';
+  }).join('');
+
+  var sprakSel = document.getElementById('filterSprak');
+  sprakSel.innerHTML = '<option value="">Alla språk</option>' + SPRAK_VALUES.map(function(v){
+    return '<option value="'+escapeAttr(v)+'"'+(state.filterSprak===v?' selected':'')+'>'+escapeHtml(v)+'</option>';
+  }).join('');
+
+  // Tillgänglighet checks
+  var tillgEl = document.getElementById('filterTillg');
+  tillgEl.innerHTML = TILLG_TOKENS.map(function(v){
+    var checked = state.filterTillg.indexOf(v) >= 0 ? ' checked' : '';
+    return '<label><input type="checkbox" data-tillg="'+escapeAttr(v)+'"'+checked+'> '+escapeHtml(v)+'</label>';
+  }).join('');
+
+  // Search field checks
+  document.querySelectorAll('[data-field]').forEach(function(cb){
+    var key = cb.getAttribute('data-field').replace('search-', '');
+    cb.checked = !!state.searchFields[key];
+  });
+
+  // Boolean checks
+  document.getElementById('filterLive').checked = state.filterLive;
+  document.getElementById('filterMat').checked = state.filterMat;
+  document.getElementById('filterEko').checked = state.filterEko;
+}
+
+function readFilterModal(){
+  state.filterTyp = document.getElementById('filterTyp').value || '';
+  state.filterTypOrg = document.getElementById('filterTypOrg').value || '';
+  state.filterSprak = document.getElementById('filterSprak').value || '';
+  state.filterTillg = [];
+  document.querySelectorAll('[data-tillg]').forEach(function(cb){
+    if(cb.checked) state.filterTillg.push(cb.getAttribute('data-tillg'));
+  });
+  state.filterLive = document.getElementById('filterLive').checked;
+  state.filterMat = document.getElementById('filterMat').checked;
+  state.filterEko = document.getElementById('filterEko').checked;
+  document.querySelectorAll('[data-field]').forEach(function(cb){
+    var key = cb.getAttribute('data-field').replace('search-', '');
+    state.searchFields[key] = !!cb.checked;
+  });
+}
+
+function updateFilterBadge(){
+  var el = document.getElementById('filterCount');
+  var n = activeFilterCount();
+  el.textContent = n;
+  if(n > 0){
+    el.style.background = 'var(--gold)';
+    el.style.color = '#FBF8EF';
+  } else {
+    el.style.background = 'rgba(138,114,55,0.15)';
+    el.style.color = 'var(--gold)';
+  }
+}
+
+var filterPanel = document.getElementById('filterPanel');
+
+function applyFilterFromPanel(){
+  readFilterModal();
+  updateFilterBadge();
+  resetPage();
+  render();
+}
+
+document.getElementById('filterBtn').addEventListener('click', function(){
+  var isOpen = filterPanel.classList.contains('open');
+  if(isOpen){
+    filterPanel.classList.remove('open');
+    filterPanel.setAttribute('aria-hidden', 'true');
+    this.classList.remove('active');
+  } else {
+    populateFilterModal();
+    // Bind live-change listeners every time we populate (selects/checks are rebuilt)
+    bindFilterPanelLiveListeners();
+    filterPanel.classList.add('open');
+    filterPanel.setAttribute('aria-hidden', 'false');
+    this.classList.add('active');
+  }
+});
+document.getElementById('filterClose').addEventListener('click', function(){
+  filterPanel.classList.remove('open');
+  filterPanel.setAttribute('aria-hidden', 'true');
+  document.getElementById('filterBtn').classList.remove('active');
+});
+document.getElementById('filterApply').addEventListener('click', function(){
+  // Apply was already auto-applied, just close
+  filterPanel.classList.remove('open');
+  filterPanel.setAttribute('aria-hidden', 'true');
+  document.getElementById('filterBtn').classList.remove('active');
+});
+document.getElementById('filterReset').addEventListener('click', function(){
+  state.filterTyp = '';
+  state.filterTypOrg = '';
+  state.filterSprak = '';
+  state.filterTillg = [];
+  state.filterLive = false;
+  state.filterMat = false;
+  state.filterEko = false;
+  state.searchFields = { rubrik: true, arr: true, med: true, plats: true, besk: false };
+  populateFilterModal();
+  bindFilterPanelLiveListeners();
+  updateFilterBadge();
+  resetPage();
+  render();
+});
+
+function bindFilterPanelLiveListeners(){
+  // Selects: change event
+  ['filterTyp','filterTypOrg','filterSprak'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.onchange = applyFilterFromPanel;
+  });
+  // Tillg checks (dynamically populated)
+  document.querySelectorAll('[data-tillg]').forEach(function(cb){
+    cb.onchange = applyFilterFromPanel;
+  });
+  // Search-field checks
+  document.querySelectorAll('[data-field]').forEach(function(cb){
+    cb.onchange = applyFilterFromPanel;
+  });
+  // Boolean checks
+  ['filterLive','filterMat','filterEko'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.onchange = applyFilterFromPanel;
+  });
+}
+
+// Pagination handlers
+document.querySelectorAll('.page-size-btn').forEach(function(b){
+  b.addEventListener('click', function(){
+    var size = parseInt(b.getAttribute('data-size'), 10);
+    if(size === state.pageSize) return;
+    state.pageSize = size;
+    savePageSize();
+    resetPage();
+    render();
+    // Scroll list back to top after page-size change
+    var listEl = document.getElementById('list');
+    if(listEl) listEl.scrollTop = 0;
+  });
+});
+document.getElementById('pagePrev').addEventListener('click', function(){
+  if(state.page > 1){
+    state.page--;
+    render();
+    var listEl = document.getElementById('list');
+    if(listEl) listEl.scrollTop = 0;
+  }
+});
+document.getElementById('pageNext').addEventListener('click', function(){
+  state.page++;
+  render();
+  var listEl = document.getElementById('list');
+  if(listEl) listEl.scrollTop = 0;
+});
+
+// Initial render
+if(!storageAvail){
+  try { document.getElementById('storageWarn').style.display = 'inline-block'; } catch(e){}
+}
+applyFontSize();
+renderProfileMenu();
+updateTopicBadge();
+updateFilterBadge();
+render();
+
+})();
+</script>
+</body>
+</html>
