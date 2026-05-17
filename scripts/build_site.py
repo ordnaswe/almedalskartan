@@ -23,35 +23,35 @@ OUTPUT_PATH = Path("index.html")
 
 # Field name candidates per logical field. Probed in order, first match wins.
 FIELD_CANDIDATES = {
-    'id': ['id', 'metaId', 'meta_id', 'MetaId', 'eventId', 'event_id'],
-    'rubrik': ['title', 'rubrik', 'name', 'Rubrik', 'Title'],
-    'dag': ['date', 'startDate', 'start_date', 'dag', 'Dag', 'day'],
-    'start': ['startTime', 'start_time', 'starttid', 'Starttid', 'start', 'timeFrom'],
-    'slut': ['endTime', 'end_time', 'sluttid', 'Sluttid', 'end', 'timeTo'],
-    'kat': ['category', 'kategori', 'kat'],
-    'typ': ['eventType', 'event_type', 'type', 'typ', 'Typ', 'Typ av evenemang'],
-    'typorg': ['organizerType', 'organizer_type', 'typorg', 'Typ av organisation'],
-    'amne1': ['topic', 'subject', 'amne', 'amne1', 'Ämnesområde', 'category'],
-    'amne2': ['topic2', 'subject2', 'amne2', 'Ämnesområde 2'],
-    'plats': ['location', 'plats', 'venue', 'Plats'],
-    'lat': ['latitude', 'lat', 'Latitude'],
-    'lon': ['longitude', 'lon', 'lng', 'Longitude'],
-    'platsbeskr': ['locationDescription', 'plats_beskrivning', 'Platsbeskrivning'],
-    'sprak': ['language', 'sprak', 'Språk'],
-    'tillg': ['accessibility', 'tillg', 'Tillgänglighet'],
-    'besk': ['description', 'beskrivning', 'besk', 'Beskrivning'],
-    'info': ['additionalInfo', 'info', 'Övrig info'],
-    'arr': ['organizers', 'arrangorer', 'arr', 'Arrangör', 'arrangor'],
-    'web': ['website', 'web', 'url', 'Webbsida'],
+    'id': ['id', 'metaId', 'meta_id', 'MetaId', 'eventId', 'event_id', 'Id', 'ID'],
+    'rubrik': ['title', 'rubrik', 'name', 'Rubrik', 'Title', 'eventTitle', 'event_title', 'Name', 'heading'],
+    'dag': ['date', 'startDate', 'start_date', 'dag', 'Dag', 'day', 'Date', 'StartDate', 'eventDate'],
+    'start': ['startTime', 'start_time', 'starttid', 'Starttid', 'start', 'timeFrom', 'StartTime', 'from'],
+    'slut': ['endTime', 'end_time', 'sluttid', 'Sluttid', 'end', 'timeTo', 'EndTime', 'to'],
+    'kat': ['category', 'kategori', 'kat', 'Category'],
+    'typ': ['eventType', 'event_type', 'type', 'typ', 'Typ', 'Type', 'EventType'],
+    'typorg': ['organizerType', 'organizer_type', 'typorg', 'OrganizerType'],
+    'amne1': ['topic', 'subject', 'amne', 'amne1', 'Topic', 'Subject', 'primaryTopic'],
+    'amne2': ['topic2', 'subject2', 'amne2', 'secondaryTopic', 'topicSecondary', 'SecondaryTopic'],
+    'plats': ['location', 'plats', 'venue', 'Plats', 'Location', 'Venue', 'address'],
+    'lat': ['latitude', 'lat', 'Latitude', 'Lat'],
+    'lon': ['longitude', 'lon', 'lng', 'Longitude', 'Lon', 'Lng'],
+    'platsbeskr': ['locationDescription', 'plats_beskrivning', 'LocationDescription'],
+    'sprak': ['language', 'sprak', 'Language', 'Sprak'],
+    'tillg': ['accessibility', 'tillg', 'Accessibility'],
+    'besk': ['description', 'beskrivning', 'besk', 'Description', 'eventDescription'],
+    'info': ['additionalInfo', 'info', 'AdditionalInfo'],
+    'arr': ['organizers', 'arrangorer', 'arr', 'arrangor', 'Organizers', 'organizer', 'Organizer'],
+    'web': ['website', 'web', 'url', 'Website', 'Url'],
     'fb': ['facebook', 'fb', 'Facebook'],
-    'x': ['twitter', 'x', 'X'],
-    'li': ['linkedin', 'li', 'LinkedIn'],
-    'live': ['liveStream', 'webbsant', 'Webbsändning', 'live'],
-    'mat': ['food', 'fortaring', 'mat', 'Förtäring'],
-    'eko': ['ecoCertified', 'miljodiplomerad', 'eko', 'Miljödiplomerat'],
-    'med': ['participants', 'speakers', 'medverkande', 'med', 'Medverkande'],
-    'kp1n': ['contactPersonName', 'kontakt_namn', 'Kontaktperson namn'],
-    'kp1e': ['contactPersonEmail', 'kontakt_epost', 'Kontaktperson e-post'],
+    'x': ['twitter', 'twitterUrl', 'x', 'X', 'Twitter'],
+    'li': ['linkedin', 'linkedinUrl', 'li', 'LinkedIn'],
+    'live': ['liveStream', 'webbsant', 'webbsandning', 'live', 'LiveStream', 'isLiveStream'],
+    'mat': ['food', 'fortaring', 'mat', 'Food', 'hasFood'],
+    'eko': ['ecoCertified', 'miljodiplomerad', 'eko', 'EcoCertified', 'isEcoCertified'],
+    'med': ['participants', 'speakers', 'medverkande', 'med', 'Participants', 'Speakers'],
+    'kp1n': ['contactPersonName', 'kontakt_namn', 'ContactPersonName', 'contactName'],
+    'kp1e': ['contactPersonEmail', 'kontakt_epost', 'ContactPersonEmail', 'contactEmail'],
 }
 
 
@@ -61,15 +61,15 @@ def get_field(obj, logical_name):
     for key in candidates:
         if key in obj:
             return obj[key]
-        # Case-insensitive fallback
-        for actual_key in obj.keys():
-            if actual_key.lower() == key.lower():
-                return obj[actual_key]
+    # Case-insensitive fallback
+    obj_lower = {k.lower(): k for k in obj.keys()}
+    for key in candidates:
+        if key.lower() in obj_lower:
+            return obj[obj_lower[key.lower()]]
     return None
 
 
 def parse_yes_no(value):
-    """Normalize boolean-ish values to 'Ja'/'Nej'/None."""
     if value is None:
         return None
     if isinstance(value, bool):
@@ -85,22 +85,22 @@ def parse_yes_no(value):
 
 
 def parse_medverkande(value):
-    """Parse participants/speakers into [{n, t, o}] list."""
     if not value:
         return []
     if isinstance(value, list):
         result = []
         for item in value:
             if isinstance(item, dict):
-                n = item.get('name') or item.get('namn') or item.get('Namn') or ''
-                t = item.get('title') or item.get('titel') or item.get('Titel') or ''
-                o = item.get('organization') or item.get('organisation') or item.get('Organisation') or ''
+                n = (item.get('name') or item.get('namn') or item.get('Name') or
+                     item.get('fullName') or item.get('firstName', '') + ' ' + item.get('lastName', '')).strip()
+                t = item.get('title') or item.get('titel') or item.get('Title') or item.get('role') or ''
+                o = (item.get('organization') or item.get('organisation') or
+                     item.get('Organization') or item.get('company') or '')
                 result.append({'n': str(n), 't': str(t), 'o': str(o)})
             elif isinstance(item, str):
                 result.append({'n': item, 't': '', 'o': ''})
         return result
     if isinstance(value, str):
-        # Legacy semicolon-pipe format from Excel: "Name;Title;Org|Name;Title;Org"
         result = []
         for entry in value.split('|'):
             parts = [p.strip() for p in entry.split(';')]
@@ -112,26 +112,30 @@ def parse_medverkande(value):
 
 
 def parse_organizers(value):
-    """Parse organizers field into a list of strings."""
     if not value:
         return []
     if isinstance(value, list):
-        return [str(x) if not isinstance(x, dict) else (x.get('name') or x.get('namn') or str(x)) for x in value]
+        out = []
+        for x in value:
+            if isinstance(x, dict):
+                out.append(x.get('name') or x.get('namn') or x.get('Name') or str(x))
+            else:
+                out.append(str(x))
+        return out
     if isinstance(value, str):
         return [s.strip() for s in re.split(r'[;|]', value) if s.strip()]
+    if isinstance(value, dict):
+        return [value.get('name') or value.get('namn') or value.get('Name') or str(value)]
     return [str(value)]
 
 
 def normalize_event(raw):
-    """Convert a single raw event from portal JSON into template format."""
     out = {}
     out['id'] = str(get_field(raw, 'id') or '')
     out['rubrik'] = str(get_field(raw, 'rubrik') or '').strip()
 
-    # Date and time
     dag = get_field(raw, 'dag')
     if isinstance(dag, str):
-        # Possibly ISO datetime; take first 10 chars (YYYY-MM-DD)
         out['dag'] = dag[:10] if len(dag) >= 10 else dag
     else:
         out['dag'] = str(dag or '')
@@ -150,7 +154,6 @@ def normalize_event(raw):
 
     out['start'] = fmt_time(start)
     out['slut'] = fmt_time(slut)
-
     out['kat'] = str(get_field(raw, 'kat') or '')
     out['typ'] = str(get_field(raw, 'typ') or '')
     out['typorg'] = str(get_field(raw, 'typorg') or '')
@@ -192,18 +195,15 @@ def normalize_event(raw):
 def main():
     raw = json.loads(RAW_JSON_PATH.read_text(encoding='utf-8'))
 
-    # The portal may return the list directly or wrap it in a container.
     if isinstance(raw, list):
         events_raw = raw
     elif isinstance(raw, dict):
-        # Try common wrapper keys
-        for key in ['events', 'data', 'items', 'results', 'programItems', 'evenemang']:
+        for key in ['events', 'data', 'items', 'results', 'programItems', 'evenemang', 'Events']:
             if key in raw and isinstance(raw[key], list):
                 events_raw = raw[key]
                 break
         else:
-            # Maybe the entire dict IS the wrapper and we need to look one level deeper
-            print("WARNING: could not find list of events in JSON. Dumping top-level keys:")
+            print("WARNING: could not find list of events in JSON. Top-level keys:")
             for k in raw.keys():
                 print(f"  {k}: {type(raw[k]).__name__}")
             sys.exit(3)
@@ -212,13 +212,36 @@ def main():
         sys.exit(3)
 
     print(f"Raw events: {len(events_raw)}")
-
     if len(events_raw) == 0:
         print("ERROR: zero events. Aborting build.", file=sys.stderr)
         sys.exit(4)
 
-    # Inspect first event to confirm field schema
-    print("First event keys (sample):", list(events_raw[0].keys())[:30])
+    # Verbose logging of first 3 events to understand schema
+    print("=" * 60)
+    print("FIRST EVENT (RAW):")
+    print(json.dumps(events_raw[0], ensure_ascii=False, indent=2)[:3000])
+    print("=" * 60)
+    print("ALL TOP-LEVEL FIELD NAMES IN FIRST EVENT:")
+    for k in events_raw[0].keys():
+        v = events_raw[0][k]
+        if isinstance(v, str):
+            preview = v[:60].replace('\n', ' ')
+        elif isinstance(v, (list, dict)):
+            preview = f"<{type(v).__name__} len={len(v)}>"
+        else:
+            preview = repr(v)
+        print(f"  {k!r}: {preview}")
+    print("=" * 60)
+
+    # Aggregate all unique keys across the first 100 events (handles optional fields)
+    all_keys = set()
+    for e in events_raw[:100]:
+        if isinstance(e, dict):
+            all_keys.update(e.keys())
+    print(f"Union of keys across first 100 events ({len(all_keys)}):")
+    for k in sorted(all_keys):
+        print(f"  {k}")
+    print("=" * 60)
 
     events = []
     for raw_event in events_raw:
@@ -227,34 +250,32 @@ def main():
             continue
         events.append(e)
 
-    print(f"Normalized events: {len(events)}")
+    print(f"Normalized events with valid rubrik+dag: {len(events)}")
 
-    # Build topics list with counts (primary + half-weighted secondary, matching template logic)
+    # If we lost everything, dump diagnostic info
+    if len(events) == 0:
+        print("FATAL: All events were filtered out. Field mapping failed.")
+        print("Sample normalized output for first event:")
+        print(json.dumps(normalize_event(events_raw[0]), ensure_ascii=False, indent=2))
+        sys.exit(5)
+
     topic_counts = {}
     for e in events:
-        a1 = e.get('amne1')
-        if a1:
-            topic_counts[a1] = topic_counts.get(a1, 0) + 1
-        a2 = e.get('amne2')
-        if a2:
-            topic_counts[a2] = topic_counts.get(a2, 0) + 1
+        if e.get('amne1'):
+            topic_counts[e['amne1']] = topic_counts.get(e['amne1'], 0) + 1
+        if e.get('amne2'):
+            topic_counts[e['amne2']] = topic_counts.get(e['amne2'], 0) + 1
 
     topics = sorted(topic_counts.items(), key=lambda x: -x[1])
 
-    data_obj = {
-        'events': events,
-        'topics': topics,
-    }
+    data_obj = {'events': events, 'topics': topics}
 
-    # Read template and assets
     template = TEMPLATE_PATH.read_text(encoding='utf-8')
     leaflet_css = LEAFLET_CSS_PATH.read_text(encoding='utf-8')
     leaflet_js = LEAFLET_JS_PATH.read_text(encoding='utf-8')
 
-    # Serialize data
     data_json = json.dumps(data_obj, ensure_ascii=False, separators=(',', ':'))
 
-    # Escape problematic sequences inside <script type="text/plain"> blocks
     def safe_for_script_block(s):
         s = s.replace('\u2028', '\\u2028').replace('\u2029', '\\u2029')
         s = re.sub(r'</(\s*script)', r'<\\/\1', s, flags=re.IGNORECASE)
