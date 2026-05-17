@@ -1,0 +1,53 @@
+name: Update Almedalskartan
+
+on:
+  schedule:
+    - cron: '0 6,18 * * *'
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: |
+          pip install playwright requests
+          playwright install chromium
+          playwright install-deps chromium
+
+      - name: Fetch program JSON from Almedalsveckan portal
+        env:
+          ALME_USERNAME: ${{ secrets.ALME_USERNAME }}
+          ALME_PASSWORD: ${{ secrets.ALME_PASSWORD }}
+        run: python scripts/fetch_program.py
+
+      - name: Build index.html
+        run: python scripts/build_site.py
+
+      - name: Commit changes if any
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add index.html data/program.json data/last_run.json
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Auto-update program data $(date -u +'%Y-%m-%d %H:%M UTC')"
+            git push
+          fi
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "Pipeline failed. GitHub will send an email notification to the repo owner."
+          exit 1
