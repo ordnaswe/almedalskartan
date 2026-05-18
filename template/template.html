@@ -3,24 +3,25 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Almedalskartan | Influera</title>
+<title>Almedalskartan | Narva Communications</title>
 <style id="leaflet-css">__LEAFLET_CSS__</style>
 <style>
   :root{
-    --bg:#F7F3E8;
-    --bg2:#FBF8EF;
-    --bg3:#EFEADC;
-    --gold:#8A7237;
-    --gold-bright:#C8A95A;
-    --gold-d:#6F5A2A;
-    --text:#1F2618;
-    --muted:#6A6F60;
-    --border:rgba(138,114,55,0.32);
-    --border-s:rgba(138,114,55,0.15);
-    --red:#9B2D3B;
-    --influera-red:#E1241D;
-    --influera-yellow:#FBC02D;
-    --shadow:0 4px 16px rgba(31,38,24,0.10);
+    --bg:#FFFFFF;
+    --bg2:#FAFAFA;
+    --bg3:#F2F2F2;
+    --gold:#000000;
+    --gold-bright:#333333;
+    --gold-d:#000000;
+    --text:#000000;
+    --muted:#6B6B6B;
+    --border:rgba(0,0,0,0.18);
+    --border-s:rgba(0,0,0,0.08);
+    --red:#DC4520;
+    --influera-red:#DC4520;
+    --influera-yellow:#000000;
+    --accent:#DC4520;
+    --shadow:0 4px 16px rgba(0,0,0,0.08);
   }
   *{box-sizing:border-box}
   html{height:100%}
@@ -30,13 +31,13 @@
   button{font-family:inherit;color:inherit}
   ::-webkit-scrollbar{width:8px;height:8px}
   ::-webkit-scrollbar-track{background:var(--bg)}
-  ::-webkit-scrollbar-thumb{background:rgba(138,114,55,0.25);border-radius:4px}
-  ::-webkit-scrollbar-thumb:hover{background:rgba(138,114,55,0.45)}
+  ::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.25);border-radius:4px}
+  ::-webkit-scrollbar-thumb:hover{background:rgba(0,0,0,0.45)}
 
   /* Header */
-  header{display:flex;align-items:center;justify-content:space-between;padding:8px 18px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#FBF8EF,#F7F3E8);position:sticky;top:0;z-index:900;gap:10px}
+  header{display:flex;align-items:center;justify-content:space-between;padding:8px 18px;border-bottom:1px solid var(--border);background:#FFFFFF;position:sticky;top:0;z-index:900;gap:10px}
   .brand{display:flex;align-items:center;gap:11px;min-width:0;flex:1}
-  .brand-mark{width:26px;height:34px;flex-shrink:0;display:block}
+  .brand-mark{width:30px;height:30px;flex-shrink:0;display:block}
   .brand-text{display:flex;flex-direction:column;gap:1px;min-width:0}
   .brand-title{font-weight:700;letter-spacing:1.6px;font-size:13px;text-transform:uppercase;color:var(--text);line-height:1.1}
   .brand-by{font-size:9.5px;letter-spacing:1.8px;text-transform:uppercase;color:var(--muted);line-height:1.1}
@@ -54,12 +55,12 @@
   .profile-menu{position:absolute;right:0;top:calc(100% + 6px);background:var(--bg2);border:1px solid var(--gold);border-radius:2px;min-width:240px;box-shadow:var(--shadow);z-index:950;display:none;padding:6px 0;max-height:80vh;overflow-y:auto}
   .profile-menu.open{display:block}
   .profile-item{padding:8px 14px;font-size:12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;letter-spacing:0.5px}
-  .profile-item:hover{background:rgba(138,114,55,0.10)}
+  .profile-item:hover{background:rgba(0,0,0,0.10)}
   .profile-item.active{color:var(--gold);font-weight:600}
   .profile-item .pi-count{font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums}
   .profile-divider{height:1px;background:var(--border-s);margin:4px 0}
   .profile-action{padding:8px 14px;font-size:10.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--gold);cursor:pointer}
-  .profile-action:hover{background:rgba(138,114,55,0.10)}
+  .profile-action:hover{background:rgba(0,0,0,0.10)}
 
   /* Font size controls inside profile menu */
   .font-size-row{padding:10px 14px;display:flex;flex-direction:column;gap:7px}
@@ -67,7 +68,7 @@
   .font-size-btns{display:flex;gap:4px}
   .font-size-btn{flex:1;background:transparent;border:1px solid var(--border);color:var(--text);padding:5px 6px;font-family:inherit;cursor:pointer;border-radius:1px;font-weight:600;font-variant-numeric:tabular-nums}
   .font-size-btn:hover{border-color:var(--gold);color:var(--gold)}
-  .font-size-btn.active{background:var(--gold);color:#FBF8EF;border-color:var(--gold)}
+  .font-size-btn.active{background:var(--gold);color:#FFFFFF;border-color:var(--gold)}
   .font-size-btn[data-fs="sm"]{font-size:11px}
   .font-size-btn[data-fs="md"]{font-size:13px}
   .font-size-btn[data-fs="lg"]{font-size:15px}
@@ -119,12 +120,12 @@
   .tbl-group{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
   .chip{background:transparent;border:1px solid var(--border);color:var(--text);padding:5px 10px;font-size:11px;letter-spacing:1.4px;text-transform:uppercase;cursor:pointer;border-radius:1px;transition:all .15s}
   .chip:hover{border-color:var(--gold);color:var(--gold)}
-  .chip.active{background:var(--gold);color:#FBF8EF;border-color:var(--gold);font-weight:600}
+  .chip.active{background:var(--gold);color:#FFFFFF;border-color:var(--gold);font-weight:600}
   .chip.alt{border-color:var(--gold);color:var(--gold)}
-  .chip.alt:hover{background:var(--gold);color:#FBF8EF}
+  .chip.alt:hover{background:var(--gold);color:#FFFFFF}
   .chip-pill{display:inline-flex;align-items:center;gap:6px}
-  .chip-badge{background:rgba(138,114,55,0.15);border:1px solid var(--gold);color:var(--gold);padding:1px 6px;font-size:10px;border-radius:1px;font-weight:600;letter-spacing:0}
-  .chip.active .chip-badge{background:#FBF8EF;color:var(--gold);border-color:#FBF8EF}
+  .chip-badge{background:rgba(0,0,0,0.15);border:1px solid var(--gold);color:var(--gold);padding:1px 6px;font-size:10px;border-radius:1px;font-weight:600;letter-spacing:0}
+  .chip.active .chip-badge{background:#FFFFFF;color:var(--gold);border-color:#FFFFFF}
   .search{background:#FFFFFF;border:1px solid var(--border);color:var(--text);padding:5px 10px;font-size:12px;border-radius:1px;min-width:200px;flex:1 1 auto;font-family:inherit}
   .search:focus{outline:none;border-color:var(--gold)}
   .range-row{display:flex;align-items:center;gap:8px}
@@ -189,7 +190,7 @@
   .page-label{font-size:10px;color:var(--muted);letter-spacing:1.4px;text-transform:uppercase;margin-right:3px}
   .page-size-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:3px 8px;font-size:10.5px;letter-spacing:0.5px;cursor:pointer;border-radius:1px;font-family:inherit;font-variant-numeric:tabular-nums;font-weight:600}
   .page-size-btn:hover{border-color:var(--gold);color:var(--gold)}
-  .page-size-btn.active{background:var(--gold);color:#FBF8EF;border-color:var(--gold)}
+  .page-size-btn.active{background:var(--gold);color:#FFFFFF;border-color:var(--gold)}
   .page-nav{display:flex;align-items:center;gap:4px}
   .page-arrow{background:transparent;border:1px solid var(--border);color:var(--text);width:26px;height:24px;font-size:16px;line-height:1;cursor:pointer;border-radius:1px;font-family:inherit;display:flex;align-items:center;justify-content:center;padding:0}
   .page-arrow:hover:not(:disabled){border-color:var(--gold);color:var(--gold)}
@@ -198,8 +199,8 @@
   .agenda-actions{padding:8px 14px;background:var(--bg);border-bottom:1px solid var(--border-s);display:flex;gap:6px;align-items:center;flex-wrap:wrap}
   .list{flex:1;overflow-y:auto;padding:4px 0}
   .card{padding:11px 14px 12px;border-left:3px solid var(--gold);border-bottom:1px solid var(--border-s);background:transparent;cursor:pointer;transition:background .15s,border-color .15s;position:relative}
-  .card:hover{background:rgba(138,114,55,0.07)}
-  .card.selected{background:rgba(138,114,55,0.13);border-left-color:var(--gold);border-left-width:4px}
+  .card:hover{background:rgba(0,0,0,0.07)}
+  .card.selected{background:rgba(0,0,0,0.13);border-left-color:var(--gold);border-left-width:4px}
   .card.dim{opacity:0.5}
   .card-row1{display:flex;justify-content:space-between;gap:8px;margin-bottom:4px;align-items:baseline}
   .card-time{font-size:10.5px;color:var(--gold);letter-spacing:1.5px;font-weight:600;font-variant-numeric:tabular-nums}
@@ -217,7 +218,7 @@
   .card-score-num{display:flex;align-items:baseline;gap:1px;line-height:1}
   .card-score-pct{font-size:13.5px;color:var(--text)}
   .card-score-unit{font-size:9px;color:var(--muted);font-weight:500}
-  .card-score-bar{width:38px;height:3px;background:rgba(138,114,55,0.15);border-radius:2px;overflow:hidden;position:relative}
+  .card-score-bar{width:38px;height:3px;background:rgba(0,0,0,0.15);border-radius:2px;overflow:hidden;position:relative}
   .card-score-fill{position:absolute;left:0;top:0;bottom:0;background:var(--gold);border-radius:2px}
   .card-score.high .card-score-pct{color:var(--influera-red)}
   .card-score.high .card-score-fill{background:var(--influera-red)}
@@ -228,21 +229,21 @@
   #map{width:100%;height:100%;min-height:300px}
   .map-legend{position:absolute;left:14px;bottom:14px;background:rgba(251,248,239,0.96);border:1px solid var(--border);padding:9px 12px;font-size:10px;color:var(--muted);letter-spacing:1.3px;text-transform:uppercase;z-index:400;border-radius:1px;line-height:1.7;backdrop-filter:blur(4px)}
   .legend-row{display:flex;align-items:center;gap:8px}
-  .legend-dot{width:10px;height:10px;border-radius:50%;background:var(--gold-bright);box-shadow:0 0 4px rgba(138,114,55,0.5);border:1px solid var(--gold-d)}
+  .legend-dot{width:10px;height:10px;border-radius:50%;background:var(--gold-bright);box-shadow:0 0 4px rgba(0,0,0,0.5);border:1px solid var(--gold-d)}
   .legend-dot.user{background:#2563EB;box-shadow:0 0 4px rgba(37,99,235,0.5);border-color:#1D4ED8}
-  .legend-dot.hot{background:var(--influera-red);box-shadow:0 0 6px rgba(225,36,29,0.5);border-color:#A81812}
+  .legend-dot.hot{background:var(--influera-red);box-shadow:0 0 6px rgba(220,69,32,0.5);border-color:#A52F15}
 
   /* Map markers */
-  .marker-cluster{background:var(--gold-bright);color:var(--text);width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;border:2px solid var(--gold-d);box-shadow:0 2px 6px rgba(31,38,24,0.30);font-variant-numeric:tabular-nums;font-family:'Inter',sans-serif}
-  .marker-cluster.hot{background:var(--influera-red);color:#FFFFFF;border-color:#A81812;box-shadow:0 0 12px rgba(225,36,29,0.5),0 2px 6px rgba(31,38,24,0.30)}
+  .marker-cluster{background:var(--gold-bright);color:var(--text);width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;border:2px solid var(--gold-d);box-shadow:0 2px 6px rgba(0,0,0,0.30);font-variant-numeric:tabular-nums;font-family:'Inter',sans-serif}
+  .marker-cluster.hot{background:var(--influera-red);color:#FFFFFF;border-color:#A52F15;box-shadow:0 0 12px rgba(220,69,32,0.5),0 2px 6px rgba(0,0,0,0.30)}
   .marker-cluster.dim{opacity:0.4}
   .marker-cluster.single{background:transparent;color:var(--gold);border-color:var(--gold);width:18px;height:18px;font-size:0}
   .marker-cluster.single::before{content:"";width:7px;height:7px;background:var(--gold);border-radius:50%}
-  .marker-pin{background:#2563EB;width:16px;height:16px;border-radius:50%;border:2px solid #FFFFFF;box-shadow:0 2px 6px rgba(31,38,24,0.4)}
+  .marker-pin{background:#2563EB;width:16px;height:16px;border-radius:50%;border:2px solid #FFFFFF;box-shadow:0 2px 6px rgba(0,0,0,0.4)}
 
   /* Mobile-only back button at top of detail panel */
   .mobile-back{display:none;width:100%;align-items:center;gap:10px;padding:11px 22px;background:var(--bg3);border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:inherit;font-size:11.5px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;text-align:left;font-weight:500}
-  .mobile-back:hover{background:rgba(138,114,55,0.12)}
+  .mobile-back:hover{background:rgba(0,0,0,0.12)}
   .mobile-back .mb-arrow{color:var(--influera-red);font-size:18px;line-height:1;font-weight:700}
 
   /* Detail panel */
@@ -267,15 +268,15 @@
 
   /* Speaker cards */
   .speakers{display:flex;flex-direction:column;gap:6px}
-  .speaker{padding:8px 10px;background:rgba(138,114,55,0.06);border-left:2px solid var(--gold);border-radius:1px}
+  .speaker{padding:8px 10px;background:rgba(0,0,0,0.06);border-left:2px solid var(--gold);border-radius:1px}
   .speaker-name{font-size:12.5px;font-weight:600;color:var(--text);line-height:1.3}
   .speaker-meta{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4}
   .speaker-org{color:var(--gold-d)}
 
   .d-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
   .d-btn{background:transparent;border:1px solid var(--gold);color:var(--gold);padding:6px 12px;font-size:10.5px;letter-spacing:1.4px;text-transform:uppercase;cursor:pointer;border-radius:1px;transition:all .15s;text-decoration:none;display:inline-block}
-  .d-btn:hover{background:var(--gold);color:#FBF8EF}
-  .d-btn.saved{background:var(--gold);color:#FBF8EF}
+  .d-btn:hover{background:var(--gold);color:#FFFFFF}
+  .d-btn.saved{background:var(--gold);color:#FFFFFF}
   .d-btn.alt{border-color:var(--border);color:var(--muted)}
   .d-btn.alt:hover{border-color:var(--gold);color:var(--gold);background:transparent}
   .d-btn.hotline{background:transparent;border:1.5px solid var(--influera-red);color:var(--influera-red);padding:9px 14px;font-size:11.5px;letter-spacing:1.4px;font-weight:600;width:100%;justify-content:center;text-decoration:none}
@@ -283,12 +284,12 @@
   .d-btn.hotline:hover span{background:#FFFFFF !important}
 
   .same-place-list{display:flex;flex-direction:column;gap:4px;margin-top:6px}
-  .spl-item{padding:7px 10px;background:rgba(138,114,55,0.06);border-left:2px solid var(--gold-d);font-size:11.5px;cursor:pointer;border-radius:1px;transition:all .15s}
-  .spl-item:hover{background:rgba(138,114,55,0.13);border-left-color:var(--gold)}
+  .spl-item{padding:7px 10px;background:rgba(0,0,0,0.06);border-left:2px solid var(--gold-d);font-size:11.5px;cursor:pointer;border-radius:1px;transition:all .15s}
+  .spl-item:hover{background:rgba(0,0,0,0.13);border-left-color:var(--gold)}
   .spl-time{font-size:10px;color:var(--gold);letter-spacing:1px;font-weight:600}
 
   /* Modal: ämnesväljare */
-  .modal-overlay{position:fixed;inset:0;background:rgba(31,38,24,0.45);z-index:1000;display:none;align-items:flex-start;justify-content:center;padding:50px 20px;overflow-y:auto;backdrop-filter:blur(3px)}
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1000;display:none;align-items:flex-start;justify-content:center;padding:50px 20px;overflow-y:auto;backdrop-filter:blur(3px)}
   .modal-overlay.open{display:flex}
   .modal{background:var(--bg2);border:1px solid var(--gold);max-width:680px;width:100%;border-radius:2px;box-shadow:var(--shadow);max-height:calc(100vh - 100px);display:flex;flex-direction:column}
   .modal-head{padding:16px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px}
@@ -311,13 +312,13 @@
 
   /* The spak (lever) */
   .spak{display:flex;gap:3px;align-items:center}
-  .spak-track{display:flex;gap:2px;background:rgba(31,38,24,0.08);padding:3px;border:1px solid var(--border-s);border-radius:2px}
+  .spak-track{display:flex;gap:2px;background:rgba(0,0,0,0.08);padding:3px;border:1px solid var(--border-s);border-radius:2px}
   .spak-seg{width:22px;height:18px;background:transparent;border:none;cursor:pointer;border-radius:1px;transition:background .12s,box-shadow .12s;padding:0;position:relative}
-  .spak-seg:hover{background:rgba(138,114,55,0.18)}
+  .spak-seg:hover{background:rgba(0,0,0,0.18)}
   .spak-seg.on{background:var(--gold)}
-  .spak-seg.on.lv1{background:rgba(138,114,55,0.45)}
-  .spak-seg.on.lv2{background:rgba(138,114,55,0.72)}
-  .spak-seg.on.lv3{background:var(--gold);box-shadow:0 0 6px rgba(138,114,55,0.5)}
+  .spak-seg.on.lv1{background:rgba(0,0,0,0.45)}
+  .spak-seg.on.lv2{background:rgba(0,0,0,0.72)}
+  .spak-seg.on.lv3{background:var(--gold);box-shadow:0 0 6px rgba(0,0,0,0.5)}
   .spak-label{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;min-width:38px;text-align:right;font-variant-numeric:tabular-nums}
   .spak-label.active{color:var(--gold);font-weight:600}
 
@@ -328,15 +329,15 @@
   .filter-panel{
     position:fixed;top:0;right:0;height:100vh;width:380px;max-width:90vw;
     background:var(--bg2);border-left:1px solid var(--gold);
-    box-shadow:-8px 0 24px rgba(31,38,24,0.12);
+    box-shadow:-8px 0 24px rgba(0,0,0,0.12);
     z-index:900;display:flex;flex-direction:column;
     transform:translateX(100%);transition:transform .25s ease;
     visibility:hidden;
   }
   .filter-panel.open{transform:translateX(0);visibility:visible}
   /* When filter button is active (panel open), show it as filled chip */
-  .chip.alt#filterBtn.active{background:var(--gold);color:#FBF8EF;border-color:var(--gold)}
-  .chip.alt#filterBtn.active .chip-badge{background:#FBF8EF;color:var(--gold);border-color:#FBF8EF}
+  .chip.alt#filterBtn.active{background:var(--gold);color:#FFFFFF;border-color:var(--gold)}
+  .chip.alt#filterBtn.active .chip-badge{background:#FFFFFF;color:var(--gold);border-color:#FFFFFF}
   .filter-panel-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;gap:10px;background:var(--bg3)}
   .filter-panel-title{font-size:14px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin:0}
   .filter-panel-sub{font-size:11px;color:var(--muted);margin-top:4px;letter-spacing:0.3px;line-height:1.4}
@@ -380,7 +381,7 @@
   .footer-check{display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--text);cursor:pointer;line-height:1.4}
   .footer-check input{margin-top:2px;flex-shrink:0;accent-color:var(--influera-red)}
   .footer-submit{background:var(--influera-red);color:#FFFFFF;border:none;padding:10px 22px;font-size:11.5px;letter-spacing:1.6px;text-transform:uppercase;font-weight:700;cursor:pointer;border-radius:2px;font-family:inherit;align-self:flex-start;transition:background .15s}
-  .footer-submit:hover{background:#A81812}
+  .footer-submit:hover{background:#A52F15}
   .footer-submit:disabled{opacity:0.5;cursor:not-allowed}
   .footer-status{font-size:11.5px;color:var(--gold-d);min-height:14px;letter-spacing:0.2px}
   .footer-status.ok{color:#2D6A4F}
@@ -414,13 +415,12 @@
 <header>
   <div class="brand">
     <svg class="brand-mark" viewBox="0 0 40 52" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <path d="M20 2 C 10 2, 2 10, 2 20 C 2 30, 10 40, 20 50 C 30 40, 38 30, 38 20 C 38 10, 30 2, 20 2 Z" fill="#E1241D"/>
-      <rect x="17" y="10" width="6" height="14" rx="2" fill="#FBC02D"/>
-      <circle cx="20" cy="29" r="3.2" fill="#FBC02D"/>
+      <circle cx="20" cy="20" r="14" fill="#000000"/>
+      <circle cx="20" cy="20" r="5" fill="#FFFFFF"/>
     </svg>
     <div class="brand-text">
       <div class="brand-title">Almedalskartan</div>
-      <div class="brand-by">av <strong>Influera</strong></div>
+      <div class="brand-by">av <strong>Narva Communications</strong></div>
     </div>
   </div>
   <div class="header-right">
@@ -573,10 +573,10 @@
 <footer class="site-footer">
   <div class="footer-inner">
     <div class="footer-newsletter">
-      <h3 class="footer-h">Få Influeras Almedalsrapport</h3>
-      <p class="footer-text">Engångs-sammanfattning efter Almedalsveckan 2026, och vårt återkommande nyhetsbrev om PR, public affairs, påverkan och opinionsbildning. Du väljer själv vad du vill ha.</p>
-      <form name="influera-newsletter" method="POST" data-netlify="true" netlify-honeypot="bot-field" class="newsletter-form" id="newsletterForm">
-        <input type="hidden" name="form-name" value="influera-newsletter">
+      <h3 class="footer-h">Få Narvas Almedalsrapport</h3>
+      <p class="footer-text">Engångs-sammanfattning efter Almedalsveckan 2026, och vårt återkommande nyhetsbrev om strategisk kommunikation, public affairs och samhällspåverkan. Du väljer själv vad du vill ha.</p>
+      <form name="narva-newsletter" method="POST" data-netlify="true" netlify-honeypot="bot-field" class="newsletter-form" id="newsletterForm">
+        <input type="hidden" name="form-name" value="narva-newsletter">
         <p style="display:none"><label>Lämna tomt: <input name="bot-field"></label></p>
         <input type="email" name="email" required placeholder="din@epost.se" class="footer-input" id="newsletterEmail" autocomplete="email">
         <div class="footer-checks">
@@ -586,7 +586,7 @@
           </label>
           <label class="footer-check">
             <input type="checkbox" name="consent_nyhetsbrev" value="ja" id="checkNyhetsbrev">
-            <span>Återkommande nyhetsbrev om PR, public affairs, påverkan och opinionsbildning (cirka en gång i månaden)</span>
+            <span>Återkommande nyhetsbrev om strategisk kommunikation, public affairs och samhällspåverkan (cirka en gång i månaden)</span>
           </label>
         </div>
         <button type="submit" class="footer-submit" id="newsletterSubmit">Anmäl mig</button>
@@ -597,7 +597,7 @@
     <div class="footer-meta">
       <div class="footer-col">
         <div class="footer-h-small">Om Almedalskartan</div>
-        <p class="footer-fine">Almedalskartan är ett kostnadsfritt verktyg från <a href="https://www.influera.com" target="_blank" rel="noopener">Influera</a>, en byrå för PR och kommunikation. Sajten är inte officiellt knuten till Almedalsveckan eller Region Gotland.</p>
+        <p class="footer-fine">Almedalskartan är ett kostnadsfritt verktyg från <a href="https://www.narva.se" target="_blank" rel="noopener">Narva Communications</a>, en strategisk kommunikationsbyrå. Sajten är inte officiellt knuten till Almedalsveckan eller Region Gotland.</p>
       </div>
       <div class="footer-col">
         <div class="footer-h-small">Programdata</div>
@@ -605,16 +605,16 @@
       </div>
       <div class="footer-col">
         <div class="footer-h-small">Personuppgifter</div>
-        <p class="footer-fine">Kontaktuppgifter till arrangörer kommer från det officiella programmet och visas som arrangörerna själva har publicerat dem. Om du anmäler dig till nyhetsbrev lagrar Influera endast din e-postadress för det syfte du valt. Avregistrering är möjlig i varje utskick. Frågor: <a href="mailto:info@influera.se">info@influera.se</a>.</p>
+        <p class="footer-fine">Kontaktuppgifter till arrangörer kommer från det officiella programmet och visas som arrangörerna själva har publicerat dem. Om du anmäler dig till nyhetsbrev lagrar Narva Communications endast din e-postadress för det syfte du valt. Avregistrering är möjlig i varje utskick. Frågor: <a href="mailto:sandro.wennberg@narva.se">sandro.wennberg@narva.se</a>.</p>
       </div>
     </div>
 
     <div class="footer-bottom">
-      <span>© 2026 Influera</span>
+      <span>© 2026 Narva Communications</span>
       <span class="footer-sep">·</span>
       <span>Almedalskartan</span>
       <span class="footer-sep">·</span>
-      <a href="https://www.influera.com" target="_blank" rel="noopener">influera.com</a>
+      <a href="https://www.narva.se" target="_blank" rel="noopener">narva.se</a>
     </div>
   </div>
 </footer>
@@ -668,7 +668,7 @@ function fatal(msg){
   try{
     document.getElementById('fatalMsg').textContent = String(msg);
     document.getElementById('fatal').classList.add('open');
-  }catch(e){ alert('Influera fatal: '+msg); }
+  }catch(e){ alert('Almedalskartan fatal: '+msg); }
 }
 window.addEventListener('error', function(ev){
   var detail = '';
@@ -980,7 +980,7 @@ document.getElementById('exportAllBtn').addEventListener('click', function(){
   var ids = profiles[state.profile].agenda || [];
   if(ids.length === 0){ alert('Agendan är tom.'); return; }
   var events = ids.map(function(id){ return EVENTS.find(function(e){ return e.id === id; }); }).filter(Boolean);
-  downloadICS(events, 'influera_agenda_' + state.profile + '.ics');
+  downloadICS(events, 'almedalskartan_agenda_' + state.profile + '.ics');
 });
 document.getElementById('clearAgendaBtn').addEventListener('click', function(){
   if(!confirm('Töm hela agendan för "'+state.profile+'"?')) return;
@@ -1080,7 +1080,7 @@ function buildTopicPanel(){
   var stored = Object.keys(weights).length;
   var bannerHtml = '';
   if(state.weightsMuted && stored > 0){
-    bannerHtml = '<div style="background:rgba(225,36,29,0.08);border:1px solid var(--influera-red);padding:9px 12px;margin-bottom:10px;border-radius:2px;display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:11.5px">' +
+    bannerHtml = '<div style="background:rgba(220,69,32,0.08);border:1px solid var(--influera-red);padding:9px 12px;margin-bottom:10px;border-radius:2px;display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:11.5px">' +
       '<span style="color:var(--influera-red);letter-spacing:0.3px"><strong>'+stored+' val</strong> är pausade för sessionen. Sparade i profilen.</span>' +
       '<button class="chip" id="topicReactivate" style="padding:4px 9px;font-size:10px;letter-spacing:1px">Aktivera igen</button>' +
     '</div>';
@@ -1093,7 +1093,7 @@ function buildTopicPanel(){
     for(var i=0;i<4;i++){
       var on = i>0 && i<=w;
       var lvl = i===1?'lv1':i===2?'lv2':i===3?'lv3':'';
-      var dot = i===0 ? '<div style="width:6px;height:6px;border-radius:50%;background:'+(w===0?'#C8A95A':'rgba(244,239,227,0.3)')+';margin:auto"></div>' : '';
+      var dot = i===0 ? '<div style="width:6px;height:6px;border-radius:50%;background:'+(w===0?'#000000':'rgba(244,239,227,0.3)')+';margin:auto"></div>' : '';
       segs += '<button class="spak-seg '+(on?'on '+lvl:'')+'" data-topic="'+escapeAttr(name)+'" data-val="'+i+'" title="'+labels[i]+'">'+dot+'</button>';
     }
     // Dim row visually when muted
@@ -1219,13 +1219,13 @@ function updateTopicBadge(){
   topicCountEl.textContent = active;
   if(active > 0){
     topicCountEl.style.background = 'var(--gold)';
-    topicCountEl.style.color = '#FBF8EF';
+    topicCountEl.style.color = '#FFFFFF';
   } else if(stored > 0){
     // Muted: weights exist in profile but inactive this session. Show outline only.
-    topicCountEl.style.background = 'rgba(138,114,55,0.10)';
+    topicCountEl.style.background = 'rgba(0,0,0,0.10)';
     topicCountEl.style.color = 'var(--gold-d)';
   } else {
-    topicCountEl.style.background = 'rgba(138,114,55,0.15)';
+    topicCountEl.style.background = 'rgba(0,0,0,0.15)';
     topicCountEl.style.color = 'var(--gold)';
   }
 }
@@ -1595,9 +1595,9 @@ function selectEvent(id, panTo){
         '<button class="d-btn alt" id="icsBtn">Lägg i kalender (.ics)</button>' +
         (e.lat && e.lon ? '<button class="d-btn alt" id="panBtn">Visa på karta</button>' : '') +
       '</div>' +
-      '<a class="d-btn hotline" href="https://www.influera.com/almedalshotline" target="_blank" rel="noopener" style="margin-top:10px;display:inline-flex;align-items:center;gap:7px">' +
-        '<span style="display:inline-block;width:8px;height:8px;background:var(--influera-red);border-radius:50%"></span>' +
-        'Ring Influeras Almedals-hotline' +
+      '<a class="d-btn hotline" href="https://www.narva.se/almedalen" target="_blank" rel="noopener" style="margin-top:10px;display:inline-flex;align-items:center;gap:7px">' +
+        '<span style="display:inline-block;width:8px;height:8px;background:var(--accent);border-radius:50%"></span>' +
+        'Kontakta Narva i Almedalen' +
       '</a>' +
     '</div>' +
 
@@ -1662,7 +1662,7 @@ function selectEvent(id, panTo){
     render();
   });
   document.getElementById('icsBtn').addEventListener('click', function(){
-    downloadICS([e], 'influera_'+e.id+'.ics');
+    downloadICS([e], 'almedalskartan_'+e.id+'.ics');
   });
   if(map && e.lat && e.lon){
     var panBtn = document.getElementById('panBtn');
@@ -1727,7 +1727,7 @@ function buildICS(events){
   var lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Influera//Almedalskartan 2026//SV',
+    'PRODID:-//Narva Communications//Almedalskartan 2026//SV',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     'BEGIN:VTIMEZONE',
@@ -1762,7 +1762,7 @@ function buildICS(events){
     if(med) desc += 'Medverkande:\n' + med + '\n\n';
     if(e.web) desc += 'Webb: ' + e.web;
     lines.push('BEGIN:VEVENT');
-    lines.push('UID:almedal-' + e.id + '@influera.app');
+    lines.push('UID:almedal-' + e.id + '@almedalskartan.se');
     lines.push('DTSTAMP:' + stamp);
     lines.push('DTSTART;TZID=Europe/Stockholm:' + dtStart);
     lines.push('DTEND;TZID=Europe/Stockholm:' + dtEnd);
@@ -1860,7 +1860,7 @@ if(newsletterForm){
       }
     }).catch(function(err){
       status.className = 'footer-status err';
-      status.textContent = 'Något gick fel. Försök igen om en stund, eller mejla info@influera.se.';
+      status.textContent = 'Något gick fel. Försök igen om en stund, eller mejla sandro.wennberg@narva.se.';
     }).then(function(){
       submit.disabled = false;
     });
@@ -1932,9 +1932,9 @@ function updateFilterBadge(){
   el.textContent = n;
   if(n > 0){
     el.style.background = 'var(--gold)';
-    el.style.color = '#FBF8EF';
+    el.style.color = '#FFFFFF';
   } else {
-    el.style.background = 'rgba(138,114,55,0.15)';
+    el.style.background = 'rgba(0,0,0,0.15)';
     el.style.color = 'var(--gold)';
   }
 }
