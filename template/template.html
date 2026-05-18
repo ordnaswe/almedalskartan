@@ -229,16 +229,18 @@
   #map{width:100%;height:100%;min-height:300px}
   .map-legend{position:absolute;left:14px;bottom:14px;background:rgba(251,248,239,0.96);border:1px solid var(--border);padding:9px 12px;font-size:10px;color:var(--muted);letter-spacing:1.3px;text-transform:uppercase;z-index:400;border-radius:1px;line-height:1.7;backdrop-filter:blur(4px)}
   .legend-row{display:flex;align-items:center;gap:8px}
-  .legend-dot{width:10px;height:10px;border-radius:50%;background:var(--gold-bright);box-shadow:0 0 4px rgba(0,0,0,0.5);border:1px solid var(--gold-d)}
+  .legend-dot{width:10px;height:10px;border-radius:50%;background:#FFFFFF;box-shadow:0 0 4px rgba(0,0,0,0.3);border:2px solid #000000}
   .legend-dot.user{background:#2563EB;box-shadow:0 0 4px rgba(37,99,235,0.5);border-color:#1D4ED8}
-  .legend-dot.hot{background:var(--influera-red);box-shadow:0 0 6px rgba(220,69,32,0.5);border-color:#A52F15}
+  .legend-dot.hot{background:var(--accent);box-shadow:0 0 6px rgba(220,69,32,0.5);border-color:#A52F15}
 
   /* Map markers */
-  .marker-cluster{background:var(--gold-bright);color:var(--text);width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;border:2px solid var(--gold-d);box-shadow:0 2px 6px rgba(0,0,0,0.30);font-variant-numeric:tabular-nums;font-family:'Inter',sans-serif}
-  .marker-cluster.hot{background:var(--influera-red);color:#FFFFFF;border-color:#A52F15;box-shadow:0 0 12px rgba(220,69,32,0.5),0 2px 6px rgba(0,0,0,0.30)}
+  .marker-cluster{background:#FFFFFF;color:#000000;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;border:2px solid #000000;box-shadow:0 2px 6px rgba(0,0,0,0.30);font-variant-numeric:tabular-nums;font-family:'Inter',sans-serif}
+  .marker-cluster.hot{background:var(--accent);color:#FFFFFF;border-color:#A52F15;box-shadow:0 0 12px rgba(220,69,32,0.5),0 2px 6px rgba(0,0,0,0.30)}
   .marker-cluster.dim{opacity:0.4}
-  .marker-cluster.single{background:transparent;color:var(--gold);border-color:var(--gold);width:18px;height:18px;font-size:0}
-  .marker-cluster.single::before{content:"";width:7px;height:7px;background:var(--gold);border-radius:50%}
+  .marker-cluster.single{background:#FFFFFF;color:transparent;border-color:#000000;width:14px;height:14px;font-size:0}
+  .marker-cluster.single::before{content:"";width:6px;height:6px;background:#000000;border-radius:50%}
+  .marker-cluster.single.hot{background:var(--accent);border-color:#A52F15}
+  .marker-cluster.single.hot::before{background:#FFFFFF}
   .marker-pin{background:#2563EB;width:16px;height:16px;border-radius:50%;border:2px solid #FFFFFF;box-shadow:0 2px 6px rgba(0,0,0,0.4)}
 
   /* Mobile-only back button at top of detail panel */
