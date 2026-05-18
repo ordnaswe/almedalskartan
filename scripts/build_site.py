@@ -1,12 +1,8 @@
 """
-Build index.html from the latest program JSON. v4.
+Build index.html from the latest program JSON. v5.
 
-Handles real portal schema:
-- Times is a list of {Date, StartTime, EndTime} sessions
-- Location is a nested object with Name, Latitude, Longitude, Description
-- Accessibility is a nested object with boolean flags
-- Persons is the speakers list
-- Organizers is a list of strings or objects
+Fixes mat/eko mapping: Environmental is a nested object containing
+Food, NoFood, and Certified, among other sustainability flags.
 """
 
 import json
@@ -41,59 +37,31 @@ def parse_date(value):
     return str(value)[:10]
 
 
-def parse_yes_no(value):
-    if value is None:
-        return None
-    if isinstance(value, bool):
-        return 'Ja' if value else 'Nej'
-    if isinstance(value, (int, float)):
-        return 'Ja' if value else 'Nej'
-    if isinstance(value, str):
-        v = value.strip().lower()
-        if v in ('ja', 'yes', 'true', '1'):
-            return 'Ja'
-        if v in ('nej', 'no', 'false', '0', ''):
-            return 'Nej'
-        return value
-    return str(value)
-
-
 def extract_times(raw):
-    """Extract list of session dicts from Times field.
-    Each session yields date, start, slut."""
     times = raw.get('Times')
     sessions = []
     if isinstance(times, list):
         for t in times:
             if not isinstance(t, dict):
                 continue
-            d = (t.get('Date') or t.get('date') or t.get('Day') or
-                 t.get('StartDateTime') or t.get('Start') or '')
-            s = (t.get('StartTime') or t.get('Start') or t.get('From') or t.get('startTime') or '')
-            e = (t.get('EndTime') or t.get('End') or t.get('To') or t.get('endTime') or '')
-            # If Date is a full datetime, take first 10 chars
+            d = t.get('Date') or t.get('date') or ''
+            s = t.get('StartTime') or t.get('Start') or ''
+            e = t.get('EndTime') or t.get('End') or ''
             d_str = parse_date(d)
-            # If StartTime is a full datetime, extract HH:MM
             s_str = fmt_time(s)
             e_str = fmt_time(e)
-            # If StartTime is missing but Start is a full datetime, try extracting time from it
-            if not s_str and isinstance(d, str) and 'T' in d:
-                m = re.search(r'T(\d{1,2}):(\d{2})', d)
-                if m:
-                    s_str = f"{int(m.group(1)):02d}:{m.group(2)}"
             if d_str:
                 sessions.append({'dag': d_str, 'start': s_str, 'slut': e_str})
     return sessions
 
 
 def extract_location(raw):
-    """Extract name, lat, lon, description from Location field."""
     loc = raw.get('Location')
     if isinstance(loc, dict):
-        name = loc.get('Name') or loc.get('name') or ''
-        desc = loc.get('Description') or loc.get('description') or ''
-        lat_raw = loc.get('Latitude') or loc.get('latitude') or loc.get('Lat')
-        lon_raw = loc.get('Longitude') or loc.get('longitude') or loc.get('Lon') or loc.get('Lng')
+        name = loc.get('Name') or ''
+        desc = loc.get('Description') or ''
+        lat_raw = loc.get('Latitude')
+        lon_raw = loc.get('Longitude')
         try:
             lat = float(lat_raw) if lat_raw not in (None, '', 0, '0') else None
         except (TypeError, ValueError):
@@ -109,7 +77,6 @@ def extract_location(raw):
 
 
 def extract_accessibility(raw):
-    """Build a comma-separated Swedish string from Accessibility booleans."""
     a = raw.get('Accessibility')
     if not isinstance(a, dict):
         return ''
@@ -129,26 +96,75 @@ def extract_accessibility(raw):
     return ', '.join(labels)
 
 
+def extract_environmental(raw):
+    """Pull mat (food served) and eko (eco-certified) from Environmental.
+    Also build a list of sustainability labels for the detail panel."""
+    env = raw.get('Environmental')
+    mat = None
+    eko = None
+    eko_labels = []
+    if isinstance(env, dict):
+        # Food: true means refreshments are served
+        if env.get('Food') is True:
+            mat = 'Ja'
+        elif env.get('NoFood') is True:
+            mat = 'Nej'
+        # Certified marks ecology/diploma
+        if env.get('Certified') is True:
+            eko = 'Ja'
+        # Build descriptive sustainability list for the detail panel
+        if env.get('FoodEcological'):
+            eko_labels.append('Ekologisk mat')
+        if env.get('FoodLocallyProduced'):
+            eko_labels.append('Närproducerad mat')
+        if env.get('FoodEthical'):
+            eko_labels.append('Etisk/Fairtrade-mat')
+        if env.get('Water'):
+            eko_labels.append('Kranvatten serveras')
+        if env.get('Stationary'):
+            eko_labels.append('Miljövänligt kontorsmaterial')
+        if env.get('Print'):
+            eko_labels.append('Miljövänligt tryck')
+        if env.get('Flyer'):
+            eko_labels.append('Reklamblad endast vid förfrågan')
+        if env.get('Battery'):
+            eko_labels.append('Återvunna batterier')
+        if env.get('Plastic'):
+            eko_labels.append('Plastsparande')
+        if env.get('Recycling'):
+            eko_labels.append('Återvinning')
+        if env.get('Disposable'):
+            eko_labels.append('Återanvändbart porslin')
+        if env.get('SourceSorting'):
+            eko_labels.append('Källsortering')
+        if env.get('ServiceQuestion'):
+            eko_labels.append('Miljöfrågat tjänsteleverantörer')
+        if env.get('ServiceElectricity'):
+            eko_labels.append('Grön el')
+        if env.get('ServiceTravel'):
+            eko_labels.append('Hållbart resande')
+        if env.get('ServiceCooking'):
+            eko_labels.append('Hållbar matlagning')
+    return mat, eko, eko_labels
+
+
 def extract_persons(raw):
-    """Build participant list from Persons field."""
     p = raw.get('Persons')
     if not isinstance(p, list):
         return []
     result = []
     for item in p:
         if isinstance(item, dict):
-            n = (item.get('Name') or item.get('name') or
+            n = (item.get('Name') or
                  (item.get('FirstName', '') + ' ' + item.get('LastName', '')).strip())
-            t = item.get('Title') or item.get('title') or item.get('Role') or ''
-            o = (item.get('Organization') or item.get('Org') or
-                 item.get('organization') or item.get('Company') or '')
+            t = item.get('Title') or item.get('Role') or ''
+            o = item.get('Organization') or item.get('Org') or item.get('Company') or ''
             if n.strip() or t or o:
                 result.append({'n': str(n).strip(), 't': str(t), 'o': str(o)})
     return result
 
 
 def extract_organizers(raw):
-    """Build organizer list."""
     o = raw.get('Organizers')
     if not o:
         return []
@@ -156,7 +172,7 @@ def extract_organizers(raw):
         out = []
         for x in o:
             if isinstance(x, dict):
-                name = x.get('Name') or x.get('name')
+                name = x.get('Name')
                 if name:
                     out.append(str(name).strip())
             elif x:
@@ -168,7 +184,6 @@ def extract_organizers(raw):
 
 
 def clean_url(u):
-    """Strip leading/trailing markdown-style underscores from URL."""
     if not u:
         return ''
     s = str(u).strip()
@@ -176,19 +191,25 @@ def clean_url(u):
     return s
 
 
+def is_yes_string(v):
+    """Return 'Ja' if value is truthy boolean/non-zero, else 'Nej'."""
+    if v is None:
+        return None
+    if isinstance(v, bool):
+        return 'Ja' if v else 'Nej'
+    return 'Ja' if v else 'Nej'
+
+
 def normalize_event(raw):
     out = {}
-    out['id'] = str(raw.get('EventId') or raw.get('Id') or '')
+    out['id'] = str(raw.get('EventId') or '')
     out['rubrik'] = str(raw.get('Title') or '').strip()
 
-    # Times: a list of sessions. Use the first one as the primary; later
-    # we may want to emit multiple events per record.
     sessions = extract_times(raw)
     if sessions:
         out['dag'] = sessions[0]['dag']
         out['start'] = sessions[0]['start']
         out['slut'] = sessions[0]['slut']
-        # Pass additional sessions for the template (if any)
         if len(sessions) > 1:
             out['sessions'] = sessions
     else:
@@ -202,14 +223,12 @@ def normalize_event(raw):
     out['amne1'] = str(raw.get('Topic') or '')
     out['amne2'] = str(raw.get('Topic2') or '')
 
-    # Location, lat, lon, description
     plats_name, lat, lon, plats_desc = extract_location(raw)
     out['plats'] = plats_name
     out['lat'] = lat
     out['lon'] = lon
     out['platsbeskr'] = plats_desc
 
-    # Languages may be string or list
     lang = raw.get('Languages')
     if isinstance(lang, list):
         out['sprak'] = ', '.join(str(x) for x in lang if x)
@@ -225,17 +244,20 @@ def normalize_event(raw):
     out['x'] = clean_url(raw.get('XUrl'))
     out['li'] = clean_url(raw.get('LinkedInUrl'))
 
-    # Webcast/livestream
+    # Live: digital stream or meeting
     digital_stream = raw.get('DigitalStream')
-    if digital_stream is None:
-        digital_stream = raw.get('DigitalMeeting')
-    out['live'] = parse_yes_no(digital_stream)
+    digital_meeting = raw.get('DigitalMeeting')
+    if digital_stream or digital_meeting:
+        out['live'] = 'Ja'
+    else:
+        out['live'] = 'Nej'
 
-    # Food: not directly in this schema, leave empty
-    out['mat'] = parse_yes_no(raw.get('Food') or raw.get('HasFood'))
-
-    # Eco: Environmental field
-    out['eko'] = parse_yes_no(raw.get('Environmental'))
+    # Food and eco from Environmental object
+    mat, eko, eko_labels = extract_environmental(raw)
+    out['mat'] = mat
+    out['eko'] = eko
+    if eko_labels:
+        out['ekobeskr'] = ', '.join(eko_labels)
 
     out['med'] = extract_persons(raw)
     out['kp1n'] = str(raw.get('ContactPerson1Name') or '')
@@ -253,56 +275,52 @@ def main():
                 events_raw = raw[key]
                 break
         else:
-            print("Cannot find list of events. Keys:")
-            for k in raw.keys():
-                print(f"  {k}")
             sys.exit(3)
     else:
         sys.exit(3)
 
     print(f"Raw events: {len(events_raw)}")
+    if not events_raw:
+        sys.exit(4)
 
-    # Show Times structure for first event with a Times field
-    for i, e in enumerate(events_raw[:20]):
-        if isinstance(e, dict) and e.get('Times'):
-            print(f"Sample Times from event #{i}:")
-            print(json.dumps(e['Times'], ensure_ascii=False, indent=2)[:800])
-            print(f"Sample Location:")
-            print(json.dumps(e.get('Location'), ensure_ascii=False, indent=2)[:400])
-            break
+    # Stats
+    mat_yes = 0
+    mat_no = 0
+    mat_none = 0
+    eko_yes = 0
+    eko_none = 0
+    live_yes = 0
+    live_no = 0
 
     events = []
-    skipped = {'no_rubrik': 0, 'no_dag': 0, 'sample_events_no_dag': []}
     for raw_event in events_raw:
         e = normalize_event(raw_event)
-        if not e['rubrik']:
-            skipped['no_rubrik'] += 1
-            continue
-        if not e['dag']:
-            skipped['no_dag'] += 1
-            if len(skipped['sample_events_no_dag']) < 3:
-                skipped['sample_events_no_dag'].append({
-                    'EventId': raw_event.get('EventId'),
-                    'Title': raw_event.get('Title'),
-                    'Times': raw_event.get('Times'),
-                })
+        if not e['rubrik'] or not e['dag']:
             continue
         events.append(e)
 
-    print(f"Skipped no_rubrik: {skipped['no_rubrik']}")
-    print(f"Skipped no_dag: {skipped['no_dag']}")
-    if skipped['sample_events_no_dag']:
-        print("First 3 events skipped for no_dag:")
-        print(json.dumps(skipped['sample_events_no_dag'], ensure_ascii=False, indent=2)[:1500])
+        if e.get('mat') == 'Ja':
+            mat_yes += 1
+        elif e.get('mat') == 'Nej':
+            mat_no += 1
+        else:
+            mat_none += 1
+        if e.get('eko') == 'Ja':
+            eko_yes += 1
+        else:
+            eko_none += 1
+        if e.get('live') == 'Ja':
+            live_yes += 1
+        else:
+            live_no += 1
+
     print(f"Normalized events: {len(events)}")
+    print(f"Mat: Ja={mat_yes}, Nej={mat_no}, ej angivet={mat_none}")
+    print(f"Miljödiplom (eko): Ja={eko_yes}, ej angivet={eko_none}")
+    print(f"Webbsänt (live): Ja={live_yes}, Nej={live_no}")
 
-    if len(events) == 0:
-        print("FATAL: All events filtered out.")
+    if not events:
         sys.exit(5)
-
-    # Show first normalized event for sanity check
-    print("First NORMALIZED event:")
-    print(json.dumps(events[0], ensure_ascii=False, indent=2)[:1500])
 
     topic_counts = {}
     for e in events:
