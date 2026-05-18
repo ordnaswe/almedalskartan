@@ -1,12 +1,8 @@
 """
-Build index.html from the latest program JSON.
+Build index.html from the latest program JSON. v3.
 
-Reads data/program.json (raw export from alme.inadra.se) and the HTML template,
-emits index.html with embedded data, ready for Netlify to deploy.
-
-The portal JSON schema is NOT documented. We probe field names defensively
-and log warnings if expected fields are missing, so that drift in the source
-format is visible in the CI logs.
+Portal field names are PascalCase. The first version's case-insensitive
+fallback had a bug; this version uses a clean primary-keys table.
 """
 
 import json
@@ -21,51 +17,60 @@ LEAFLET_JS_PATH = Path("template/leaflet.js")
 OUTPUT_PATH = Path("index.html")
 
 
-# Field name candidates per logical field. Probed in order, first match wins.
-FIELD_CANDIDATES = {
-    'id': ['id', 'metaId', 'meta_id', 'MetaId', 'eventId', 'event_id', 'Id', 'ID'],
-    'rubrik': ['title', 'rubrik', 'name', 'Rubrik', 'Title', 'eventTitle', 'event_title', 'Name', 'heading'],
-    'dag': ['date', 'startDate', 'start_date', 'dag', 'Dag', 'day', 'Date', 'StartDate', 'eventDate'],
-    'start': ['startTime', 'start_time', 'starttid', 'Starttid', 'start', 'timeFrom', 'StartTime', 'from'],
-    'slut': ['endTime', 'end_time', 'sluttid', 'Sluttid', 'end', 'timeTo', 'EndTime', 'to'],
-    'kat': ['category', 'kategori', 'kat', 'Category'],
-    'typ': ['eventType', 'event_type', 'type', 'typ', 'Typ', 'Type', 'EventType'],
-    'typorg': ['organizerType', 'organizer_type', 'typorg', 'OrganizerType'],
-    'amne1': ['topic', 'subject', 'amne', 'amne1', 'Topic', 'Subject', 'primaryTopic'],
-    'amne2': ['topic2', 'subject2', 'amne2', 'secondaryTopic', 'topicSecondary', 'SecondaryTopic'],
-    'plats': ['location', 'plats', 'venue', 'Plats', 'Location', 'Venue', 'address'],
-    'lat': ['latitude', 'lat', 'Latitude', 'Lat'],
-    'lon': ['longitude', 'lon', 'lng', 'Longitude', 'Lon', 'Lng'],
-    'platsbeskr': ['locationDescription', 'plats_beskrivning', 'LocationDescription'],
-    'sprak': ['language', 'sprak', 'Language', 'Sprak'],
-    'tillg': ['accessibility', 'tillg', 'Accessibility'],
-    'besk': ['description', 'beskrivning', 'besk', 'Description', 'eventDescription'],
-    'info': ['additionalInfo', 'info', 'AdditionalInfo'],
-    'arr': ['organizers', 'arrangorer', 'arr', 'arrangor', 'Organizers', 'organizer', 'Organizer'],
-    'web': ['website', 'web', 'url', 'Website', 'Url'],
-    'fb': ['facebook', 'fb', 'Facebook'],
-    'x': ['twitter', 'twitterUrl', 'x', 'X', 'Twitter'],
-    'li': ['linkedin', 'linkedinUrl', 'li', 'LinkedIn'],
-    'live': ['liveStream', 'webbsant', 'webbsandning', 'live', 'LiveStream', 'isLiveStream'],
-    'mat': ['food', 'fortaring', 'mat', 'Food', 'hasFood'],
-    'eko': ['ecoCertified', 'miljodiplomerad', 'eko', 'EcoCertified', 'isEcoCertified'],
-    'med': ['participants', 'speakers', 'medverkande', 'med', 'Participants', 'Speakers'],
-    'kp1n': ['contactPersonName', 'kontakt_namn', 'ContactPersonName', 'contactName'],
-    'kp1e': ['contactPersonEmail', 'kontakt_epost', 'ContactPersonEmail', 'contactEmail'],
+# Confirmed field names from the actual portal JSON (PascalCase).
+# Each logical field has a primary key plus a list of fallbacks.
+FIELD_MAP = {
+    'id': ['EventId', 'Id', 'id'],
+    'rubrik': ['Title', 'title', 'Heading', 'Rubrik'],
+    'dag': ['Date', 'EventDate', 'StartDate', 'date', 'Dag'],
+    'start': ['StartTime', 'TimeFrom', 'Start', 'starttid'],
+    'slut': ['EndTime', 'TimeTo', 'End', 'sluttid'],
+    'kat': ['Category', 'kategori'],
+    'typ': ['EventType', 'Type'],
+    'typorg': ['OrganizationType', 'OrganizerType'],
+    'amne1': ['Topic', 'Subject', 'PrimaryTopic'],
+    'amne2': ['Topic2', 'Subject2', 'SecondaryTopic'],
+    'plats': ['Location', 'Venue', 'Plats', 'Address'],
+    'lat': ['Latitude', 'Lat'],
+    'lon': ['Longitude', 'Lon', 'Lng'],
+    'platsbeskr': ['LocationDescription', 'Platsbeskrivning'],
+    'sprak': ['Languages', 'Language', 'Sprak'],
+    'tillg': ['Accessibility', 'Tillganglighet'],
+    'besk': ['Description', 'EventDescription', 'Beskrivning'],
+    'info': ['AdditionalInfo', 'Info', 'SocialIssue'],
+    'arr': ['Organizers', 'Organizer', 'Arrangor', 'Arrangors'],
+    'web': ['Url1', 'Website', 'Url'],
+    'web2': ['Url2'],
+    'web3': ['Url3'],
+    'fb': ['FacebookUrl', 'Facebook'],
+    'x': ['XUrl', 'TwitterUrl', 'Twitter'],
+    'li': ['LinkedInUrl', 'LinkedIn'],
+    'live': ['LiveStream', 'IsLiveStream', 'Webbsandning'],
+    'mat': ['Food', 'HasFood', 'Fortaring'],
+    'eko': ['EcoCertified', 'IsEcoCertified', 'Miljodiplomerad'],
+    'med': ['Participants', 'Speakers', 'Medverkande'],
+    # Contact persons are flat fields in the schema, not nested
+    'kp1n': ['ContactPerson1Name'],
+    'kp1t': ['ContactPerson1Title'],
+    'kp1o': ['ContactPerson1Org'],
+    'kp1p': ['ContactPerson1Phone'],
+    'kp1e': ['ContactPerson1Email'],
+    'kp2n': ['ContactPerson2Name'],
+    'kp2t': ['ContactPerson2Title'],
+    'kp2o': ['ContactPerson2Org'],
+    'kp2p': ['ContactPerson2Phone'],
+    'kp2e': ['ContactPerson2Email'],
+    'showmail': ['ShowEmail'],
+    'showphone': ['ShowPhone'],
+    'status': ['Status'],
 }
 
 
 def get_field(obj, logical_name):
-    """Look up a logical field by trying all candidate keys."""
-    candidates = FIELD_CANDIDATES.get(logical_name, [logical_name])
+    candidates = FIELD_MAP.get(logical_name, [logical_name])
     for key in candidates:
         if key in obj:
             return obj[key]
-    # Case-insensitive fallback
-    obj_lower = {k.lower(): k for k in obj.keys()}
-    for key in candidates:
-        if key.lower() in obj_lower:
-            return obj[obj_lower[key.lower()]]
     return None
 
 
@@ -73,6 +78,8 @@ def parse_yes_no(value):
     if value is None:
         return None
     if isinstance(value, bool):
+        return 'Ja' if value else 'Nej'
+    if isinstance(value, (int, float)):
         return 'Ja' if value else 'Nej'
     if isinstance(value, str):
         v = value.strip().lower()
@@ -91,14 +98,15 @@ def parse_medverkande(value):
         result = []
         for item in value:
             if isinstance(item, dict):
-                n = (item.get('name') or item.get('namn') or item.get('Name') or
-                     item.get('fullName') or item.get('firstName', '') + ' ' + item.get('lastName', '')).strip()
-                t = item.get('title') or item.get('titel') or item.get('Title') or item.get('role') or ''
-                o = (item.get('organization') or item.get('organisation') or
-                     item.get('Organization') or item.get('company') or '')
-                result.append({'n': str(n), 't': str(t), 'o': str(o)})
-            elif isinstance(item, str):
-                result.append({'n': item, 't': '', 'o': ''})
+                n = (item.get('Name') or item.get('name') or item.get('namn') or
+                     item.get('FullName') or '').strip()
+                t = item.get('Title') or item.get('title') or item.get('titel') or item.get('Role') or ''
+                o = (item.get('Organization') or item.get('organization') or
+                     item.get('organisation') or item.get('Org') or item.get('Company') or '')
+                if n or t or o:
+                    result.append({'n': str(n), 't': str(t), 'o': str(o)})
+            elif isinstance(item, str) and item.strip():
+                result.append({'n': item.strip(), 't': '', 'o': ''})
         return result
     if isinstance(value, str):
         result = []
@@ -106,7 +114,8 @@ def parse_medverkande(value):
             parts = [p.strip() for p in entry.split(';')]
             while len(parts) < 3:
                 parts.append('')
-            result.append({'n': parts[0], 't': parts[1], 'o': parts[2]})
+            if parts[0]:
+                result.append({'n': parts[0], 't': parts[1], 'o': parts[2]})
         return result
     return []
 
@@ -118,42 +127,54 @@ def parse_organizers(value):
         out = []
         for x in value:
             if isinstance(x, dict):
-                out.append(x.get('name') or x.get('namn') or x.get('Name') or str(x))
-            else:
+                name = x.get('Name') or x.get('name') or x.get('namn')
+                if name:
+                    out.append(str(name))
+            elif x:
                 out.append(str(x))
         return out
     if isinstance(value, str):
         return [s.strip() for s in re.split(r'[;|]', value) if s.strip()]
     if isinstance(value, dict):
-        return [value.get('name') or value.get('namn') or value.get('Name') or str(value)]
-    return [str(value)]
+        name = value.get('Name') or value.get('name') or value.get('namn')
+        return [str(name)] if name else []
+    return [str(value)] if value else []
+
+
+def parse_date(value):
+    """Accept various date formats, return YYYY-MM-DD."""
+    if not value:
+        return ''
+    if isinstance(value, str):
+        # ISO datetime: take first 10 chars
+        m = re.match(r'(\d{4}-\d{2}-\d{2})', value)
+        if m:
+            return m.group(1)
+        # DD/MM/YYYY or similar
+        m = re.match(r'(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{4})', value)
+        if m:
+            return f"{m.group(3)}-{int(m.group(2)):02d}-{int(m.group(1)):02d}"
+        return value
+    return str(value)
+
+
+def fmt_time(t):
+    if not t:
+        return ''
+    s = str(t)
+    m = re.search(r'(\d{1,2}):(\d{2})', s)
+    if m:
+        return f"{int(m.group(1)):02d}:{m.group(2)}"
+    return s
 
 
 def normalize_event(raw):
     out = {}
     out['id'] = str(get_field(raw, 'id') or '')
     out['rubrik'] = str(get_field(raw, 'rubrik') or '').strip()
-
-    dag = get_field(raw, 'dag')
-    if isinstance(dag, str):
-        out['dag'] = dag[:10] if len(dag) >= 10 else dag
-    else:
-        out['dag'] = str(dag or '')
-
-    start = get_field(raw, 'start')
-    slut = get_field(raw, 'slut')
-
-    def fmt_time(t):
-        if not t:
-            return ''
-        s = str(t)
-        m = re.search(r'(\d{1,2}):(\d{2})', s)
-        if m:
-            return f"{int(m.group(1)):02d}:{m.group(2)}"
-        return s
-
-    out['start'] = fmt_time(start)
-    out['slut'] = fmt_time(slut)
+    out['dag'] = parse_date(get_field(raw, 'dag'))
+    out['start'] = fmt_time(get_field(raw, 'start'))
+    out['slut'] = fmt_time(get_field(raw, 'slut'))
     out['kat'] = str(get_field(raw, 'kat') or '')
     out['typ'] = str(get_field(raw, 'typ') or '')
     out['typorg'] = str(get_field(raw, 'typorg') or '')
@@ -188,75 +209,63 @@ def normalize_event(raw):
     out['med'] = parse_medverkande(get_field(raw, 'med'))
     out['kp1n'] = str(get_field(raw, 'kp1n') or '')
     out['kp1e'] = str(get_field(raw, 'kp1e') or '')
-
     return out
 
 
 def main():
     raw = json.loads(RAW_JSON_PATH.read_text(encoding='utf-8'))
-
     if isinstance(raw, list):
         events_raw = raw
     elif isinstance(raw, dict):
-        for key in ['events', 'data', 'items', 'results', 'programItems', 'evenemang', 'Events']:
+        for key in ['events', 'data', 'items', 'results', 'programItems', 'Events']:
             if key in raw and isinstance(raw[key], list):
                 events_raw = raw[key]
                 break
         else:
-            print("WARNING: could not find list of events in JSON. Top-level keys:")
+            print("WARNING: could not find list of events. Top-level keys:")
             for k in raw.keys():
                 print(f"  {k}: {type(raw[k]).__name__}")
             sys.exit(3)
     else:
-        print(f"ERROR: unexpected root JSON type: {type(raw).__name__}", file=sys.stderr)
         sys.exit(3)
 
     print(f"Raw events: {len(events_raw)}")
     if len(events_raw) == 0:
-        print("ERROR: zero events. Aborting build.", file=sys.stderr)
         sys.exit(4)
 
-    # Verbose logging of first 3 events to understand schema
-    print("=" * 60)
-    print("FIRST EVENT (RAW):")
-    print(json.dumps(events_raw[0], ensure_ascii=False, indent=2)[:3000])
-    print("=" * 60)
-    print("ALL TOP-LEVEL FIELD NAMES IN FIRST EVENT:")
-    for k in events_raw[0].keys():
-        v = events_raw[0][k]
-        if isinstance(v, str):
-            preview = v[:60].replace('\n', ' ')
-        elif isinstance(v, (list, dict)):
-            preview = f"<{type(v).__name__} len={len(v)}>"
-        else:
-            preview = repr(v)
-        print(f"  {k!r}: {preview}")
-    print("=" * 60)
-
-    # Aggregate all unique keys across the first 100 events (handles optional fields)
+    # Dump union of all keys across first 200 events so we see optional fields
     all_keys = set()
-    for e in events_raw[:100]:
+    for e in events_raw[:200]:
         if isinstance(e, dict):
             all_keys.update(e.keys())
-    print(f"Union of keys across first 100 events ({len(all_keys)}):")
+    print(f"Union of keys across first 200 events ({len(all_keys)} fields):")
     for k in sorted(all_keys):
         print(f"  {k}")
-    print("=" * 60)
+
+    # Show fully resolved first event
+    if len(events_raw) > 0:
+        first_norm = normalize_event(events_raw[0])
+        print("First event NORMALIZED:")
+        print(json.dumps(first_norm, ensure_ascii=False, indent=2)[:2000])
 
     events = []
+    skipped = {'no_rubrik': 0, 'no_dag': 0, 'no_status': 0}
     for raw_event in events_raw:
         e = normalize_event(raw_event)
-        if not e['rubrik'] or not e['dag']:
+        # Optionally filter by Status (e.g. exclude draft/canceled)
+        if not e['rubrik']:
+            skipped['no_rubrik'] += 1
+            continue
+        if not e['dag']:
+            skipped['no_dag'] += 1
             continue
         events.append(e)
 
-    print(f"Normalized events with valid rubrik+dag: {len(events)}")
+    print(f"Skipped: {skipped}")
+    print(f"Normalized events: {len(events)}")
 
-    # If we lost everything, dump diagnostic info
     if len(events) == 0:
-        print("FATAL: All events were filtered out. Field mapping failed.")
-        print("Sample normalized output for first event:")
-        print(json.dumps(normalize_event(events_raw[0]), ensure_ascii=False, indent=2))
+        print("FATAL: All events filtered out.")
         sys.exit(5)
 
     topic_counts = {}
