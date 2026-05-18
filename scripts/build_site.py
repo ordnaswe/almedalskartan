@@ -1,8 +1,12 @@
 """
-Build index.html from the latest program JSON. v3.
+Build index.html from the latest program JSON. v4.
 
-Portal field names are PascalCase. The first version's case-insensitive
-fallback had a bug; this version uses a clean primary-keys table.
+Handles real portal schema:
+- Times is a list of {Date, StartTime, EndTime} sessions
+- Location is a nested object with Name, Latitude, Longitude, Description
+- Accessibility is a nested object with boolean flags
+- Persons is the speakers list
+- Organizers is a list of strings or objects
 """
 
 import json
@@ -17,61 +21,24 @@ LEAFLET_JS_PATH = Path("template/leaflet.js")
 OUTPUT_PATH = Path("index.html")
 
 
-# Confirmed field names from the actual portal JSON (PascalCase).
-# Each logical field has a primary key plus a list of fallbacks.
-FIELD_MAP = {
-    'id': ['EventId', 'Id', 'id'],
-    'rubrik': ['Title', 'title', 'Heading', 'Rubrik'],
-    'dag': ['Date', 'EventDate', 'StartDate', 'date', 'Dag'],
-    'start': ['StartTime', 'TimeFrom', 'Start', 'starttid'],
-    'slut': ['EndTime', 'TimeTo', 'End', 'sluttid'],
-    'kat': ['Category', 'kategori'],
-    'typ': ['EventType', 'Type'],
-    'typorg': ['OrganizationType', 'OrganizerType'],
-    'amne1': ['Topic', 'Subject', 'PrimaryTopic'],
-    'amne2': ['Topic2', 'Subject2', 'SecondaryTopic'],
-    'plats': ['Location', 'Venue', 'Plats', 'Address'],
-    'lat': ['Latitude', 'Lat'],
-    'lon': ['Longitude', 'Lon', 'Lng'],
-    'platsbeskr': ['LocationDescription', 'Platsbeskrivning'],
-    'sprak': ['Languages', 'Language', 'Sprak'],
-    'tillg': ['Accessibility', 'Tillganglighet'],
-    'besk': ['Description', 'EventDescription', 'Beskrivning'],
-    'info': ['AdditionalInfo', 'Info', 'SocialIssue'],
-    'arr': ['Organizers', 'Organizer', 'Arrangor', 'Arrangors'],
-    'web': ['Url1', 'Website', 'Url'],
-    'web2': ['Url2'],
-    'web3': ['Url3'],
-    'fb': ['FacebookUrl', 'Facebook'],
-    'x': ['XUrl', 'TwitterUrl', 'Twitter'],
-    'li': ['LinkedInUrl', 'LinkedIn'],
-    'live': ['LiveStream', 'IsLiveStream', 'Webbsandning'],
-    'mat': ['Food', 'HasFood', 'Fortaring'],
-    'eko': ['EcoCertified', 'IsEcoCertified', 'Miljodiplomerad'],
-    'med': ['Participants', 'Speakers', 'Medverkande'],
-    # Contact persons are flat fields in the schema, not nested
-    'kp1n': ['ContactPerson1Name'],
-    'kp1t': ['ContactPerson1Title'],
-    'kp1o': ['ContactPerson1Org'],
-    'kp1p': ['ContactPerson1Phone'],
-    'kp1e': ['ContactPerson1Email'],
-    'kp2n': ['ContactPerson2Name'],
-    'kp2t': ['ContactPerson2Title'],
-    'kp2o': ['ContactPerson2Org'],
-    'kp2p': ['ContactPerson2Phone'],
-    'kp2e': ['ContactPerson2Email'],
-    'showmail': ['ShowEmail'],
-    'showphone': ['ShowPhone'],
-    'status': ['Status'],
-}
+def fmt_time(t):
+    if not t:
+        return ''
+    s = str(t)
+    m = re.search(r'(\d{1,2}):(\d{2})', s)
+    if m:
+        return f"{int(m.group(1)):02d}:{m.group(2)}"
+    return s
 
 
-def get_field(obj, logical_name):
-    candidates = FIELD_MAP.get(logical_name, [logical_name])
-    for key in candidates:
-        if key in obj:
-            return obj[key]
-    return None
+def parse_date(value):
+    if not value:
+        return ''
+    if isinstance(value, str):
+        m = re.match(r'(\d{4}-\d{2}-\d{2})', value)
+        if m:
+            return m.group(1)
+    return str(value)[:10]
 
 
 def parse_yes_no(value):
@@ -91,124 +58,188 @@ def parse_yes_no(value):
     return str(value)
 
 
-def parse_medverkande(value):
-    if not value:
+def extract_times(raw):
+    """Extract list of session dicts from Times field.
+    Each session yields date, start, slut."""
+    times = raw.get('Times')
+    sessions = []
+    if isinstance(times, list):
+        for t in times:
+            if not isinstance(t, dict):
+                continue
+            d = (t.get('Date') or t.get('date') or t.get('Day') or
+                 t.get('StartDateTime') or t.get('Start') or '')
+            s = (t.get('StartTime') or t.get('Start') or t.get('From') or t.get('startTime') or '')
+            e = (t.get('EndTime') or t.get('End') or t.get('To') or t.get('endTime') or '')
+            # If Date is a full datetime, take first 10 chars
+            d_str = parse_date(d)
+            # If StartTime is a full datetime, extract HH:MM
+            s_str = fmt_time(s)
+            e_str = fmt_time(e)
+            # If StartTime is missing but Start is a full datetime, try extracting time from it
+            if not s_str and isinstance(d, str) and 'T' in d:
+                m = re.search(r'T(\d{1,2}):(\d{2})', d)
+                if m:
+                    s_str = f"{int(m.group(1)):02d}:{m.group(2)}"
+            if d_str:
+                sessions.append({'dag': d_str, 'start': s_str, 'slut': e_str})
+    return sessions
+
+
+def extract_location(raw):
+    """Extract name, lat, lon, description from Location field."""
+    loc = raw.get('Location')
+    if isinstance(loc, dict):
+        name = loc.get('Name') or loc.get('name') or ''
+        desc = loc.get('Description') or loc.get('description') or ''
+        lat_raw = loc.get('Latitude') or loc.get('latitude') or loc.get('Lat')
+        lon_raw = loc.get('Longitude') or loc.get('longitude') or loc.get('Lon') or loc.get('Lng')
+        try:
+            lat = float(lat_raw) if lat_raw not in (None, '', 0, '0') else None
+        except (TypeError, ValueError):
+            lat = None
+        try:
+            lon = float(lon_raw) if lon_raw not in (None, '', 0, '0') else None
+        except (TypeError, ValueError):
+            lon = None
+        return name, lat, lon, desc
+    if isinstance(loc, str):
+        return loc, None, None, ''
+    return '', None, None, ''
+
+
+def extract_accessibility(raw):
+    """Build a comma-separated Swedish string from Accessibility booleans."""
+    a = raw.get('Accessibility')
+    if not isinstance(a, dict):
+        return ''
+    labels = []
+    if a.get('WheelchairVenue'):
+        labels.append('Entré och lokal tillgänglig för rullstol')
+    if a.get('WheelchairToilet'):
+        labels.append('Toalett tillgänglig för rullstol')
+    if a.get('Teleloop'):
+        labels.append('Teleslinga')
+    if a.get('Text'):
+        labels.append('Evenemanget textas')
+    if a.get('SignLanguage'):
+        labels.append('Teckenspråkstolkning')
+    if a.get('VisualInterpretation'):
+        labels.append('Syntolkning')
+    return ', '.join(labels)
+
+
+def extract_persons(raw):
+    """Build participant list from Persons field."""
+    p = raw.get('Persons')
+    if not isinstance(p, list):
         return []
-    if isinstance(value, list):
-        result = []
-        for item in value:
-            if isinstance(item, dict):
-                n = (item.get('Name') or item.get('name') or item.get('namn') or
-                     item.get('FullName') or '').strip()
-                t = item.get('Title') or item.get('title') or item.get('titel') or item.get('Role') or ''
-                o = (item.get('Organization') or item.get('organization') or
-                     item.get('organisation') or item.get('Org') or item.get('Company') or '')
-                if n or t or o:
-                    result.append({'n': str(n), 't': str(t), 'o': str(o)})
-            elif isinstance(item, str) and item.strip():
-                result.append({'n': item.strip(), 't': '', 'o': ''})
-        return result
-    if isinstance(value, str):
-        result = []
-        for entry in value.split('|'):
-            parts = [p.strip() for p in entry.split(';')]
-            while len(parts) < 3:
-                parts.append('')
-            if parts[0]:
-                result.append({'n': parts[0], 't': parts[1], 'o': parts[2]})
-        return result
+    result = []
+    for item in p:
+        if isinstance(item, dict):
+            n = (item.get('Name') or item.get('name') or
+                 (item.get('FirstName', '') + ' ' + item.get('LastName', '')).strip())
+            t = item.get('Title') or item.get('title') or item.get('Role') or ''
+            o = (item.get('Organization') or item.get('Org') or
+                 item.get('organization') or item.get('Company') or '')
+            if n.strip() or t or o:
+                result.append({'n': str(n).strip(), 't': str(t), 'o': str(o)})
+    return result
+
+
+def extract_organizers(raw):
+    """Build organizer list."""
+    o = raw.get('Organizers')
+    if not o:
+        return []
+    if isinstance(o, list):
+        out = []
+        for x in o:
+            if isinstance(x, dict):
+                name = x.get('Name') or x.get('name')
+                if name:
+                    out.append(str(name).strip())
+            elif x:
+                out.append(str(x).strip())
+        return out
+    if isinstance(o, str):
+        return [s.strip() for s in re.split(r'[;|]', o) if s.strip()]
     return []
 
 
-def parse_organizers(value):
-    if not value:
-        return []
-    if isinstance(value, list):
-        out = []
-        for x in value:
-            if isinstance(x, dict):
-                name = x.get('Name') or x.get('name') or x.get('namn')
-                if name:
-                    out.append(str(name))
-            elif x:
-                out.append(str(x))
-        return out
-    if isinstance(value, str):
-        return [s.strip() for s in re.split(r'[;|]', value) if s.strip()]
-    if isinstance(value, dict):
-        name = value.get('Name') or value.get('name') or value.get('namn')
-        return [str(name)] if name else []
-    return [str(value)] if value else []
-
-
-def parse_date(value):
-    """Accept various date formats, return YYYY-MM-DD."""
-    if not value:
+def clean_url(u):
+    """Strip leading/trailing markdown-style underscores from URL."""
+    if not u:
         return ''
-    if isinstance(value, str):
-        # ISO datetime: take first 10 chars
-        m = re.match(r'(\d{4}-\d{2}-\d{2})', value)
-        if m:
-            return m.group(1)
-        # DD/MM/YYYY or similar
-        m = re.match(r'(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{4})', value)
-        if m:
-            return f"{m.group(3)}-{int(m.group(2)):02d}-{int(m.group(1)):02d}"
-        return value
-    return str(value)
-
-
-def fmt_time(t):
-    if not t:
-        return ''
-    s = str(t)
-    m = re.search(r'(\d{1,2}):(\d{2})', s)
-    if m:
-        return f"{int(m.group(1)):02d}:{m.group(2)}"
+    s = str(u).strip()
+    s = s.strip('_')
     return s
 
 
 def normalize_event(raw):
     out = {}
-    out['id'] = str(get_field(raw, 'id') or '')
-    out['rubrik'] = str(get_field(raw, 'rubrik') or '').strip()
-    out['dag'] = parse_date(get_field(raw, 'dag'))
-    out['start'] = fmt_time(get_field(raw, 'start'))
-    out['slut'] = fmt_time(get_field(raw, 'slut'))
-    out['kat'] = str(get_field(raw, 'kat') or '')
-    out['typ'] = str(get_field(raw, 'typ') or '')
-    out['typorg'] = str(get_field(raw, 'typorg') or '')
-    out['amne1'] = str(get_field(raw, 'amne1') or '')
-    out['amne2'] = str(get_field(raw, 'amne2') or '')
-    out['plats'] = str(get_field(raw, 'plats') or '')
+    out['id'] = str(raw.get('EventId') or raw.get('Id') or '')
+    out['rubrik'] = str(raw.get('Title') or '').strip()
 
-    lat = get_field(raw, 'lat')
-    lon = get_field(raw, 'lon')
-    try:
-        out['lat'] = float(lat) if lat not in (None, '', 0) else None
-    except (TypeError, ValueError):
-        out['lat'] = None
-    try:
-        out['lon'] = float(lon) if lon not in (None, '', 0) else None
-    except (TypeError, ValueError):
-        out['lon'] = None
+    # Times: a list of sessions. Use the first one as the primary; later
+    # we may want to emit multiple events per record.
+    sessions = extract_times(raw)
+    if sessions:
+        out['dag'] = sessions[0]['dag']
+        out['start'] = sessions[0]['start']
+        out['slut'] = sessions[0]['slut']
+        # Pass additional sessions for the template (if any)
+        if len(sessions) > 1:
+            out['sessions'] = sessions
+    else:
+        out['dag'] = ''
+        out['start'] = ''
+        out['slut'] = ''
 
-    out['platsbeskr'] = str(get_field(raw, 'platsbeskr') or '')
-    out['sprak'] = str(get_field(raw, 'sprak') or '')
-    out['tillg'] = str(get_field(raw, 'tillg') or '')
-    out['besk'] = str(get_field(raw, 'besk') or '')
-    out['info'] = str(get_field(raw, 'info') or '')
-    out['arr'] = parse_organizers(get_field(raw, 'arr'))
-    out['web'] = str(get_field(raw, 'web') or '')
-    out['fb'] = str(get_field(raw, 'fb') or '')
-    out['x'] = str(get_field(raw, 'x') or '')
-    out['li'] = str(get_field(raw, 'li') or '')
-    out['live'] = parse_yes_no(get_field(raw, 'live'))
-    out['mat'] = parse_yes_no(get_field(raw, 'mat'))
-    out['eko'] = parse_yes_no(get_field(raw, 'eko'))
-    out['med'] = parse_medverkande(get_field(raw, 'med'))
-    out['kp1n'] = str(get_field(raw, 'kp1n') or '')
-    out['kp1e'] = str(get_field(raw, 'kp1e') or '')
+    out['kat'] = str(raw.get('Category') or '')
+    out['typ'] = str(raw.get('EventType') or '')
+    out['typorg'] = str(raw.get('OrganizationType') or '')
+    out['amne1'] = str(raw.get('Topic') or '')
+    out['amne2'] = str(raw.get('Topic2') or '')
+
+    # Location, lat, lon, description
+    plats_name, lat, lon, plats_desc = extract_location(raw)
+    out['plats'] = plats_name
+    out['lat'] = lat
+    out['lon'] = lon
+    out['platsbeskr'] = plats_desc
+
+    # Languages may be string or list
+    lang = raw.get('Languages')
+    if isinstance(lang, list):
+        out['sprak'] = ', '.join(str(x) for x in lang if x)
+    else:
+        out['sprak'] = str(lang or '')
+
+    out['tillg'] = extract_accessibility(raw)
+    out['besk'] = str(raw.get('Description') or '')
+    out['info'] = str(raw.get('SocialIssue') or '')
+    out['arr'] = extract_organizers(raw)
+    out['web'] = clean_url(raw.get('Url1') or raw.get('Url2') or raw.get('Url3'))
+    out['fb'] = clean_url(raw.get('FacebookUrl'))
+    out['x'] = clean_url(raw.get('XUrl'))
+    out['li'] = clean_url(raw.get('LinkedInUrl'))
+
+    # Webcast/livestream
+    digital_stream = raw.get('DigitalStream')
+    if digital_stream is None:
+        digital_stream = raw.get('DigitalMeeting')
+    out['live'] = parse_yes_no(digital_stream)
+
+    # Food: not directly in this schema, leave empty
+    out['mat'] = parse_yes_no(raw.get('Food') or raw.get('HasFood'))
+
+    # Eco: Environmental field
+    out['eko'] = parse_yes_no(raw.get('Environmental'))
+
+    out['med'] = extract_persons(raw)
+    out['kp1n'] = str(raw.get('ContactPerson1Name') or '')
+    out['kp1e'] = str(raw.get('ContactPerson1Email') or '')
     return out
 
 
@@ -222,51 +253,56 @@ def main():
                 events_raw = raw[key]
                 break
         else:
-            print("WARNING: could not find list of events. Top-level keys:")
+            print("Cannot find list of events. Keys:")
             for k in raw.keys():
-                print(f"  {k}: {type(raw[k]).__name__}")
+                print(f"  {k}")
             sys.exit(3)
     else:
         sys.exit(3)
 
     print(f"Raw events: {len(events_raw)}")
-    if len(events_raw) == 0:
-        sys.exit(4)
 
-    # Dump union of all keys across first 200 events so we see optional fields
-    all_keys = set()
-    for e in events_raw[:200]:
-        if isinstance(e, dict):
-            all_keys.update(e.keys())
-    print(f"Union of keys across first 200 events ({len(all_keys)} fields):")
-    for k in sorted(all_keys):
-        print(f"  {k}")
-
-    # Show fully resolved first event
-    if len(events_raw) > 0:
-        first_norm = normalize_event(events_raw[0])
-        print("First event NORMALIZED:")
-        print(json.dumps(first_norm, ensure_ascii=False, indent=2)[:2000])
+    # Show Times structure for first event with a Times field
+    for i, e in enumerate(events_raw[:20]):
+        if isinstance(e, dict) and e.get('Times'):
+            print(f"Sample Times from event #{i}:")
+            print(json.dumps(e['Times'], ensure_ascii=False, indent=2)[:800])
+            print(f"Sample Location:")
+            print(json.dumps(e.get('Location'), ensure_ascii=False, indent=2)[:400])
+            break
 
     events = []
-    skipped = {'no_rubrik': 0, 'no_dag': 0, 'no_status': 0}
+    skipped = {'no_rubrik': 0, 'no_dag': 0, 'sample_events_no_dag': []}
     for raw_event in events_raw:
         e = normalize_event(raw_event)
-        # Optionally filter by Status (e.g. exclude draft/canceled)
         if not e['rubrik']:
             skipped['no_rubrik'] += 1
             continue
         if not e['dag']:
             skipped['no_dag'] += 1
+            if len(skipped['sample_events_no_dag']) < 3:
+                skipped['sample_events_no_dag'].append({
+                    'EventId': raw_event.get('EventId'),
+                    'Title': raw_event.get('Title'),
+                    'Times': raw_event.get('Times'),
+                })
             continue
         events.append(e)
 
-    print(f"Skipped: {skipped}")
+    print(f"Skipped no_rubrik: {skipped['no_rubrik']}")
+    print(f"Skipped no_dag: {skipped['no_dag']}")
+    if skipped['sample_events_no_dag']:
+        print("First 3 events skipped for no_dag:")
+        print(json.dumps(skipped['sample_events_no_dag'], ensure_ascii=False, indent=2)[:1500])
     print(f"Normalized events: {len(events)}")
 
     if len(events) == 0:
         print("FATAL: All events filtered out.")
         sys.exit(5)
+
+    # Show first normalized event for sanity check
+    print("First NORMALIZED event:")
+    print(json.dumps(events[0], ensure_ascii=False, indent=2)[:1500])
 
     topic_counts = {}
     for e in events:
