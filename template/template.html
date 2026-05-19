@@ -119,6 +119,10 @@
   .tbl-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-right:4px}
   .tbl-group{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
   .chip{background:transparent;border:1px solid var(--border);color:var(--text);padding:5px 10px;font-size:11px;letter-spacing:1.4px;text-transform:uppercase;cursor:pointer;border-radius:1px;transition:all .15s}
+  #dayChips .chip{display:flex;flex-direction:column;align-items:center;gap:1px;line-height:1.15}
+  #dayChips .chip[data-day]:not([data-day="all"]){min-width:46px}
+  .chip-weather{font-size:9.5px;letter-spacing:0.2px;color:var(--muted);text-transform:none;font-weight:500;display:flex;align-items:center;gap:2px;white-space:nowrap}
+  #dayChips .chip.active .chip-weather{color:rgba(255,255,255,0.85)}
   .chip:hover{border-color:var(--gold);color:var(--gold)}
   .chip.active{background:var(--gold);color:#FFFFFF;border-color:var(--gold);font-weight:600}
   .chip.alt{border-color:var(--gold);color:var(--gold)}
@@ -603,7 +607,7 @@
       </div>
       <div class="footer-col">
         <div class="footer-h-small">Programdata</div>
-        <p class="footer-fine">Programinformationen kommer från <a href="https://almedalsveckan.info" target="_blank" rel="noopener">Region Gotlands officiella program</a> för Almedalsveckan 2026 och uppdateras regelbundet. Vid eventuella avvikelser gäller den officiella källan.</p>
+        <p class="footer-fine">Programinformationen kommer från <a href="https://almedalsveckan.info" target="_blank" rel="noopener">Region Gotlands officiella program</a> för Almedalsveckan 2026 och uppdateras regelbundet. Vid eventuella avvikelser gäller den officiella källan. Väderprognos från <a href="https://www.smhi.se/data/oppna-data" target="_blank" rel="noopener">SMHI Öppna data</a>.</p>
       </div>
       <div class="footer-col">
         <div class="footer-h-small">Personuppgifter</div>
@@ -916,10 +920,104 @@ var DAY_LABELS = {
 };
 var DAYS = Object.keys(DAY_LABELS);
 
+// Weather forecast from SMHI Open Data (Visby coordinates)
+// Cached for 1h in localStorage to avoid hammering the API.
+var SMHI_URL = 'https://opendata-download-metfcst.smhi.se/api/category/pmp3g/version/2/geotype/point/lon/18.2948/lat/57.6348/data.json';
+var LS_WEATHER = 'almedal_weather_v1';
+var weatherCache = null;
+
+function smhiSymbolToIcon(wsymb2){
+  // Map SMHI Wsymb2 (1-27) to a short Unicode symbol.
+  // Source: https://opendata.smhi.se/apidocs/metfcst/parameters.html
+  if(wsymb2 == null) return '';
+  if(wsymb2 === 1) return '☀';
+  if(wsymb2 === 2 || wsymb2 === 3) return '⛅';
+  if(wsymb2 === 4 || wsymb2 === 5 || wsymb2 === 6) return '☁';
+  if(wsymb2 === 7) return '🌫';
+  if(wsymb2 >= 8 && wsymb2 <= 10) return '🌦';
+  if(wsymb2 === 11) return '⛈';
+  if(wsymb2 >= 12 && wsymb2 <= 14) return '🌧';
+  if(wsymb2 >= 15 && wsymb2 <= 17) return '❄';
+  if(wsymb2 >= 18 && wsymb2 <= 20) return '🌦';
+  if(wsymb2 >= 21 && wsymb2 <= 22) return '⛈';
+  if(wsymb2 >= 23 && wsymb2 <= 27) return '❄';
+  return '';
+}
+
+function findParam(params, name){
+  for(var i=0; i<params.length; i++){ if(params[i].name === name) return params[i].values[0]; }
+  return null;
+}
+
+function fetchWeather(){
+  // Try cache first
+  try {
+    var raw = LS.getItem(LS_WEATHER);
+    if(raw){
+      var cached = JSON.parse(raw);
+      if(cached.fetchedAt && (Date.now() - cached.fetchedAt) < 3600 * 1000){
+        weatherCache = cached.data;
+        updateDayChipsWithWeather();
+        return;
+      }
+    }
+  } catch(e){}
+
+  // Fetch fresh
+  fetch(SMHI_URL).then(function(resp){
+    if(!resp.ok) throw new Error('SMHI ' + resp.status);
+    return resp.json();
+  }).then(function(data){
+    var byDay = {};
+    if(data && data.timeSeries){
+      data.timeSeries.forEach(function(ts){
+        // ts.validTime is ISO string like "2026-06-22T12:00:00Z"
+        var date = ts.validTime.substring(0, 10);
+        var hour = parseInt(ts.validTime.substring(11, 13), 10);
+        // Pick the entry closest to noon UTC (which is ~14:00 local time during summer)
+        if(hour !== 12) return;
+        if(DAYS.indexOf(date) < 0) return;
+        var t = findParam(ts.parameters, 't');
+        var wsymb = findParam(ts.parameters, 'Wsymb2');
+        if(t != null){
+          byDay[date] = { temp: Math.round(t), icon: smhiSymbolToIcon(wsymb) };
+        }
+      });
+    }
+    weatherCache = byDay;
+    try {
+      LS.setItem(LS_WEATHER, JSON.stringify({ fetchedAt: Date.now(), data: byDay }));
+    } catch(e){}
+    updateDayChipsWithWeather();
+  }).catch(function(err){
+    // Silent fail: weather is enhancement, not critical
+    if(window.console) console.warn('SMHI weather fetch failed:', err);
+  });
+}
+
+function updateDayChipsWithWeather(){
+  if(!weatherCache) return;
+  document.querySelectorAll('#dayChips .chip').forEach(function(chip){
+    var d = chip.getAttribute('data-day');
+    if(d === 'all') return;
+    if(chip.querySelector('.chip-weather')) return; // already added
+    var w = weatherCache[d];
+    if(!w) return;
+    var span = document.createElement('span');
+    span.className = 'chip-weather';
+    span.innerHTML = (w.icon ? w.icon + ' ' : '') + w.temp + '°';
+    span.setAttribute('aria-label', 'Prognos från SMHI');
+    chip.appendChild(span);
+  });
+}
+
 // Build day chips
 var dayChips = document.getElementById('dayChips');
 dayChips.innerHTML = '<button class="chip active" data-day="all">Alla</button>' +
-  DAYS.map(function(d){ return '<button class="chip" data-day="'+d+'">'+DAY_LABELS[d]+'</button>'; }).join('');
+  DAYS.map(function(d){ return '<button class="chip" data-day="'+d+'"><span class="chip-day-label">'+DAY_LABELS[d]+'</span></button>'; }).join('');
+
+// Kick off weather fetch (non-blocking, fails silently if outside SMHI's 10-day window)
+fetchWeather();
 dayChips.addEventListener('click', function(e){
   var b = e.target.closest('.chip'); if(!b) return;
   dayChips.querySelectorAll('.chip').forEach(function(c){ c.classList.remove('active'); });
