@@ -1,13 +1,16 @@
 """
-Build index.html from the latest program JSON. v5.
+Build index.html from the latest program JSON. v6.
 
-Fixes mat/eko mapping: Environmental is a nested object containing
-Food, NoFood, and Certified, among other sustainability flags.
+v6 adds: SMHI weather forecast for Visby is fetched server-side and
+embedded into the HTML. Avoids CORS issues with direct browser fetches.
 """
 
 import json
 import re
 import sys
+import urllib.request
+import urllib.error
+from datetime import datetime, timezone
 from pathlib import Path
 
 RAW_JSON_PATH = Path("data/program.json")
@@ -265,6 +268,113 @@ def normalize_event(raw):
     return out
 
 
+SMHI_URL = (
+    "https://opendata-download-metfcst.smhi.se/api/category/pmp3g/version/2/"
+    "geotype/point/lon/18.2948/lat/57.6348/data.json"
+)
+ALMEDAL_DAYS = [
+    '2026-06-22', '2026-06-23', '2026-06-24', '2026-06-25', '2026-06-26',
+]
+
+
+def smhi_symbol_to_icon(wsymb2):
+    """Map SMHI Wsymb2 (1-27) to a short Unicode symbol."""
+    if wsymb2 is None:
+        return ''
+    if wsymb2 == 1:
+        return '\u2600'  # ☀
+    if wsymb2 in (2, 3):
+        return '\u26c5'  # ⛅
+    if wsymb2 in (4, 5, 6):
+        return '\u2601'  # ☁
+    if wsymb2 == 7:
+        return '\U0001f32b'  # 🌫
+    if 8 <= wsymb2 <= 10:
+        return '\U0001f326'  # 🌦
+    if wsymb2 == 11:
+        return '\u26c8'  # ⛈
+    if 12 <= wsymb2 <= 14:
+        return '\U0001f327'  # 🌧
+    if 15 <= wsymb2 <= 17:
+        return '\u2744'  # ❄
+    if 18 <= wsymb2 <= 20:
+        return '\U0001f326'  # 🌦
+    if 21 <= wsymb2 <= 22:
+        return '\u26c8'  # ⛈
+    if 23 <= wsymb2 <= 27:
+        return '\u2744'  # ❄
+    return ''
+
+
+def fetch_smhi_weather():
+    """Fetch SMHI forecast and extract:
+    - byDay: noon-UTC entry per Almedalsveckan day (when available)
+    - now: closest entry to current time (always available)
+    Returns {} on any error (weather is enhancement, not critical)."""
+    try:
+        req = urllib.request.Request(SMHI_URL, headers={
+            'User-Agent': 'Almedalskartan/1.0 (build-time fetch; +https://almedalskartan.se)',
+        })
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            data = json.loads(resp.read().decode('utf-8'))
+    except (urllib.error.URLError, urllib.error.HTTPError, json.JSONDecodeError, TimeoutError) as e:
+        print(f"WARNING: SMHI weather fetch failed: {e}")
+        return {}
+
+    time_series = data.get('timeSeries', [])
+    print(f"SMHI: {len(time_series)} time entries")
+
+    by_day = {}
+    now_entry = None
+    best_delta = None
+    now_utc = datetime.now(timezone.utc)
+
+    for ts in time_series:
+        valid_time = ts.get('validTime', '')
+        if len(valid_time) < 13:
+            continue
+        date_str = valid_time[:10]
+        try:
+            hour = int(valid_time[11:13])
+        except ValueError:
+            continue
+
+        # Extract temperature and weather symbol
+        t_val = None
+        wsymb_val = None
+        for p in ts.get('parameters', []):
+            if p.get('name') == 't' and p.get('values'):
+                t_val = p['values'][0]
+            elif p.get('name') == 'Wsymb2' and p.get('values'):
+                wsymb_val = p['values'][0]
+
+        if t_val is None:
+            continue
+
+        # Noon UTC entry per Almedalsveckan day (12:00 UTC = 14:00 CEST)
+        if hour == 12 and date_str in ALMEDAL_DAYS:
+            by_day[date_str] = {
+                'temp': round(t_val),
+                'icon': smhi_symbol_to_icon(int(wsymb_val)) if wsymb_val else '',
+            }
+
+        # Closest-to-now entry for the Visby header widget
+        try:
+            entry_time = datetime.fromisoformat(valid_time.replace('Z', '+00:00'))
+            delta = abs((entry_time - now_utc).total_seconds())
+            if best_delta is None or delta < best_delta:
+                best_delta = delta
+                now_entry = {
+                    'temp': round(t_val),
+                    'icon': smhi_symbol_to_icon(int(wsymb_val)) if wsymb_val else '',
+                }
+        except ValueError:
+            continue
+
+    print(f"SMHI: byDay={by_day}, now={now_entry}")
+    return {'byDay': by_day, 'now': now_entry}
+
+
 def main():
     raw = json.loads(RAW_JSON_PATH.read_text(encoding='utf-8'))
     if isinstance(raw, list):
@@ -347,10 +457,15 @@ def main():
     data_safe = safe_for_script_block(data_json)
     js_safe = safe_for_script_block(leaflet_js)
 
+    # Fetch SMHI weather forecast for Visby
+    weather_data = fetch_smhi_weather()
+    weather_json = json.dumps(weather_data, ensure_ascii=False, separators=(',', ':'))
+
     out = (template
            .replace('__LEAFLET_CSS__', leaflet_css)
            .replace('__LEAFLET_JS__', js_safe)
-           .replace('__DATA__', data_safe))
+           .replace('__DATA__', data_safe)
+           .replace('__WEATHER_DATA__', weather_json))
 
     OUTPUT_PATH.write_text(out, encoding='utf-8')
     size_mb = len(out.encode('utf-8')) / 1024 / 1024
