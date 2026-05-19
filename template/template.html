@@ -434,7 +434,7 @@
     </div>
   </div>
   <div class="header-right">
-    <span class="header-meta">22 till 26 juni 2026</span>
+    <span class="header-meta">22-26 juni 2026</span>
     <span class="visby-weather" id="visbyWeather" style="display:none" title="Aktuellt väder i Visby (SMHI)"></span>
     <span id="storageWarn" style="display:none;font-size:9.5px;letter-spacing:1.4px;color:#e8a52e;border:1px solid #e8a52e;padding:3px 7px;border-radius:1px">Sparas ej i preview</span>
     <div class="profile-wrap">
@@ -956,25 +956,30 @@ function findParam(params, name){
 }
 
 function fetchWeather(){
+  console.log('[Weather] fetchWeather() called');
   // Try cache first
   try {
     var raw = LS.getItem(LS_WEATHER);
     if(raw){
       var cached = JSON.parse(raw);
       if(cached.fetchedAt && (Date.now() - cached.fetchedAt) < 3600 * 1000){
+        console.log('[Weather] using cached data');
         weatherCache = cached.data;
+        visbyNow = cached.now;
         updateDayChipsWithWeather();
         updateVisbyWeather();
         return;
       }
     }
-  } catch(e){}
+  } catch(e){ console.warn('[Weather] cache read failed:', e); }
 
-  // Fetch fresh
+  console.log('[Weather] fetching from SMHI:', SMHI_URL);
   fetch(SMHI_URL).then(function(resp){
+    console.log('[Weather] SMHI response status:', resp.status);
     if(!resp.ok) throw new Error('SMHI ' + resp.status);
     return resp.json();
   }).then(function(data){
+    console.log('[Weather] SMHI data received, timeSeries entries:', data && data.timeSeries ? data.timeSeries.length : 0);
     var byDay = {};
     var current = null;
     var nowMs = Date.now();
@@ -986,12 +991,10 @@ function fetchWeather(){
         var t = findParam(ts.parameters, 't');
         var wsymb = findParam(ts.parameters, 'Wsymb2');
 
-        // For day chips: pick noon UTC entry per Almedalsveckan day
         if(hour === 12 && DAYS.indexOf(date) >= 0 && t != null){
           byDay[date] = { temp: Math.round(t), icon: smhiSymbolToIcon(wsymb) };
         }
 
-        // For Visby header widget: pick the entry closest to now
         var entryMs = Date.parse(ts.validTime);
         if(!isNaN(entryMs) && t != null){
           var delta = Math.abs(entryMs - nowMs);
@@ -1002,22 +1005,23 @@ function fetchWeather(){
         }
       });
     }
+    console.log('[Weather] parsed: byDay=', byDay, 'current=', current);
     weatherCache = byDay;
     visbyNow = current;
     try {
       LS.setItem(LS_WEATHER, JSON.stringify({ fetchedAt: Date.now(), data: byDay, now: current }));
-    } catch(e){}
+    } catch(e){ console.warn('[Weather] cache write failed:', e); }
     updateDayChipsWithWeather();
     updateVisbyWeather();
   }).catch(function(err){
-    if(window.console) console.warn('SMHI weather fetch failed:', err);
+    console.warn('[Weather] SMHI fetch failed:', err);
   });
 }
 
 function updateVisbyWeather(){
+  console.log('[Weather] updateVisbyWeather called, visbyNow=', visbyNow);
   var el = document.getElementById('visbyWeather');
-  if(!el) return;
-  // Try to use the freshly fetched current; otherwise use cached entry from LS
+  if(!el){ console.warn('[Weather] #visbyWeather element not found'); return; }
   var data = visbyNow;
   if(!data){
     try {
@@ -1028,11 +1032,12 @@ function updateVisbyWeather(){
       }
     } catch(e){}
   }
-  if(!data || data.temp == null) return;
+  if(!data || data.temp == null){ console.warn('[Weather] no data available'); return; }
   el.innerHTML = '<span class="vw-label">Visby</span>' +
                  (data.icon ? '<span class="vw-icon">' + data.icon + '</span>' : '') +
                  '<span>' + data.temp + '°</span>';
   el.style.display = 'inline-flex';
+  console.log('[Weather] widget updated and shown');
 }
 
 function updateDayChipsWithWeather(){
