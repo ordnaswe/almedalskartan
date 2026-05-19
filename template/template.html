@@ -576,7 +576,7 @@
   <div class="footer-inner">
     <div class="footer-newsletter">
       <h3 class="footer-h">Få Narvas Almedalsrapport</h3>
-      <p class="footer-text">Engångs-sammanfattning efter Almedalsveckan 2026, och vårt återkommande nyhetsbrev om strategisk kommunikation, public affairs och samhällspåverkan. Du väljer själv vad du vill ha.</p>
+      <p class="footer-text">Välj vad du vill ha. Båda är frivilliga och kan avregistreras när du vill.</p>
       <form name="narva-newsletter" method="POST" data-netlify="true" netlify-honeypot="bot-field" class="newsletter-form" id="newsletterForm">
         <input type="hidden" name="form-name" value="narva-newsletter">
         <p style="display:none"><label>Lämna tomt: <input name="bot-field"></label></p>
@@ -584,11 +584,11 @@
         <div class="footer-checks">
           <label class="footer-check">
             <input type="checkbox" name="consent_rapport" value="ja" id="checkRapport">
-            <span>Engångs-rapport om Almedalsveckan 2026 (en gång, efter veckan)</span>
+            <span>Skicka Almedalsrapporten 2026 till mig (engångsutskick efter veckan).</span>
           </label>
           <label class="footer-check">
-            <input type="checkbox" name="consent_nyhetsbrev" value="ja" id="checkNyhetsbrev">
-            <span>Återkommande nyhetsbrev om strategisk kommunikation, public affairs och samhällspåverkan (cirka en gång i månaden)</span>
+            <input type="checkbox" name="consent_lopande" value="ja" id="checkLopande">
+            <span>Skicka löpande kommunikation från Narva Communications till mig (inbjudningar, rapporter och nyheter, cirka en gång i månaden).</span>
           </label>
         </div>
         <button type="submit" class="footer-submit" id="newsletterSubmit">Anmäl mig</button>
@@ -607,7 +607,7 @@
       </div>
       <div class="footer-col">
         <div class="footer-h-small">Personuppgifter</div>
-        <p class="footer-fine">Kontaktuppgifter till arrangörer kommer från det officiella programmet och visas som arrangörerna själva har publicerat dem. Om du anmäler dig till nyhetsbrev lagrar Narva Communications endast din e-postadress för det syfte du valt. Avregistrering är möjlig i varje utskick. Frågor: <a href="mailto:sandro.wennberg@narva.se">sandro.wennberg@narva.se</a>.</p>
+        <p class="footer-fine">Kontaktuppgifter till arrangörer kommer från det officiella programmet och visas som arrangörerna själva har publicerat dem. Om du anmäler dig till Almedalsrapporten eller löpande kommunikation lagrar Narva Communications din e-postadress endast för det syfte du valt. Avregistrering är möjlig i varje utskick. Frågor: <a href="mailto:sandro.wennberg@narva.se">sandro.wennberg@narva.se</a>.</p>
       </div>
     </div>
 
@@ -1830,16 +1830,16 @@ if(newsletterForm){
     var submit = document.getElementById('newsletterSubmit');
     var email = (document.getElementById('newsletterEmail').value || '').trim();
     var r = document.getElementById('checkRapport').checked;
-    var n = document.getElementById('checkNyhetsbrev').checked;
+    var l = document.getElementById('checkLopande').checked;
 
     if(!email || email.indexOf('@') < 0){
       status.className = 'footer-status err';
       status.textContent = 'Ange en giltig e-postadress.';
       return;
     }
-    if(!r && !n){
+    if(!r && !l){
       status.className = 'footer-status err';
-      status.textContent = 'Välj minst ett alternativ ovan så vi vet vad du vill ha.';
+      status.textContent = 'Välj minst ett av alternativen ovan.';
       return;
     }
 
