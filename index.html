@@ -705,6 +705,9 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .brand-by strong{color:var(--gold);font-weight:600}
   .header-right{display:flex;gap:8px;align-items:center;font-size:10.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted);flex-shrink:0}
   .header-meta{color:var(--muted);white-space:nowrap}
+  .visby-weather{display:inline-flex;align-items:center;gap:4px;font-size:11px;letter-spacing:0.4px;text-transform:none;color:var(--text);font-weight:500;padding:3px 8px;border:1px solid var(--border);border-radius:1px;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .visby-weather .vw-label{color:var(--muted);font-size:9.5px;letter-spacing:1.2px;text-transform:uppercase;font-weight:600;margin-right:1px}
+  .visby-weather .vw-icon{font-size:13px;line-height:1}
 
   /* Profile picker */
   .profile-wrap{position:relative}
@@ -818,6 +821,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
     .brand-title{font-size:12px;letter-spacing:1.2px}
     .brand-by{font-size:8.5px;letter-spacing:1.4px}
     .header-meta{display:none}
+    .visby-weather{display:none !important}
     .profile-btn{padding:4px 8px;font-size:10px;letter-spacing:1px}
     .toolbar{padding:6px 10px;gap:5px}
     .tbl-label{display:none}
@@ -1092,6 +1096,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   </div>
   <div class="header-right">
     <span class="header-meta">22 till 26 juni 2026</span>
+    <span class="visby-weather" id="visbyWeather" style="display:none" title="Aktuellt väder i Visby (SMHI)"></span>
     <span id="storageWarn" style="display:none;font-size:9.5px;letter-spacing:1.4px;color:#e8a52e;border:1px solid #e8a52e;padding:3px 7px;border-radius:1px">Sparas ej i preview</span>
     <div class="profile-wrap">
       <button class="profile-btn" id="profileBtn"><span class="profile-dot"></span><span id="profileName">Gäst</span><svg class="profile-gear" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
@@ -1591,6 +1596,7 @@ var DAYS = Object.keys(DAY_LABELS);
 var SMHI_URL = 'https://opendata-download-metfcst.smhi.se/api/category/pmp3g/version/2/geotype/point/lon/18.2948/lat/57.6348/data.json';
 var LS_WEATHER = 'almedal_weather_v1';
 var weatherCache = null;
+var visbyNow = null;
 
 function smhiSymbolToIcon(wsymb2){
   // Map SMHI Wsymb2 (1-27) to a short Unicode symbol.
@@ -1624,6 +1630,7 @@ function fetchWeather(){
       if(cached.fetchedAt && (Date.now() - cached.fetchedAt) < 3600 * 1000){
         weatherCache = cached.data;
         updateDayChipsWithWeather();
+        updateVisbyWeather();
         return;
       }
     }
@@ -1635,30 +1642,63 @@ function fetchWeather(){
     return resp.json();
   }).then(function(data){
     var byDay = {};
+    var current = null;
+    var nowMs = Date.now();
+    var bestDelta = Infinity;
     if(data && data.timeSeries){
       data.timeSeries.forEach(function(ts){
-        // ts.validTime is ISO string like "2026-06-22T12:00:00Z"
         var date = ts.validTime.substring(0, 10);
         var hour = parseInt(ts.validTime.substring(11, 13), 10);
-        // Pick the entry closest to noon UTC (which is ~14:00 local time during summer)
-        if(hour !== 12) return;
-        if(DAYS.indexOf(date) < 0) return;
         var t = findParam(ts.parameters, 't');
         var wsymb = findParam(ts.parameters, 'Wsymb2');
-        if(t != null){
+
+        // For day chips: pick noon UTC entry per Almedalsveckan day
+        if(hour === 12 && DAYS.indexOf(date) >= 0 && t != null){
           byDay[date] = { temp: Math.round(t), icon: smhiSymbolToIcon(wsymb) };
+        }
+
+        // For Visby header widget: pick the entry closest to now
+        var entryMs = Date.parse(ts.validTime);
+        if(!isNaN(entryMs) && t != null){
+          var delta = Math.abs(entryMs - nowMs);
+          if(delta < bestDelta){
+            bestDelta = delta;
+            current = { temp: Math.round(t), icon: smhiSymbolToIcon(wsymb) };
+          }
         }
       });
     }
     weatherCache = byDay;
+    visbyNow = current;
     try {
-      LS.setItem(LS_WEATHER, JSON.stringify({ fetchedAt: Date.now(), data: byDay }));
+      LS.setItem(LS_WEATHER, JSON.stringify({ fetchedAt: Date.now(), data: byDay, now: current }));
     } catch(e){}
     updateDayChipsWithWeather();
+    updateVisbyWeather();
   }).catch(function(err){
-    // Silent fail: weather is enhancement, not critical
     if(window.console) console.warn('SMHI weather fetch failed:', err);
   });
+}
+
+function updateVisbyWeather(){
+  var el = document.getElementById('visbyWeather');
+  if(!el) return;
+  // Try to use the freshly fetched current; otherwise use cached entry from LS
+  var data = visbyNow;
+  if(!data){
+    try {
+      var raw = LS.getItem(LS_WEATHER);
+      if(raw){
+        var cached = JSON.parse(raw);
+        if(cached && cached.now) data = cached.now;
+      }
+    } catch(e){}
+  }
+  if(!data || data.temp == null) return;
+  el.innerHTML = '<span class="vw-label">Visby</span>' +
+                 (data.icon ? '<span class="vw-icon">' + data.icon + '</span>' : '') +
+                 '<span>' + data.temp + '°</span>';
+  el.style.display = 'inline-flex';
 }
 
 function updateDayChipsWithWeather(){
