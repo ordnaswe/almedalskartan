@@ -1,0 +1,36 @@
+name: Update Weather
+
+on:
+  # Run hourly to keep Visby weather widget fresh
+  schedule:
+    - cron: '15 * * * *'
+  workflow_dispatch:
+
+jobs:
+  weather:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Rebuild index.html with fresh SMHI weather
+        run: python scripts/build_site.py
+
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if git diff --staged --quiet; then
+            echo "No weather changes to commit"
+          else
+            git commit -m "Update weather $(date -u +'%Y-%m-%d %H:%M UTC')"
+            git push
+          fi
