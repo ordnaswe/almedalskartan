@@ -268,17 +268,25 @@ def normalize_event(raw):
     return out
 
 
+
+# SMHI Open Data forecast endpoint.
+# Migrated from pmp3g/version/2 (deprecated 2026-03-31, returns 404)
+# to snow1g/version/1.
 SMHI_URL = (
-    "https://opendata-download-metfcst.smhi.se/api/category/pmp3g/version/2/"
+    "https://opendata-download-metfcst.smhi.se/api/category/snow1g/version/1/"
     "geotype/point/lon/18.2948/lat/57.6348/data.json"
 )
 ALMEDAL_DAYS = [
     '2026-06-22', '2026-06-23', '2026-06-24', '2026-06-25', '2026-06-26',
 ]
 
+# Sentinel value used by SNOW1gv1 for missing measurements.
+SMHI_MISSING = 9999
+
 
 def smhi_symbol_to_icon(wsymb2):
-    """Map SMHI Wsymb2 (1-27) to a short Unicode symbol."""
+    """Map SMHI symbol code (1-27) to a short Unicode symbol.
+    Symbol codes are unchanged between pmp3g and snow1g."""
     if wsymb2 is None:
         return ''
     if wsymb2 == 1:
@@ -306,6 +314,28 @@ def smhi_symbol_to_icon(wsymb2):
     return ''
 
 
+def _smhi_value(entry_data, key):
+    """Read a parameter from a SNOW1gv1 entry's data object.
+    Returns None if missing or if value equals the 9999 sentinel.
+    Defensive: works whether entry_data[key] is a number or a list."""
+    if not isinstance(entry_data, dict):
+        return None
+    val = entry_data.get(key)
+    if val is None:
+        return None
+    if isinstance(val, list):
+        if not val:
+            return None
+        val = val[0]
+    try:
+        num = float(val)
+    except (TypeError, ValueError):
+        return None
+    if num == SMHI_MISSING:
+        return None
+    return num
+
+
 def fetch_smhi_weather():
     """Fetch SMHI forecast and extract:
     - byDay: noon-UTC entry per Almedalsveckan day (when available)
@@ -324,13 +354,26 @@ def fetch_smhi_weather():
     time_series = data.get('timeSeries', [])
     print(f"SMHI: {len(time_series)} time entries")
 
+    # Diagnostic: log the structure of the first entry so we can verify
+    # field names against SMHI's actual response. Remove once stable.
+    if time_series:
+        first = time_series[0]
+        print(f"SMHI DEBUG: first entry top-level keys: {sorted(first.keys())}")
+        if isinstance(first.get('data'), dict):
+            print(f"SMHI DEBUG: first entry data keys: {sorted(first['data'].keys())}")
+        else:
+            print(f"SMHI DEBUG: first entry has no 'data' object, raw entry: {first}")
+        # Also show top-level keys of the full response on first call
+        print(f"SMHI DEBUG: response top-level keys: {sorted(data.keys())}")
+
     by_day = {}
     now_entry = None
     best_delta = None
     now_utc = datetime.now(timezone.utc)
 
     for ts in time_series:
-        valid_time = ts.get('validTime', '')
+        # SNOW1gv1 uses "time"; fall back to "validTime" defensively.
+        valid_time = ts.get('time') or ts.get('validTime') or ''
         if len(valid_time) < 13:
             continue
         date_str = valid_time[:10]
@@ -339,14 +382,10 @@ def fetch_smhi_weather():
         except ValueError:
             continue
 
-        # Extract temperature and weather symbol
-        t_val = None
-        wsymb_val = None
-        for p in ts.get('parameters', []):
-            if p.get('name') == 't' and p.get('values'):
-                t_val = p['values'][0]
-            elif p.get('name') == 'Wsymb2' and p.get('values'):
-                wsymb_val = p['values'][0]
+        # SNOW1gv1: flat data object with human-readable parameter names.
+        entry_data = ts.get('data') or {}
+        t_val = _smhi_value(entry_data, 'air_temperature')
+        wsymb_val = _smhi_value(entry_data, 'symbol_code')
 
         if t_val is None:
             continue
@@ -355,7 +394,7 @@ def fetch_smhi_weather():
         if hour == 12 and date_str in ALMEDAL_DAYS:
             by_day[date_str] = {
                 'temp': round(t_val),
-                'icon': smhi_symbol_to_icon(int(wsymb_val)) if wsymb_val else '',
+                'icon': smhi_symbol_to_icon(int(wsymb_val)) if wsymb_val is not None else '',
             }
 
         # Closest-to-now entry for the Visby header widget
@@ -366,12 +405,13 @@ def fetch_smhi_weather():
                 best_delta = delta
                 now_entry = {
                     'temp': round(t_val),
-                    'icon': smhi_symbol_to_icon(int(wsymb_val)) if wsymb_val else '',
+                    'icon': smhi_symbol_to_icon(int(wsymb_val)) if wsymb_val is not None else '',
                 }
         except ValueError:
             continue
 
     print(f"SMHI: byDay={by_day}, now={now_entry}")
+    return {'byDay': by_day, 'now': now_entry}
     return {'byDay': by_day, 'now': now_entry}
 
 
