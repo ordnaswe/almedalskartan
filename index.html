@@ -967,6 +967,69 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .d-pill{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;padding:3px 8px;border:1px solid var(--border);color:var(--muted);border-radius:1px}
   .d-pill.on{border-color:var(--gold);color:var(--gold)}
 
+  /* A1: Nu+nästa view (desktop default in right panel + mobile fullscreen modal) */
+  .nunaesta{padding:0;display:flex;flex-direction:column;min-height:100%}
+  .nunaesta-head{padding:18px 22px 12px;border-bottom:1px solid var(--border);position:relative}
+  .nunaesta-eyebrow{font-size:10px;letter-spacing:2.2px;text-transform:uppercase;color:var(--influera-red);font-weight:600;margin-bottom:4px}
+  .nunaesta-title{font-size:18px;font-weight:600;color:var(--text);margin:0;letter-spacing:-0.2px}
+  .nunaesta-sub{font-size:11.5px;color:var(--muted);margin-top:5px;line-height:1.4}
+  .nunaesta-geo-bar{padding:10px 22px;background:var(--bg3);border-bottom:1px solid var(--border-s);font-size:11.5px;color:var(--muted);display:flex;align-items:center;justify-content:space-between;gap:10px;line-height:1.4}
+  .nunaesta-geo-bar.has-pos{background:rgba(220,69,32,0.06);color:var(--text)}
+  .nunaesta-geo-btn{background:transparent;border:1px solid var(--influera-red);color:var(--influera-red);padding:4px 10px;font-size:10px;letter-spacing:1.3px;text-transform:uppercase;cursor:pointer;border-radius:1px;font-family:inherit;font-weight:600;white-space:nowrap;flex-shrink:0}
+  .nunaesta-geo-btn:hover{background:var(--influera-red);color:#FFFFFF}
+  .nunaesta-sections{flex:1;overflow-y:auto}
+  .nunaesta-section{border-bottom:1px solid var(--border-s)}
+  .nunaesta-section:last-child{border-bottom:none}
+  .nunaesta-section-head{padding:11px 22px 8px;display:flex;align-items:baseline;justify-content:space-between;gap:10px;background:var(--bg2);position:sticky;top:0;z-index:2;border-bottom:1px solid var(--border-s)}
+  .nunaesta-section-title{font-size:10.5px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-weight:700}
+  .nunaesta-section-title.live{color:var(--influera-red)}
+  .nunaesta-section-title.live::before{content:"";display:inline-block;width:7px;height:7px;background:var(--influera-red);border-radius:50%;margin-right:6px;animation:pulse 1.6s ease-in-out infinite;vertical-align:1px}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.55;transform:scale(0.78)}}
+  .nunaesta-section-count{font-size:10px;color:var(--muted);letter-spacing:1px;font-variant-numeric:tabular-nums}
+  .nunaesta-items{display:flex;flex-direction:column}
+  .nunaesta-item{padding:10px 22px 12px;border-bottom:1px solid var(--border-s);cursor:pointer;transition:background .15s;display:grid;grid-template-columns:54px 1fr auto;gap:10px;align-items:start;background:transparent}
+  .nunaesta-item:hover{background:rgba(0,0,0,0.06)}
+  .nunaesta-item:last-child{border-bottom:none}
+  .nunaesta-item-time{font-size:11.5px;color:var(--gold);font-weight:700;letter-spacing:0.5px;font-variant-numeric:tabular-nums;line-height:1.3;padding-top:1px}
+  .nunaesta-item-main{min-width:0}
+  .nunaesta-item-title{font-size:13px;font-weight:500;line-height:1.35;color:var(--text);margin:0 0 3px}
+  .nunaesta-item-place{font-size:11px;color:var(--muted);line-height:1.35;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+  .nunaesta-item-place::before{content:"";display:inline-block;width:3px;height:3px;background:var(--gold-d);border-radius:50%;flex-shrink:0}
+  .nunaesta-item-distance{color:var(--influera-red);font-weight:600;letter-spacing:0.2px;font-variant-numeric:tabular-nums}
+  .nunaesta-item-score{font-size:10px;color:var(--text);font-weight:700;letter-spacing:0.3px;text-align:right;font-variant-numeric:tabular-nums;display:flex;flex-direction:column;align-items:flex-end;gap:2px;padding-top:2px}
+  .nunaesta-item-score-pct{font-size:13px}
+  .nunaesta-item-score.high{color:var(--influera-red)}
+  .nunaesta-section-collapsed .nunaesta-items{display:none}
+  .nunaesta-section-collapsed .nunaesta-section-head{cursor:pointer}
+  .nunaesta-section-collapsed .nunaesta-section-head::after{content:"▾";color:var(--muted);font-size:11px;margin-left:6px}
+  .nunaesta-section.collapsible .nunaesta-section-head{cursor:pointer;user-select:none}
+  .nunaesta-section.collapsible .nunaesta-section-head::after{content:"▴";color:var(--muted);font-size:11px}
+  .nunaesta-section.collapsible.collapsed .nunaesta-section-head::after{content:"▾"}
+  .nunaesta-section.collapsible.collapsed .nunaesta-items{display:none}
+  .nunaesta-empty{padding:18px 22px;color:var(--muted);font-size:12px;line-height:1.55;font-style:italic}
+  .nunaesta-offstate{padding:30px 22px;text-align:center;color:var(--muted);font-size:12.5px;line-height:1.7}
+  .nunaesta-offstate-big{display:block;font-size:14.5px;color:var(--text);letter-spacing:0.5px;margin-bottom:10px;font-weight:600}
+  .nunaesta-clock{font-variant-numeric:tabular-nums;color:var(--gold);font-weight:600}
+  .nunaesta-clock-override{background:rgba(220,69,32,0.10);border:1px dashed var(--influera-red);color:var(--influera-red);padding:2px 7px;font-size:10px;letter-spacing:0.8px;border-radius:1px;text-transform:uppercase;font-weight:600;margin-left:6px}
+
+  /* Mobile: Nu+nästa as fullscreen overlay, triggered by a toolbar button */
+  .nunaesta-mobile-trigger{display:none}
+  @media (max-width:1024px){
+    .nunaesta-mobile-trigger{display:inline-flex}
+    .nunaesta-mobile-overlay{position:fixed;inset:0;background:var(--bg2);z-index:950;display:none;flex-direction:column}
+    .nunaesta-mobile-overlay.open{display:flex}
+    .nunaesta-mobile-overlay .nunaesta{height:100%;overflow:hidden}
+    .nunaesta-mobile-close{position:absolute;top:14px;right:18px;background:transparent;border:1px solid var(--border);color:var(--text);width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:2px;font-size:16px;z-index:3}
+    .nunaesta-mobile-close:hover{border-color:var(--gold);color:var(--gold)}
+  }
+  @media (max-width:760px){
+    .nunaesta-head{padding:14px 16px 10px}
+    .nunaesta-title{font-size:16px}
+    .nunaesta-section-head{padding:9px 16px 6px}
+    .nunaesta-item{padding:9px 16px 11px;grid-template-columns:50px 1fr auto;gap:8px}
+    .nunaesta-geo-bar{padding:9px 16px}
+  }
+
   /* Conflict warnings (A3) — used only in agenda tab and in detail view */
   .conflict-summary{padding:9px 14px;background:#FAF5E8;border-bottom:1px solid #E8D9B5;border-left:3px solid #B8862A;display:flex;align-items:center;gap:8px;font-size:11.5px;color:#7A5A1C;letter-spacing:0.3px;line-height:1.45}
   .conflict-summary-icon{width:14px;height:14px;border-radius:50%;background:#B8862A;color:#FFFFFF;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
@@ -1177,6 +1240,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
       <button class="chip alt" id="nowBtn">Nu</button>
       <button class="chip alt" id="geoBtn">Nära mig</button>
     </div>
+    <button class="chip alt nunaesta-mobile-trigger" id="nunaestaMobileBtn">Nu &amp; nästa</button>
     <button class="chip alt chip-pill" id="filterBtn">Filter <span class="chip-badge" id="filterCount">0</span></button>
     <button class="chip alt" id="resetBtn">Återställ</button>
   </div>
@@ -1286,10 +1350,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   </div>
 
   <aside class="detail" id="detail">
-    <div class="detail-empty">
-      <span class="big">ALMEDALSKARTAN</span>
-      Välj en programpunkt i listan<br>eller klicka en pin på kartan
-    </div>
+    <div class="nunaesta" id="nunaestaDesktopBody"></div>
   </aside>
 </div>
 
@@ -1379,6 +1440,12 @@ svg.leaflet-image-layer.leaflet-interactive path {
       <button class="chip active" id="profileCreate">Skapa</button>
     </div>
   </div>
+</div>
+
+<!-- Mobile Nu+nästa overlay -->
+<div class="nunaesta-mobile-overlay" id="nunaestaMobileOverlay" aria-hidden="true">
+  <button class="nunaesta-mobile-close" id="nunaestaMobileClose" aria-label="Stäng">✕</button>
+  <div class="nunaesta" id="nunaestaMobileBody"></div>
 </div>
 
 <!-- Toast for save/unsave confirmation with undo -->
@@ -2690,10 +2757,345 @@ function clearDetail(){
   document.body.classList.remove('has-selection');
   document.querySelectorAll('.card').forEach(function(c){ c.classList.remove('selected'); });
   document.getElementById('detail').innerHTML =
-    '<div class="detail-empty">' +
-      '<span class="big">ALMEDALSKARTAN</span>' +
-      'Välj en programpunkt i listan<br>eller klicka en pin på kartan' +
+    '<div class="nunaesta" id="nunaestaDesktopBody"></div>';
+  renderNuNasta('nunaestaDesktopBody');
+}
+
+// ============== A1: Nu+nästa view ==============
+// Renders into either #nunaestaDesktopBody (desktop default) or #nunaestaMobileBody.
+// Sections: Pågår nu / Inom 30 min / Inom 60 min / Senare idag.
+// Updates every 60s while visible. Supports ?now=YYYY-MM-DDTHH:MM URL override for preview.
+
+var nuNastaTimer = null;
+
+function getOverrideNow(){
+  // Reads ?now=YYYY-MM-DDTHH:MM from URL to allow previewing during off-week development.
+  try {
+    var params = new URLSearchParams(window.location.search);
+    var n = params.get('now');
+    if(!n) return null;
+    var m = n.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{1,2}):(\d{2})/);
+    if(!m) return null;
+    var d = new Date(parseInt(m[1],10), parseInt(m[2],10) - 1, parseInt(m[3],10),
+                     parseInt(m[4],10), parseInt(m[5],10), 0);
+    if(isNaN(d.getTime())) return null;
+    return d;
+  } catch(e){ return null; }
+}
+
+function nuNow(){
+  return getOverrideNow() || new Date();
+}
+
+function pad2num(n){ return n<10?'0'+n:String(n); }
+function dateKey(d){ return d.getFullYear()+'-'+pad2num(d.getMonth()+1)+'-'+pad2num(d.getDate()); }
+function timeOfDayHours(d){ return d.getHours() + d.getMinutes()/60 + d.getSeconds()/3600; }
+
+function dateAtHour(dateStr, hours){
+  // Build a Date from YYYY-MM-DD + fractional hours in local time
+  var m = String(dateStr || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(!m) return null;
+  var h = Math.floor(hours);
+  var min = Math.round((hours - h) * 60);
+  return new Date(parseInt(m[1],10), parseInt(m[2],10)-1, parseInt(m[3],10), h, min, 0);
+}
+
+function distanceMetersFromUser(e){
+  if(!state.userPos) return null;
+  if(typeof e.lat !== 'number' || typeof e.lon !== 'number') return null;
+  return haversineKm(state.userPos[0], state.userPos[1], e.lat, e.lon) * 1000;
+}
+
+function formatDistanceAndWalk(meters){
+  // Returns string like "320 m, 5 min" or "1.2 km, 22 min". 4 km/h with 1.3 detour factor.
+  var walkMin = Math.round((meters / 1000 * WALKING_DETOUR_FACTOR) / WALKING_SPEED_KMH * 60);
+  var dist;
+  if(meters < 1000) dist = Math.round(meters) + ' m';
+  else dist = (meters / 1000).toFixed(1).replace('.', ',') + ' km';
+  return dist + ', ' + walkMin + ' min';
+}
+
+function fmtClockHM(d){
+  return pad2num(d.getHours()) + ':' + pad2num(d.getMinutes());
+}
+
+function fmtSwDayShort(d){
+  // "mån 22 juni" — abbreviated weekday + day + month
+  var days = ['sön','mån','tis','ons','tor','fre','lör'];
+  var months = ['januari','februari','mars','april','maj','juni','juli','augusti','september','oktober','november','december'];
+  return days[d.getDay()] + ' ' + d.getDate() + ' ' + months[d.getMonth()];
+}
+
+function partitionForNuNasta(now){
+  // Returns {live, in30, in60, laterToday, tomorrow, status}
+  // status: 'in-week' | 'before-week' | 'after-week' | 'between-days'
+  var todayKey = dateKey(now);
+  var hourNum = timeOfDayHours(now);
+  var inWeek = isInAlmedalen(now);
+
+  // If outside the week, return special status with previews
+  if(!inWeek){
+    // Find first/next Almedalen day from EVENTS
+    var almedalDays = ['2026-06-22','2026-06-23','2026-06-24','2026-06-25','2026-06-26'];
+    var nextDay = null;
+    for(var i = 0; i < almedalDays.length; i++){
+      if(almedalDays[i] >= todayKey){ nextDay = almedalDays[i]; break; }
+    }
+    var status = nextDay ? 'before-week' : 'after-week';
+    var previewDay = nextDay || almedalDays[0];
+    var preview = EVENTS.filter(function(e){ return (e.dag || '').indexOf(previewDay) === 0; })
+      .sort(function(a,b){ return (a.start||'').localeCompare(b.start||''); })
+      .slice(0, 6);
+    return { live: [], in30: [], in60: [], laterToday: [], tomorrow: preview, status: status, previewDay: previewDay };
+  }
+
+  // In week: split today's events into buckets
+  var todays = EVENTS.filter(function(e){ return (e.dag || '').indexOf(todayKey) === 0; });
+  var live = [], in30 = [], in60 = [], laterToday = [];
+
+  todays.forEach(function(e){
+    var t = timeToNum(e.start);
+    if(t === null) return;
+    var tEnd = timeToNum(e.slut);
+    var ended = tEnd !== null && tEnd <= hourNum;
+    if(ended) return; // event finished
+    if(t <= hourNum && (tEnd === null || tEnd > hourNum)){
+      live.push(e);
+    } else if(t > hourNum && t <= hourNum + 0.5){
+      in30.push(e);
+    } else if(t > hourNum + 0.5 && t <= hourNum + 1){
+      in60.push(e);
+    } else if(t > hourNum + 1){
+      laterToday.push(e);
+    }
+  });
+
+  // Sort: by distance if userPos available, otherwise by start time
+  var sortByDistThenTime = function(a, b){
+    if(state.userPos){
+      var da = distanceMetersFromUser(a);
+      var db = distanceMetersFromUser(b);
+      if(da !== null && db !== null && da !== db) return da - db;
+      if(da !== null && db === null) return -1;
+      if(da === null && db !== null) return 1;
+    }
+    return (a.start||'').localeCompare(b.start||'');
+  };
+  live.sort(sortByDistThenTime);
+  in30.sort(sortByDistThenTime);
+  in60.sort(sortByDistThenTime);
+  laterToday.sort(function(a,b){ return (a.start||'').localeCompare(b.start||''); });
+
+  // Status sub-classifier: dead time before first event of the day, or after last
+  var allDayCount = todays.length;
+  var anyToday = live.length + in30.length + in60.length + laterToday.length;
+  var status = 'in-week';
+  if(allDayCount > 0 && anyToday === 0){
+    status = 'between-days'; // today is in week but all events done
+  }
+
+  return { live: live, in30: in30, in60: in60, laterToday: laterToday, tomorrow: [], status: status };
+}
+
+function renderNuNastaItem(e, hasWeights){
+  var score = scoreEvent(e);
+  var pct = (hasWeights && score > 0) ? scorePercent(e) : 0;
+  var meters = distanceMetersFromUser(e);
+  var placeBits = [];
+  if(e.plats) placeBits.push(escapeHtml(e.plats));
+  if(meters !== null){
+    placeBits.push('<span class="nunaesta-item-distance">' + escapeHtml(formatDistanceAndWalk(meters)) + '</span>');
+  }
+  var scoreCell = '';
+  if(pct > 0){
+    scoreCell = '<div class="nunaesta-item-score' + (pct >= 80 ? ' high' : '') + '">' +
+      '<span class="nunaesta-item-score-pct">' + pct + '%</span>' +
     '</div>';
+  } else {
+    scoreCell = '<div></div>';
+  }
+  return '<div class="nunaesta-item" data-jump-id="' + escapeAttr(e.id) + '">' +
+    '<div class="nunaesta-item-time">' + escapeHtml(formatHM(e.start)) + (e.slut ? '<br>' + escapeHtml(formatHM(e.slut)) : '') + '</div>' +
+    '<div class="nunaesta-item-main">' +
+      '<div class="nunaesta-item-title">' + escapeHtml(e.rubrik) + '</div>' +
+      (placeBits.length ? '<div class="nunaesta-item-place">' + placeBits.join(' &nbsp;·&nbsp; ') + '</div>' : '') +
+    '</div>' +
+    scoreCell +
+  '</div>';
+}
+
+function renderNuNasta(targetId){
+  var el = document.getElementById(targetId);
+  if(!el) return;
+  var now = nuNow();
+  var override = getOverrideNow();
+  var p = partitionForNuNasta(now);
+  var hasWeights = Object.keys(effectiveWeights()).length > 0;
+
+  // Head
+  var clockText = fmtClockHM(now) + ' ' + fmtSwDayShort(now);
+  var headHtml =
+    '<div class="nunaesta-head">' +
+      '<div class="nunaesta-eyebrow">Nu &amp; nästa</div>' +
+      '<h2 class="nunaesta-title">Vad pågår omkring dig</h2>' +
+      '<div class="nunaesta-sub"><span class="nunaesta-clock">' + escapeHtml(clockText) + '</span>' +
+        (override ? '<span class="nunaesta-clock-override" title="Tid satt via URL: ?now=...">simulerad tid</span>' : '') +
+      '</div>' +
+    '</div>';
+
+  // Geo bar
+  var geoBarHtml;
+  if(state.userPos){
+    geoBarHtml = '<div class="nunaesta-geo-bar has-pos">' +
+      '<span>Position på, listor sorterade efter avstånd.</span>' +
+      '<button class="nunaesta-geo-btn" data-action="geo-off">Stäng av</button>' +
+    '</div>';
+  } else {
+    geoBarHtml = '<div class="nunaesta-geo-bar">' +
+      '<span>Tillåt platsbehörighet för avstånd och gångtid.</span>' +
+      '<button class="nunaesta-geo-btn" data-action="geo-on">Tillåt</button>' +
+    '</div>';
+  }
+
+  // Sections
+  var sectionsHtml = '';
+
+  if(p.status === 'before-week' || p.status === 'after-week'){
+    // Outside Almedalen
+    var dayLabel = '';
+    if(p.previewDay){
+      var dParts = p.previewDay.split('-');
+      var d = new Date(parseInt(dParts[0],10), parseInt(dParts[1],10)-1, parseInt(dParts[2],10));
+      dayLabel = fmtSwDayShort(d);
+    }
+    var msg = p.status === 'before-week'
+      ? 'Almedalsveckan börjar ' + escapeHtml(dayLabel) + '. Här är ett urval från första dagen att förbereda sig med.'
+      : 'Almedalsveckan är slut för i år. Här är ett urval från sista dagen.';
+    sectionsHtml =
+      '<div class="nunaesta-offstate">' +
+        '<span class="nunaesta-offstate-big">' + escapeHtml(dayLabel.charAt(0).toUpperCase() + dayLabel.slice(1)) + '</span>' +
+        msg +
+      '</div>' +
+      (p.tomorrow.length ? '<div class="nunaesta-section">' +
+        '<div class="nunaesta-section-head">' +
+          '<span class="nunaesta-section-title">Förhandsvisning</span>' +
+          '<span class="nunaesta-section-count">' + p.tomorrow.length + ' programpunkter</span>' +
+        '</div>' +
+        '<div class="nunaesta-items">' + p.tomorrow.map(function(e){ return renderNuNastaItem(e, hasWeights); }).join('') + '</div>' +
+      '</div>' : '');
+  } else if(p.status === 'between-days'){
+    // Within week but today's events all finished
+    sectionsHtml =
+      '<div class="nunaesta-offstate">' +
+        '<span class="nunaesta-offstate-big">Dagen är slut</span>' +
+        'Imorgon börjar nästa dag i Almedalsveckan. Bläddra i listan till vänster för att förbereda dig.' +
+      '</div>';
+  } else {
+    // In-week, normal four sections
+    var mkSection = function(title, items, opts){
+      opts = opts || {};
+      var liveCls = opts.live ? ' live' : '';
+      if(items.length === 0){
+        if(opts.hideIfEmpty) return '';
+        return '<div class="nunaesta-section">' +
+          '<div class="nunaesta-section-head">' +
+            '<span class="nunaesta-section-title' + liveCls + '">' + escapeHtml(title) + '</span>' +
+            '<span class="nunaesta-section-count">0</span>' +
+          '</div>' +
+          '<div class="nunaesta-empty">Inget just nu.</div>' +
+        '</div>';
+      }
+      var collapsibleCls = opts.collapsibleStart ? ' collapsible collapsed' : (opts.collapsible ? ' collapsible' : '');
+      return '<div class="nunaesta-section' + collapsibleCls + '" data-section="' + escapeAttr(opts.key || title) + '">' +
+        '<div class="nunaesta-section-head">' +
+          '<span class="nunaesta-section-title' + liveCls + '">' + escapeHtml(title) + '</span>' +
+          '<span class="nunaesta-section-count">' + items.length + (opts.collapsible || opts.collapsibleStart ? ' programpunkter' : '') + '</span>' +
+        '</div>' +
+        '<div class="nunaesta-items">' + items.map(function(e){ return renderNuNastaItem(e, hasWeights); }).join('') + '</div>' +
+      '</div>';
+    };
+
+    sectionsHtml =
+      mkSection('Pågår nu', p.live, { live: true, key: 'live' }) +
+      mkSection('Inom 30 minuter', p.in30, { key: 'in30' }) +
+      mkSection('Inom en timme', p.in60, { hideIfEmpty: p.in60.length === 0 && (p.live.length || p.in30.length), key: 'in60' }) +
+      mkSection('Senare idag', p.laterToday, { collapsibleStart: true, key: 'later' });
+  }
+
+  el.innerHTML = headHtml + geoBarHtml +
+    '<div class="nunaesta-sections">' + sectionsHtml + '</div>';
+
+  // Wire up: clicks on items open detail; geo buttons; collapsible toggles
+  el.querySelectorAll('.nunaesta-item').forEach(function(it){
+    it.addEventListener('click', function(){
+      var id = it.getAttribute('data-jump-id');
+      // Close mobile overlay if open
+      var mob = document.getElementById('nunaestaMobileOverlay');
+      if(mob && mob.classList.contains('open')){
+        mob.classList.remove('open');
+        mob.setAttribute('aria-hidden', 'true');
+      }
+      selectEvent(id, true);
+    });
+  });
+
+  el.querySelectorAll('[data-action="geo-on"]').forEach(function(b){
+    b.addEventListener('click', function(){
+      if(!navigator.geolocation){ alert('Geolokalisering stöds inte i denna webbläsare'); return; }
+      navigator.geolocation.getCurrentPosition(function(p){
+        state.userPos = [p.coords.latitude, p.coords.longitude];
+        drawUserMarker();
+        renderNuNasta(targetId);
+      }, function(){ alert('Kunde inte hämta din position'); });
+    });
+  });
+  el.querySelectorAll('[data-action="geo-off"]').forEach(function(b){
+    b.addEventListener('click', function(){
+      state.userPos = null;
+      if(map && userMarker){ try{ map.removeLayer(userMarker); }catch(e){} userMarker = null; }
+      renderNuNasta(targetId);
+    });
+  });
+  el.querySelectorAll('.nunaesta-section.collapsible .nunaesta-section-head').forEach(function(h){
+    h.addEventListener('click', function(){
+      h.parentNode.classList.toggle('collapsed');
+    });
+  });
+}
+
+function startNuNastaTimer(){
+  if(nuNastaTimer) clearInterval(nuNastaTimer);
+  nuNastaTimer = setInterval(function(){
+    // Re-render desktop default view if no event is selected
+    if(!state.selectedId){
+      var desk = document.getElementById('nunaestaDesktopBody');
+      if(desk) renderNuNasta('nunaestaDesktopBody');
+    }
+    // Re-render mobile overlay if open
+    var mob = document.getElementById('nunaestaMobileOverlay');
+    if(mob && mob.classList.contains('open')){
+      renderNuNasta('nunaestaMobileBody');
+    }
+  }, 60000); // 1 minute
+}
+
+// Mobile trigger button
+var nunaestaMobileBtn = document.getElementById('nunaestaMobileBtn');
+if(nunaestaMobileBtn){
+  nunaestaMobileBtn.addEventListener('click', function(){
+    var mob = document.getElementById('nunaestaMobileOverlay');
+    mob.classList.add('open');
+    mob.setAttribute('aria-hidden', 'false');
+    renderNuNasta('nunaestaMobileBody');
+  });
+}
+var nunaestaMobileClose = document.getElementById('nunaestaMobileClose');
+if(nunaestaMobileClose){
+  nunaestaMobileClose.addEventListener('click', function(){
+    var mob = document.getElementById('nunaestaMobileOverlay');
+    mob.classList.remove('open');
+    mob.setAttribute('aria-hidden', 'true');
+  });
 }
 
 // ============== .ics (iCalendar) export ==============
@@ -3123,6 +3525,9 @@ renderProfileMenu();
 updateTopicBadge();
 updateFilterBadge();
 render();
+// A1: Render Nu+nästa as the default desktop view (no event selected)
+renderNuNasta('nunaestaDesktopBody');
+startNuNastaTimer();
 
 })();
 </script>
