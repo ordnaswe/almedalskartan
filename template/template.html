@@ -232,6 +232,14 @@
   .card-place{font-size:11px;color:var(--muted);margin-bottom:5px;display:flex;align-items:center;gap:4px}
   .card-place::before{content:"";display:inline-block;width:4px;height:4px;background:var(--gold-d);border-radius:50%}
   .card-meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;align-items:center}
+  /* Quick-save button on event cards (desktop + mobile) */
+  .card-save{position:absolute;right:10px;bottom:10px;width:26px;height:26px;background:transparent;border:1px solid var(--border);color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:2px;padding:0;transition:all .12s;font-family:inherit;line-height:0}
+  .card-save:hover{border-color:var(--gold);color:var(--gold);background:rgba(0,0,0,0.04)}
+  .card-save.saved{background:var(--influera-red);border-color:var(--influera-red);color:#FFFFFF}
+  .card-save.saved:hover{background:#A52F15;border-color:#A52F15;color:#FFFFFF}
+  .card-save svg{display:block;width:14px;height:14px}
+  /* Make room so card-meta tags don't overlap the save button */
+  .card .card-meta{padding-right:30px}
   .tag{font-size:9px;letter-spacing:1.3px;text-transform:uppercase;padding:2px 6px;border:1px solid var(--border);color:var(--muted);border-radius:1px}
   .tag.primary{border-color:var(--gold);color:var(--gold)}
   .tag.t-type{border-color:rgba(244,239,227,0.2);color:rgba(244,239,227,0.7)}
@@ -1695,6 +1703,7 @@ function render(){
     }
     listEl.innerHTML = conflictBanner + '<div class="empty">' + emptyMsg + '</div>';
   } else {
+    var agendaSetForCards = currentAgenda();
     listEl.innerHTML = conflictBanner + pageItems.map(function(e){
       var score = e._score || 0;
       var pct = hasWeights && score > 0 ? scorePercent(e) : 0;
@@ -1714,6 +1723,11 @@ function render(){
           walkNote = '<span class="card-walk-note">' + tw.walkMin + ' min promenad, bara ' + tw.gapMin + ' min lucka</span>';
         }
       }
+      var isSaved = agendaSetForCards.has(e.id);
+      var saveIcon = isSaved
+        ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16.5" rx="2"/><line x1="3" y1="9.5" x2="21" y2="9.5"/><line x1="8" y1="2.5" x2="8" y2="6.5"/><line x1="16" y1="2.5" x2="16" y2="6.5"/><polyline points="8.5,14.5 11,17 16,12"/></svg>'
+        : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16.5" rx="2"/><line x1="3" y1="9.5" x2="21" y2="9.5"/><line x1="8" y1="2.5" x2="8" y2="6.5"/><line x1="16" y1="2.5" x2="16" y2="6.5"/></svg>';
+      var saveBtn = '<button class="card-save'+(isSaved?' saved':'')+'" data-save-id="'+e.id+'" title="'+(isSaved?'Ta bort från agenda':'Spara till agenda')+'" aria-label="'+(isSaved?'Ta bort från agenda':'Spara till agenda')+'">'+saveIcon+'</button>';
       return '<div class="card '+(state.selectedId===e.id?'selected':'')+'" data-id="'+e.id+'">' +
         conflictMark +
         (hasWeights && pct > 0 ? (
@@ -1734,12 +1748,29 @@ function render(){
           (e.amne2 ? '<span class="tag">'+escapeHtml(e.amne2)+'</span>' : '') +
           (e.typ ? '<span class="tag t-type">'+escapeHtml(e.typ)+'</span>' : '') +
         '</div>' +
+        saveBtn +
       '</div>';
     }).join('');
   }
 
   listEl.querySelectorAll('.card').forEach(function(c){
     c.addEventListener('click', function(){ selectEvent(c.getAttribute('data-id'), true); });
+  });
+
+  // Quick-save button: toggle agenda membership without opening the detail view
+  listEl.querySelectorAll('.card-save').forEach(function(btn){
+    btn.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      var id = btn.getAttribute('data-save-id');
+      var ag = currentAgenda();
+      if(ag.has(id)) ag.delete(id); else ag.add(id);
+      setAgenda(ag);
+      renderProfileMenu();
+      // If the currently selected event is this one, refresh detail view
+      // so the "Spara till agenda" button there reflects the new state.
+      if(state.selectedId === id) selectEvent(id, false);
+      render();
+    });
   });
 
   // Map still shows all (filtered) markers, not just current page
