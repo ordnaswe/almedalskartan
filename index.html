@@ -893,14 +893,12 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .card-place{font-size:11px;color:var(--muted);margin-bottom:5px;display:flex;align-items:center;gap:4px}
   .card-place::before{content:"";display:inline-block;width:4px;height:4px;background:var(--gold-d);border-radius:50%}
   .card-meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;align-items:center}
-  /* Quick-save button on event cards (desktop + mobile) */
-  .card-save{position:absolute;right:10px;bottom:10px;width:26px;height:26px;background:transparent;border:1px solid var(--border);color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:2px;padding:0;transition:all .12s;font-family:inherit;line-height:0}
+  /* Quick-save button on event cards (desktop + mobile) — inline at end of meta row */
+  .card-save{margin-left:auto;width:26px;height:26px;background:transparent;border:1px solid var(--border);color:var(--muted);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;border-radius:2px;padding:0;transition:all .12s;font-family:inherit;line-height:0;flex-shrink:0}
   .card-save:hover{border-color:var(--gold);color:var(--gold);background:rgba(0,0,0,0.04)}
   .card-save.saved{background:var(--influera-red);border-color:var(--influera-red);color:#FFFFFF}
   .card-save.saved:hover{background:#A52F15;border-color:#A52F15;color:#FFFFFF}
   .card-save svg{display:block;width:14px;height:14px}
-  /* Make room so card-meta tags don't overlap the save button */
-  .card .card-meta{padding-right:30px}
   .tag{font-size:9px;letter-spacing:1.3px;text-transform:uppercase;padding:2px 6px;border:1px solid var(--border);color:var(--muted);border-radius:1px}
   .tag.primary{border-color:var(--gold);color:var(--gold)}
   .tag.t-type{border-color:rgba(244,239,227,0.2);color:rgba(244,239,227,0.7)}
@@ -2413,8 +2411,8 @@ function render(){
           (e.amne1 ? '<span class="tag primary">'+escapeHtml(e.amne1)+'</span>' : '') +
           (e.amne2 ? '<span class="tag">'+escapeHtml(e.amne2)+'</span>' : '') +
           (e.typ ? '<span class="tag t-type">'+escapeHtml(e.typ)+'</span>' : '') +
+          saveBtn +
         '</div>' +
-        saveBtn +
       '</div>';
     }).join('');
   }
