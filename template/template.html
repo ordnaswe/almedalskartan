@@ -231,13 +231,24 @@
   .card:has(.card-score) .card-row1{padding-right:54px}
   .card-place{font-size:11px;color:var(--muted);margin-bottom:5px;display:flex;align-items:center;gap:4px}
   .card-place::before{content:"";display:inline-block;width:4px;height:4px;background:var(--gold-d);border-radius:50%}
-  .card-meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;align-items:center}
-  /* Quick-save button on event cards (desktop + mobile) — inline at end of meta row */
-  .card-save{margin-left:auto;width:26px;height:26px;background:transparent;border:1px solid var(--border);color:var(--muted);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;border-radius:2px;padding:0;transition:all .12s;font-family:inherit;line-height:0;flex-shrink:0}
+  .card-meta{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:6px;row-gap:5px;margin-top:6px;align-items:start}
+  .card-meta-tags{display:flex;flex-wrap:wrap;gap:5px;align-items:center;min-width:0}
+  /* Quick-save button on event cards (desktop + mobile) — pinned to top-right of meta grid */
+  .card-save{width:26px;height:26px;background:transparent;border:1px solid var(--border);color:var(--muted);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;border-radius:2px;padding:0;transition:all .12s;font-family:inherit;line-height:0;flex-shrink:0;align-self:start}
   .card-save:hover{border-color:var(--gold);color:var(--gold);background:rgba(0,0,0,0.04)}
   .card-save.saved{background:var(--influera-red);border-color:var(--influera-red);color:#FFFFFF}
   .card-save.saved:hover{background:#A52F15;border-color:#A52F15;color:#FFFFFF}
   .card-save svg{display:block;width:14px;height:14px}
+
+  /* Toast: small confirmation snackbar with undo link */
+  .toast{position:fixed;right:22px;bottom:22px;background:#1A1A1A;color:#FFFFFF;padding:10px 14px;border-radius:3px;box-shadow:0 6px 22px rgba(0,0,0,0.22);display:flex;align-items:center;gap:14px;font-size:13px;letter-spacing:0.2px;z-index:1100;max-width:360px;opacity:0;transform:translateY(8px);transition:opacity .18s ease,transform .18s ease;pointer-events:none}
+  .toast.show{opacity:1;transform:translateY(0);pointer-events:auto}
+  .toast-msg{flex:1;line-height:1.35}
+  .toast-undo{background:transparent;border:none;color:#F4B860;cursor:pointer;font-family:inherit;font-size:12px;letter-spacing:1.4px;text-transform:uppercase;font-weight:600;padding:2px 4px;border-radius:2px;flex-shrink:0}
+  .toast-undo:hover{color:#FFFFFF;text-decoration:underline}
+  @media (max-width:760px){
+    .toast{right:12px;left:12px;bottom:12px;max-width:none;font-size:12.5px;padding:11px 14px}
+  }
   .tag{font-size:9px;letter-spacing:1.3px;text-transform:uppercase;padding:2px 6px;border:1px solid var(--border);color:var(--muted);border-radius:1px}
   .tag.primary{border-color:var(--gold);color:var(--gold)}
   .tag.t-type{border-color:rgba(244,239,227,0.2);color:rgba(244,239,227,0.7)}
@@ -707,6 +718,12 @@
       <button class="chip active" id="profileCreate">Skapa</button>
     </div>
   </div>
+</div>
+
+<!-- Toast for save/unsave confirmation with undo -->
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <span class="toast-msg" id="toastMsg"></span>
+  <button class="toast-undo" id="toastUndo">Ångra</button>
 </div>
 
 <script>__LEAFLET_JS__</script>
@@ -1742,9 +1759,11 @@ function render(){
         (e.plats?'<div class="card-place">'+escapeHtml(e.plats)+'</div>':'') +
         walkNote +
         '<div class="card-meta">' +
-          (e.amne1 ? '<span class="tag primary">'+escapeHtml(e.amne1)+'</span>' : '') +
-          (e.amne2 ? '<span class="tag">'+escapeHtml(e.amne2)+'</span>' : '') +
-          (e.typ ? '<span class="tag t-type">'+escapeHtml(e.typ)+'</span>' : '') +
+          '<div class="card-meta-tags">' +
+            (e.amne1 ? '<span class="tag primary">'+escapeHtml(e.amne1)+'</span>' : '') +
+            (e.amne2 ? '<span class="tag">'+escapeHtml(e.amne2)+'</span>' : '') +
+            (e.typ ? '<span class="tag t-type">'+escapeHtml(e.typ)+'</span>' : '') +
+          '</div>' +
           saveBtn +
         '</div>' +
       '</div>';
@@ -1760,9 +1779,7 @@ function render(){
     btn.addEventListener('click', function(ev){
       ev.stopPropagation();
       var id = btn.getAttribute('data-save-id');
-      var ag = currentAgenda();
-      if(ag.has(id)) ag.delete(id); else ag.add(id);
-      setAgenda(ag);
+      toggleAgendaWithToast(id);
       renderProfileMenu();
       // If the currently selected event is this one, refresh detail view
       // so the "Spara till agenda" button there reflects the new state.
@@ -1974,9 +1991,7 @@ function selectEvent(id, panTo){
   var mb = document.getElementById('mobileBack');
   if(mb) mb.addEventListener('click', clearDetail);
   document.getElementById('saveBtn').addEventListener('click', function(){
-    var ag = currentAgenda();
-    if(ag.has(id)) ag.delete(id); else ag.add(id);
-    setAgenda(ag);
+    toggleAgendaWithToast(id);
     renderProfileMenu();
     selectEvent(id, false);
     render();
@@ -2145,6 +2160,72 @@ function escapeHtml(s){
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 function escapeAttr(s){ return escapeHtml(s); }
+
+// ============== Toast (save/unsave confirmation with undo) ==============
+var toastEl = document.getElementById('toast');
+var toastMsgEl = document.getElementById('toastMsg');
+var toastUndoBtn = document.getElementById('toastUndo');
+var toastHideTimer = null;
+var toastUndoHandler = null;
+
+function showToast(message, undoFn){
+  if(!toastEl) return;
+  // Replace any in-flight toast with the new one
+  if(toastHideTimer){ clearTimeout(toastHideTimer); toastHideTimer = null; }
+  toastMsgEl.textContent = message;
+  toastUndoHandler = undoFn || null;
+  if(toastUndoHandler){
+    toastUndoBtn.style.display = '';
+  } else {
+    toastUndoBtn.style.display = 'none';
+  }
+  toastEl.classList.add('show');
+  toastHideTimer = setTimeout(function(){
+    toastEl.classList.remove('show');
+    toastUndoHandler = null;
+    toastHideTimer = null;
+  }, 3000);
+}
+
+toastUndoBtn.addEventListener('click', function(){
+  var fn = toastUndoHandler;
+  toastUndoHandler = null;
+  if(toastHideTimer){ clearTimeout(toastHideTimer); toastHideTimer = null; }
+  toastEl.classList.remove('show');
+  if(typeof fn === 'function') fn();
+});
+
+// Toggle an event in the agenda and show a toast with undo.
+// Used by both the quick-save button on cards and the detail-panel save button.
+function toggleAgendaWithToast(id){
+  var ag = currentAgenda();
+  var wasSaved = ag.has(id);
+  if(wasSaved){
+    ag.delete(id);
+  } else {
+    ag.add(id);
+  }
+  setAgenda(ag);
+  var ev = EVENTS.find(function(x){ return x.id === id; });
+  var label = ev ? (ev.rubrik || '') : '';
+  var shortLabel = label.length > 48 ? label.slice(0, 47) + '…' : label;
+  var msg = wasSaved
+    ? 'Borttagen från agenda' + (shortLabel ? ': ' + shortLabel : '')
+    : 'Tillagd i agenda' + (shortLabel ? ': ' + shortLabel : '');
+  showToast(msg, function(){
+    // Undo: flip back to previous state
+    var ag2 = currentAgenda();
+    if(wasSaved){
+      ag2.add(id);
+    } else {
+      ag2.delete(id);
+    }
+    setAgenda(ag2);
+    renderProfileMenu();
+    if(state.selectedId === id) selectEvent(id, false);
+    render();
+  });
+}
 
 // Newsletter form
 var newsletterForm = document.getElementById('newsletterForm');
