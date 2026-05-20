@@ -289,6 +289,26 @@
   .d-pill{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;padding:3px 8px;border:1px solid var(--border);color:var(--muted);border-radius:1px}
   .d-pill.on{border-color:var(--gold);color:var(--gold)}
 
+  /* Conflict warnings (A3) — used only in agenda tab and in detail view */
+  .conflict-summary{padding:9px 14px;background:#FAF5E8;border-bottom:1px solid #E8D9B5;border-left:3px solid #B8862A;display:flex;align-items:center;gap:8px;font-size:11.5px;color:#7A5A1C;letter-spacing:0.3px;line-height:1.45}
+  .conflict-summary-icon{width:14px;height:14px;border-radius:50%;background:#B8862A;color:#FFFFFF;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
+  .conflict-summary strong{color:#5C4310;font-weight:600}
+  .card-conflict-mark{position:absolute;top:10px;right:12px;width:14px;height:14px;border-radius:50%;background:#B8862A;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;line-height:1;z-index:1}
+  /* When a card has both a score and a conflict, push conflict mark down */
+  .card:has(.card-score) .card-conflict-mark{top:auto;bottom:10px}
+  .card-walk-note{display:block;margin-top:4px;font-size:10.5px;color:#7A5A1C;letter-spacing:0.2px;line-height:1.4}
+  .card-walk-note::before{content:"⤳ ";color:#B8862A;font-weight:700}
+  /* Detail panel: conflict block */
+  .d-conflicts{padding:14px 22px 16px;border-bottom:1px solid var(--border-s);background:#FAF5E8}
+  .d-conflicts .d-label{color:#7A5A1C}
+  .conflict-item{display:flex;gap:9px;align-items:flex-start;padding:8px 0;border-bottom:1px solid #E8D9B5;font-size:12px;line-height:1.45}
+  .conflict-item:last-child{border-bottom:none}
+  .conflict-item-icon{flex-shrink:0;width:18px;height:18px;border-radius:50%;background:#B8862A;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;line-height:1;margin-top:1px}
+  .conflict-item-text{flex:1;color:#5C4310}
+  .conflict-item-text strong{color:#3D2D08;font-weight:600;cursor:pointer;text-decoration:underline;text-decoration-color:#B8862A;text-underline-offset:2px}
+  .conflict-item-text strong:hover{color:#B8862A}
+  .conflict-item-meta{font-size:10.5px;color:#7A5A1C;letter-spacing:0.3px;margin-top:2px}
+
   /* Speaker cards */
   .speakers{display:flex;flex-direction:column;gap:6px}
   .speaker{padding:8px 10px;background:rgba(0,0,0,0.06);border-left:2px solid var(--gold);border-radius:1px}
@@ -1419,6 +1439,113 @@ function timeToNum(t){
   return parseInt(m[1],10) + parseInt(m[2],10)/60;
 }
 
+// ============== A3: Conflict detection ==============
+// Detects time overlaps and tight walking-time gaps within the user's agenda.
+// Returns a map: { eventId: { overlaps: [{withId, withRubrik, withStart, withSlut}],
+//                            tightWalks: [{fromId, fromRubrik, fromSlut, walkMin, gapMin}] } }
+// "tightWalk" means walking time exceeds available gap between two consecutive events.
+// Speeds: 4 km/h walking (Visby cobblestones, slower than typical 5 km/h).
+// Haversine distance × 1.3 to approximate real walking route vs straight-line.
+
+var WALKING_SPEED_KMH = 4;
+var WALKING_DETOUR_FACTOR = 1.3;
+
+function haversineKm(lat1, lon1, lat2, lon2){
+  var toRad = function(d){ return d * Math.PI / 180; };
+  var R = 6371; // Earth radius in km
+  var dLat = toRad(lat2 - lat1);
+  var dLon = toRad(lon2 - lon1);
+  var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+          Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+          Math.sin(dLon/2) * Math.sin(dLon/2);
+  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+
+function walkingMinutes(e1, e2){
+  // Returns null if either event lacks coordinates
+  if(typeof e1.lat !== 'number' || typeof e1.lon !== 'number' ||
+     typeof e2.lat !== 'number' || typeof e2.lon !== 'number') return null;
+  // Same coordinates: 0 minutes
+  if(e1.lat === e2.lat && e1.lon === e2.lon) return 0;
+  var km = haversineKm(e1.lat, e1.lon, e2.lat, e2.lon) * WALKING_DETOUR_FACTOR;
+  return (km / WALKING_SPEED_KMH) * 60;
+}
+
+function computeAgendaConflicts(){
+  var conflicts = {};
+  var agendaIds = Array.from(currentAgenda());
+  if(agendaIds.length < 2) return conflicts;
+
+  // Fetch full event objects and group by date
+  var byDay = {};
+  agendaIds.forEach(function(id){
+    var e = EVENTS.find(function(x){ return x.id === id; });
+    if(!e) return;
+    var date = (e.dag || '').slice(0, 10);
+    if(!date) return;
+    if(!byDay[date]) byDay[date] = [];
+    byDay[date].push(e);
+  });
+
+  Object.keys(byDay).forEach(function(date){
+    var events = byDay[date].slice().sort(function(a, b){
+      return (timeToNum(a.start) || 0) - (timeToNum(b.start) || 0);
+    });
+
+    // Check every pair for time overlap, and consecutive pairs for walking time
+    for(var i = 0; i < events.length; i++){
+      var a = events[i];
+      var aStart = timeToNum(a.start);
+      var aSlut = timeToNum(a.slut);
+      if(aStart === null) continue;
+
+      for(var j = i + 1; j < events.length; j++){
+        var b = events[j];
+        var bStart = timeToNum(b.start);
+        var bSlut = timeToNum(b.slut);
+        if(bStart === null) continue;
+
+        // Time overlap: A.slut > B.start AND A.start < B.slut (>0 min overlap)
+        if(aSlut !== null && bSlut !== null && aSlut > bStart && aStart < bSlut){
+          if(!conflicts[a.id]) conflicts[a.id] = { overlaps: [], tightWalks: [] };
+          if(!conflicts[b.id]) conflicts[b.id] = { overlaps: [], tightWalks: [] };
+          conflicts[a.id].overlaps.push({ withId: b.id, withRubrik: b.rubrik, withStart: b.start, withSlut: b.slut });
+          conflicts[b.id].overlaps.push({ withId: a.id, withRubrik: a.rubrik, withStart: a.start, withSlut: a.slut });
+        }
+      }
+
+      // Walking time check for consecutive events (next event starts after this one ends)
+      // Only flag if the gap between end of A and start of next event B is shorter than walking time
+      if(aSlut !== null){
+        for(var k = i + 1; k < events.length; k++){
+          var nxt = events[k];
+          var nxtStart = timeToNum(nxt.start);
+          if(nxtStart === null) continue;
+          // Only consider events that start AFTER A ends (no overlap)
+          if(nxtStart < aSlut) continue;
+          var gapMin = (nxtStart - aSlut) * 60;
+          var walkMin = walkingMinutes(a, nxt);
+          if(walkMin === null) break; // Coordinates missing; can't compute
+          if(walkMin > gapMin + 0.5){ // 0.5 min tolerance to avoid spurious flags
+            if(!conflicts[nxt.id]) conflicts[nxt.id] = { overlaps: [], tightWalks: [] };
+            conflicts[nxt.id].tightWalks.push({
+              fromId: a.id,
+              fromRubrik: a.rubrik,
+              fromSlut: a.slut,
+              walkMin: Math.round(walkMin),
+              gapMin: Math.round(gapMin)
+            });
+          }
+          break; // Only check the immediate next event in time
+        }
+      }
+    }
+  });
+
+  return conflicts;
+}
+
 function filtered(){
   var q = state.q;
   var agendaSet = currentAgenda();
@@ -1528,6 +1655,32 @@ function render(){
   }
 
   var listEl = document.getElementById('list');
+
+  // A3: Compute conflicts for the agenda tab and inject summary banner
+  var agendaConflicts = state.tab === 'agenda' ? computeAgendaConflicts() : {};
+  var conflictBanner = '';
+  if(state.tab === 'agenda' && Object.keys(agendaConflicts).length > 0){
+    var nOverlaps = 0, nWalks = 0;
+    var overlapPairs = {}; // dedup
+    Object.keys(agendaConflicts).forEach(function(id){
+      var c = agendaConflicts[id];
+      c.overlaps.forEach(function(o){
+        var key = [id, o.withId].sort().join('|');
+        if(!overlapPairs[key]){ overlapPairs[key] = true; nOverlaps++; }
+      });
+      nWalks += c.tightWalks.length;
+    });
+    var parts = [];
+    if(nOverlaps) parts.push('<strong>' + nOverlaps + '</strong> ' + (nOverlaps === 1 ? 'tidskonflikt' : 'tidskonflikter'));
+    if(nWalks) parts.push('<strong>' + nWalks + '</strong> knapp gångtid');
+    if(parts.length){
+      conflictBanner = '<div class="conflict-summary">' +
+        '<span class="conflict-summary-icon">!</span>' +
+        '<span>I din agenda: ' + parts.join(' samt ') + '. Detaljer på respektive programpunkt.</span>' +
+      '</div>';
+    }
+  }
+
   if(list.length === 0){
     var emptyMsg;
     if(state.now){
@@ -1540,14 +1693,29 @@ function render(){
     } else {
       emptyMsg = 'Inga programpunkter matchar dina filter.<br><br>Pröva att vidga tidsintervallet eller återställa filtren.';
     }
-    listEl.innerHTML = '<div class="empty">' + emptyMsg + '</div>';
+    listEl.innerHTML = conflictBanner + '<div class="empty">' + emptyMsg + '</div>';
   } else {
-    listEl.innerHTML = pageItems.map(function(e){
+    listEl.innerHTML = conflictBanner + pageItems.map(function(e){
       var score = e._score || 0;
       var pct = hasWeights && score > 0 ? scorePercent(e) : 0;
       var dayLabel = '';
       for(var k in DAY_LABELS){ if(e.dag.indexOf(k)===0){ dayLabel = DAY_LABELS[k]; break; } }
+      var conf = agendaConflicts[e.id];
+      var conflictMark = '';
+      var walkNote = '';
+      if(conf){
+        if(conf.overlaps.length > 0){
+          conflictMark = '<div class="card-conflict-mark" title="Tidskonflikt">!</div>';
+        } else if(conf.tightWalks.length > 0){
+          conflictMark = '<div class="card-conflict-mark" title="Knapp gångtid" style="background:#C9A055">⤳</div>';
+        }
+        if(conf.tightWalks.length > 0){
+          var tw = conf.tightWalks[0];
+          walkNote = '<span class="card-walk-note">' + tw.walkMin + ' min promenad, bara ' + tw.gapMin + ' min lucka</span>';
+        }
+      }
       return '<div class="card '+(state.selectedId===e.id?'selected':'')+'" data-id="'+e.id+'">' +
+        conflictMark +
         (hasWeights && pct > 0 ? (
           '<div class="card-score'+(pct>=80?' high':'')+'">' +
             '<div class="card-score-num"><span class="card-score-pct">'+pct+'</span><span class="card-score-unit">%</span></div>' +
@@ -1560,6 +1728,7 @@ function render(){
         '</div>' +
         '<div class="card-title">'+escapeHtml(e.rubrik)+'</div>' +
         (e.plats?'<div class="card-place">'+escapeHtml(e.plats)+'</div>':'') +
+        walkNote +
         '<div class="card-meta">' +
           (e.amne1 ? '<span class="tag primary">'+escapeHtml(e.amne1)+'</span>' : '') +
           (e.amne2 ? '<span class="tag">'+escapeHtml(e.amne2)+'</span>' : '') +
@@ -1634,6 +1803,39 @@ function selectEvent(id, panTo){
   var score = scoreEvent(e);
   var hasW = Object.keys(effectiveWeights()).length > 0;
 
+  // A3: Conflict block only relevant when event is saved in agenda
+  var conflictBlock = '';
+  if(saved){
+    var allConflicts = computeAgendaConflicts();
+    var myConf = allConflicts[id];
+    if(myConf && (myConf.overlaps.length > 0 || myConf.tightWalks.length > 0)){
+      var items = '';
+      myConf.overlaps.forEach(function(o){
+        items += '<div class="conflict-item">' +
+          '<span class="conflict-item-icon">!</span>' +
+          '<div class="conflict-item-text">' +
+            'Krockar i tid med <strong data-jump="' + o.withId + '">' + escapeHtml(o.withRubrik) + '</strong>' +
+            '<div class="conflict-item-meta">' + escapeHtml(formatHM(o.withStart)) + (o.withSlut ? '-' + escapeHtml(formatHM(o.withSlut)) : '') + '</div>' +
+          '</div>' +
+        '</div>';
+      });
+      myConf.tightWalks.forEach(function(tw){
+        items += '<div class="conflict-item">' +
+          '<span class="conflict-item-icon" style="background:#C9A055">⤳</span>' +
+          '<div class="conflict-item-text">' +
+            tw.walkMin + ' min promenad från <strong data-jump="' + tw.fromId + '">' + escapeHtml(tw.fromRubrik) + '</strong>' +
+            ' som slutar ' + escapeHtml(formatHM(tw.fromSlut)) +
+            '<div class="conflict-item-meta">Bara ' + tw.gapMin + ' min lucka, beräknat på 4 km/h i Visby</div>' +
+          '</div>' +
+        '</div>';
+      });
+      conflictBlock = '<div class="d-conflicts">' +
+        '<div class="d-label">Konflikter i din agenda</div>' +
+        items +
+      '</div>';
+    }
+  }
+
   var medHtml;
   if(e.med && e.med.length){
     medHtml = '<div class="speakers">' + e.med.map(function(p){
@@ -1687,6 +1889,8 @@ function selectEvent(id, panTo){
         'Kontakta Narva i Almedalen' +
       '</a>' +
     '</div>' +
+
+    conflictBlock +
 
     (e.plats ? '<div class="d-section">' +
       '<div class="d-label">Plats</div>' +
@@ -1757,6 +1961,13 @@ function selectEvent(id, panTo){
   }
   detailEl.querySelectorAll('.spl-item').forEach(function(it){
     it.addEventListener('click', function(){ selectEvent(it.getAttribute('data-id'), true); });
+  });
+
+  // A3: jump links inside conflict items
+  detailEl.querySelectorAll('[data-jump]').forEach(function(el){
+    el.addEventListener('click', function(){
+      selectEvent(el.getAttribute('data-jump'), true);
+    });
   });
 
   if(panTo && map && e.lat && e.lon){
