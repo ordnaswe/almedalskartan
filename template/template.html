@@ -491,11 +491,22 @@
     .filter-panel-foot{padding:10px 16px}
   }
 
-  /* Veteran/debutant pill — shown next to organiser name in detail view */
-  .org-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;font-size:10px;letter-spacing:1.3px;text-transform:uppercase;border-radius:1px;font-weight:600;margin-left:8px;vertical-align:1px;line-height:1.2}
-  .org-badge.veteran{background:rgba(184,134,42,0.10);border:1px solid #B8862A;color:#7A5A1C}
-  .org-badge.debutant{background:rgba(220,69,32,0.08);border:1px solid var(--influera-red);color:var(--influera-red)}
-  .org-badge .ob-icon{font-size:9px;line-height:1}
+  /* Veteran/debutant inline marker — small icon prefix before organiser name in detail view */
+  .org-mark{display:inline-block;font-size:10px;line-height:1;font-weight:700;margin-right:3px;letter-spacing:0;vertical-align:1px;cursor:help}
+  .org-mark.veteran{color:#B8862A}
+  .org-mark.debutant{color:var(--influera-red)}
+  .org-legend{font-size:10.5px;color:var(--muted);letter-spacing:0.2px;margin-top:8px;line-height:1.5;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .org-legend-item{display:inline-flex;align-items:center;gap:5px}
+  .org-legend-item .org-mark{margin-right:0;cursor:default}
+  .org-legend-link{color:var(--gold);text-decoration:underline;text-decoration-color:var(--border);text-underline-offset:2px;cursor:pointer;background:transparent;border:none;padding:0;font-size:10.5px;letter-spacing:0.3px;font-family:inherit}
+  .org-legend-link:hover{text-decoration-color:var(--gold);color:var(--text)}
+  .org-details-popover{margin-top:10px;padding:10px 12px;background:var(--bg3);border-left:2px solid var(--gold);border-radius:1px;font-size:11.5px;line-height:1.55;color:var(--text)}
+  .org-details-popover-row{display:flex;justify-content:space-between;gap:10px;padding:3px 0;border-bottom:1px dotted var(--border-s)}
+  .org-details-popover-row:last-child{border-bottom:none}
+  .org-details-popover-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .org-details-popover-status{flex-shrink:0;font-variant-numeric:tabular-nums;font-size:11px}
+  .org-details-popover-status.veteran{color:#7A5A1C}
+  .org-details-popover-status.debutant{color:var(--influera-red)}
 
   /* Overview stats section (between layout and footer) */
   .overview{background:var(--bg2);border-top:1px solid var(--border);padding:40px 22px 36px;color:var(--text)}
@@ -2111,20 +2122,32 @@ function selectEvent(id, panTo){
     (e.arr && e.arr.length ? '<div class="d-section">' +
       '<div class="d-label">Arrangör</div>' +
       '<div class="d-text">'+e.arr.map(function(orgName){
-        var html = escapeHtml(orgName);
         var status = orgStatus(orgName);
+        var prefix = '';
         if(status === 'veteran'){
           var yrs = orgYearCount(orgName);
-          html += '<span class="org-badge veteran" title="Var med ' + yrs + ' år under 2009-2024">' +
-            '<span class="ob-icon">●</span>Veteran ' + yrs + ' år' +
-          '</span>';
+          prefix = '<span class="org-mark veteran" title="Veteran: med ' + yrs + ' år under 2009-2025" aria-label="Veteran ' + yrs + ' år">●</span>';
         } else if(status === 'debutant'){
-          html += '<span class="org-badge debutant" title="Inte tidigare med under 2009-2024">' +
-            '<span class="ob-icon">★</span>Debutant 2026' +
-          '</span>';
+          prefix = '<span class="org-mark debutant" title="Debutant: ny 2026" aria-label="Debutant 2026">★</span>';
         }
-        return html;
+        return prefix + escapeHtml(orgName);
       }).join(', ')+'</div>' +
+      (function(){
+        // Build the small explanatory legend if any markers were rendered
+        var nVet = 0, nDeb = 0;
+        e.arr.forEach(function(o){
+          var s = orgStatus(o);
+          if(s === 'veteran') nVet++;
+          else if(s === 'debutant') nDeb++;
+        });
+        if(nVet === 0 && nDeb === 0) return '';
+        var legendBits = [];
+        if(nDeb > 0) legendBits.push('<span class="org-legend-item"><span class="org-mark debutant">★</span>ny 2026</span>');
+        if(nVet > 0) legendBits.push('<span class="org-legend-item"><span class="org-mark veteran">●</span>5+ år tidigare</span>');
+        legendBits.push('<button class="org-legend-link" data-action="org-details" data-event-id="' + escapeAttr(e.id) + '">visa fördelning</button>');
+        return '<div class="org-legend">' + legendBits.join('<span style="color:var(--border)">·</span>') + '</div>' +
+          '<div class="org-details-popover" id="orgDetailsPopover-' + escapeAttr(e.id) + '" style="display:none"></div>';
+      })() +
       (linksRow ? '<div class="d-actions">'+linksRow+'</div>' : '') +
     '</div>' : '') +
 
@@ -2190,6 +2213,44 @@ function selectEvent(id, panTo){
   detailEl.querySelectorAll('[data-jump]').forEach(function(el){
     el.addEventListener('click', function(){
       selectEvent(el.getAttribute('data-jump'), true);
+    });
+  });
+
+  // B1: "visa fördelning"-toggle for organiser veteran/debutant breakdown
+  detailEl.querySelectorAll('[data-action="org-details"]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var eid = btn.getAttribute('data-event-id');
+      var pop = document.getElementById('orgDetailsPopover-' + eid);
+      var ev = EVENTS.find(function(x){ return x.id === eid; });
+      if(!pop || !ev) return;
+      if(pop.style.display === 'none' || !pop.style.display){
+        var rows = (ev.arr || []).map(function(orgName){
+          var status = orgStatus(orgName);
+          var label, cls;
+          if(status === 'veteran'){
+            var yrs = orgYearCount(orgName);
+            label = yrs + ' år tidigare';
+            cls = 'veteran';
+          } else if(status === 'debutant'){
+            label = 'Ny 2026';
+            cls = 'debutant';
+          } else {
+            var yrs2 = orgYearCount(orgName);
+            label = yrs2 > 0 ? (yrs2 + ' år tidigare') : '';
+            cls = '';
+          }
+          return '<div class="org-details-popover-row">' +
+            '<span class="org-details-popover-name">' + escapeHtml(orgName) + '</span>' +
+            '<span class="org-details-popover-status ' + cls + '">' + escapeHtml(label) + '</span>' +
+          '</div>';
+        }).join('');
+        pop.innerHTML = rows;
+        pop.style.display = 'block';
+        btn.textContent = 'dölj fördelning';
+      } else {
+        pop.style.display = 'none';
+        btn.textContent = 'visa fördelning';
+      }
     });
   });
 
