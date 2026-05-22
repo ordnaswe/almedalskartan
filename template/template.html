@@ -507,6 +507,7 @@
   .org-details-popover-status{flex-shrink:0;font-variant-numeric:tabular-nums;font-size:11px}
   .org-details-popover-status.veteran{color:#7A5A1C}
   .org-details-popover-status.debutant{color:var(--influera-red)}
+  .org-details-disclaimer{margin-top:10px;padding-top:9px;border-top:1px solid var(--border-s);font-size:10.5px;color:var(--muted);line-height:1.55;font-style:italic}
 
   /* Overview stats section (between layout and footer) */
   .overview{background:var(--bg2);border-top:1px solid var(--border);padding:40px 22px 36px;color:var(--text)}
@@ -952,7 +953,9 @@ function loadHistory(){
 function orgStatus(orgName){
   // Returns 'veteran', 'debutant', or null (= 1-4 years, no badge)
   if(!HISTORY || !orgName) return null;
-  var years = HISTORY[orgName];
+  var key = String(orgName).trim();
+  if(!key) return null;
+  var years = HISTORY[key];
   if(!years || years.length === 0) return 'debutant';
   if(years.length >= 5) return 'veteran';
   return null;
@@ -960,7 +963,9 @@ function orgStatus(orgName){
 
 function orgYearCount(orgName){
   if(!HISTORY || !orgName) return 0;
-  var years = HISTORY[orgName];
+  var key = String(orgName).trim();
+  if(!key) return 0;
+  var years = HISTORY[key];
   return years ? years.length : 0;
 }
 
@@ -2144,7 +2149,7 @@ function selectEvent(id, panTo){
         var legendBits = [];
         if(nDeb > 0) legendBits.push('<span class="org-legend-item"><span class="org-mark debutant">★</span>ny 2026</span>');
         if(nVet > 0) legendBits.push('<span class="org-legend-item"><span class="org-mark veteran">●</span>5+ år tidigare</span>');
-        legendBits.push('<button class="org-legend-link" data-action="org-details" data-event-id="' + escapeAttr(e.id) + '">visa fördelning</button>');
+        legendBits.push('<button class="org-legend-link" data-action="org-details" data-event-id="' + escapeAttr(e.id) + '">visa arrangörshistorik</button>');
         return '<div class="org-legend">' + legendBits.join('<span style="color:var(--border)">·</span>') + '</div>' +
           '<div class="org-details-popover" id="orgDetailsPopover-' + escapeAttr(e.id) + '" style="display:none"></div>';
       })() +
@@ -2244,12 +2249,15 @@ function selectEvent(id, panTo){
             '<span class="org-details-popover-status ' + cls + '">' + escapeHtml(label) + '</span>' +
           '</div>';
         }).join('');
-        pop.innerHTML = rows;
+        var disclaimer = '<div class="org-details-disclaimer">' +
+          'Historiken baseras på exakt namnstavning i programmen 2009-2025. En arrangör som i ett tidigare år angetts med annan stavning räknas som ny här. "Ny 2026"-markeringen betyder alltså inte säkert att organisationen är ny för Almedalsveckan, bara att den exakta namnformen inte finns i tidigare program.' +
+        '</div>';
+        pop.innerHTML = rows + disclaimer;
         pop.style.display = 'block';
-        btn.textContent = 'dölj fördelning';
+        btn.textContent = 'dölj arrangörshistorik';
       } else {
         pop.style.display = 'none';
-        btn.textContent = 'visa fördelning';
+        btn.textContent = 'visa arrangörshistorik';
       }
     });
   });
@@ -2257,6 +2265,22 @@ function selectEvent(id, panTo){
   if(panTo && map && e.lat && e.lon){
     map.setView([e.lat, e.lon], 17);
   }
+
+  // Scroll detail panel to top so the user sees the beginning of the event,
+  // not whatever position the previous event was scrolled to. On mobile,
+  // the detail panel replaces the sidebar (master-detail), so also scroll
+  // window to bring the new content into view.
+  try {
+    detailEl.scrollTop = 0;
+    if(window.matchMedia && window.matchMedia('(max-width: 1024px)').matches){
+      // Defer until layout updates after innerHTML replacement
+      setTimeout(function(){
+        var rect = detailEl.getBoundingClientRect();
+        var top = window.scrollY + rect.top - 8;
+        window.scrollTo({ top: top, behavior: 'auto' });
+      }, 0);
+    }
+  } catch(err){}
 }
 
 function clearDetail(){
