@@ -2233,20 +2233,27 @@ function selectEvent(id, panTo){
       var url;
       if(isIOS){
         // Apple Maps: saddr=current uses device's current location, dirflg=w means walking.
-        // Apple Maps app handles maps.apple.com URLs natively.
+        // On iOS, navigate the current tab (don't open a new window) — iOS intercepts
+        // maps.apple.com URLs and opens Apple Maps before the page actually navigates,
+        // so the user returns to our site, not a blank new tab.
         url = 'https://maps.apple.com/?saddr=Current%20Location&daddr=' + dest + '&dirflg=w';
+        window.location.href = url;
+        return;
       } else if(isAndroid){
         // Android: google.com/maps URL opens Google Maps app if installed,
-        // otherwise browser. dir_action=navigate jumps straight to navigation,
-        // travelmode=walking sets walking directions.
+        // otherwise browser. Same logic as iOS — navigate current tab so the
+        // app intercepts and we don't leave a blank tab behind.
         url = 'https://www.google.com/maps/dir/?api=1&destination=' + dest +
               '&travelmode=walking&dir_action=navigate';
+        window.location.href = url;
+        return;
       } else {
-        // Desktop: open Google Maps web with walking directions from user location.
+        // Desktop: open Google Maps web in a new tab (no app to intercept,
+        // user expects a new tab so they don't lose their place on the site).
         url = 'https://www.google.com/maps/dir/?api=1&destination=' + dest +
               '&travelmode=walking';
+        window.open(url, '_blank', 'noopener');
       }
-      window.open(url, '_blank', 'noopener');
     });
   }
   detailEl.querySelectorAll('.spl-item').forEach(function(it){
