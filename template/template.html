@@ -2114,6 +2114,7 @@ function selectEvent(id, panTo){
         '<button class="d-btn '+(saved?'saved':'')+'" id="saveBtn">'+(saved?'✓ Sparad'+(state.profile!=='Gäst'?' ('+escapeHtml(state.profile)+')':''):'Spara till agenda')+'</button>' +
         '<button class="d-btn alt" id="icsBtn">Lägg i kalender (.ics)</button>' +
         (e.lat && e.lon ? '<button class="d-btn alt" id="panBtn">Visa på karta</button>' : '') +
+        (e.lat && e.lon ? '<button class="d-btn alt" id="walkBtn">Vägbeskrivning</button>' : '') +
       '</div>' +
       '<a class="d-btn hotline" href="https://www.narva.se/almedalen" target="_blank" rel="noopener" style="margin-top:10px;display:inline-flex;align-items:center;gap:7px">' +
         '<span style="display:inline-block;width:8px;height:8px;background:var(--accent);border-radius:50%"></span>' +
@@ -2217,6 +2218,36 @@ function selectEvent(id, panTo){
   if(map && e.lat && e.lon){
     var panBtn = document.getElementById('panBtn');
     if(panBtn) panBtn.addEventListener('click', function(){ map.setView([e.lat, e.lon], 18); });
+  }
+  // Walking directions: open native maps app on mobile, Google Maps on desktop.
+  // Strategy: detect iOS/Android and use the most idiomatic URL scheme for each.
+  // Falls back to Google Maps web URL which works everywhere.
+  var walkBtn = document.getElementById('walkBtn');
+  if(walkBtn && e.lat && e.lon){
+    walkBtn.addEventListener('click', function(){
+      var dest = e.lat + ',' + e.lon;
+      var destLabel = e.plats ? encodeURIComponent(e.plats) : dest;
+      var ua = navigator.userAgent || '';
+      var isIOS = /iPhone|iPad|iPod/i.test(ua);
+      var isAndroid = /Android/i.test(ua);
+      var url;
+      if(isIOS){
+        // Apple Maps: saddr=current uses device's current location, dirflg=w means walking.
+        // Apple Maps app handles maps.apple.com URLs natively.
+        url = 'https://maps.apple.com/?saddr=Current%20Location&daddr=' + dest + '&dirflg=w';
+      } else if(isAndroid){
+        // Android: google.com/maps URL opens Google Maps app if installed,
+        // otherwise browser. dir_action=navigate jumps straight to navigation,
+        // travelmode=walking sets walking directions.
+        url = 'https://www.google.com/maps/dir/?api=1&destination=' + dest +
+              '&travelmode=walking&dir_action=navigate';
+      } else {
+        // Desktop: open Google Maps web with walking directions from user location.
+        url = 'https://www.google.com/maps/dir/?api=1&destination=' + dest +
+              '&travelmode=walking';
+      }
+      window.open(url, '_blank', 'noopener');
+    });
   }
   detailEl.querySelectorAll('.spl-item').forEach(function(it){
     it.addEventListener('click', function(){ selectEvent(it.getAttribute('data-id'), true); });
