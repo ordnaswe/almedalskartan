@@ -491,9 +491,10 @@
     .filter-panel-foot{padding:10px 16px}
   }
 
-  /* Veteran/debutant inline marker — small icon prefix before organiser name in detail view */
-  .org-mark{display:inline-block;font-size:10px;line-height:1;font-weight:700;margin-right:3px;letter-spacing:0;vertical-align:1px;cursor:help}
-  .org-mark.veteran{color:#B8862A}
+  /* Veteran/erfaren/debutant inline marker — small icon prefix before organiser name in detail view */
+  .org-mark{display:inline-block;font-size:11px;line-height:1;font-weight:700;margin-right:4px;letter-spacing:0;vertical-align:1px;cursor:help;font-family:'Inter',sans-serif}
+  .org-mark.veteran{color:#7A5A1C}
+  .org-mark.erfaren{color:#B8862A}
   .org-mark.debutant{color:var(--influera-red)}
   .org-legend{font-size:10.5px;color:var(--muted);letter-spacing:0.2px;margin-top:8px;line-height:1.5;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
   .org-legend-item{display:inline-flex;align-items:center;gap:5px}
@@ -505,8 +506,9 @@
   .org-details-popover-row:last-child{border-bottom:none}
   .org-details-popover-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .org-details-popover-status{flex-shrink:0;font-variant-numeric:tabular-nums;font-size:11px}
-  .org-details-popover-status.veteran{color:#7A5A1C}
-  .org-details-popover-status.debutant{color:var(--influera-red)}
+  .org-details-popover-status.veteran{color:#7A5A1C;font-weight:600}
+  .org-details-popover-status.erfaren{color:#B8862A}
+  .org-details-popover-status.debutant{color:var(--influera-red);font-weight:600}
   .org-details-disclaimer{margin-top:10px;padding-top:9px;border-top:1px solid var(--border-s);font-size:10.5px;color:var(--muted);line-height:1.55;font-style:italic}
 
   /* Overview stats section (between layout and footer) */
@@ -543,7 +545,8 @@
   .overview-org-name{display:flex;align-items:baseline;gap:6px;min-width:0;flex:1}
   .overview-org-name-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .overview-org-tag{font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:1px 5px;border-radius:1px;font-weight:600;flex-shrink:0}
-  .overview-org-tag.vet{background:rgba(184,134,42,0.12);color:#7A5A1C;border:1px solid rgba(184,134,42,0.4)}
+  .overview-org-tag.vet{background:rgba(122,90,28,0.12);color:#7A5A1C;border:1px solid rgba(122,90,28,0.4)}
+  .overview-org-tag.erf{background:rgba(184,134,42,0.10);color:#B8862A;border:1px solid rgba(184,134,42,0.35)}
   .overview-org-tag.deb{background:rgba(220,69,32,0.10);color:var(--influera-red);border:1px solid rgba(220,69,32,0.4)}
   .overview-loading{color:var(--muted);font-size:12px;font-style:italic}
   @media (max-width:1024px){
@@ -951,14 +954,15 @@ function loadHistory(){
 }
 
 function orgStatus(orgName){
-  // Returns 'veteran', 'debutant', or null (= 1-4 years, no badge)
-  if(!HISTORY || !orgName) return null;
+  // Returns 'veteran' (5+ years), 'erfaren' (1-4 years), or 'debutant' (0 years).
+  // Every organiser gets one of these three labels — no null.
+  if(!HISTORY || !orgName) return 'debutant';
   var key = String(orgName).trim();
-  if(!key) return null;
+  if(!key) return 'debutant';
   var years = HISTORY[key];
   if(!years || years.length === 0) return 'debutant';
   if(years.length >= 5) return 'veteran';
-  return null;
+  return 'erfaren';
 }
 
 function orgYearCount(orgName){
@@ -2132,22 +2136,26 @@ function selectEvent(id, panTo){
         if(status === 'veteran'){
           var yrs = orgYearCount(orgName);
           prefix = '<span class="org-mark veteran" title="Veteran: med ' + yrs + ' år under 2009-2025" aria-label="Veteran ' + yrs + ' år">●</span>';
-        } else if(status === 'debutant'){
-          prefix = '<span class="org-mark debutant" title="Debutant: ny 2026" aria-label="Debutant 2026">★</span>';
+        } else if(status === 'erfaren'){
+          var yrs2 = orgYearCount(orgName);
+          prefix = '<span class="org-mark erfaren" title="Erfaren: med ' + yrs2 + ' år under 2009-2025" aria-label="Erfaren ' + yrs2 + ' år">◐</span>';
+        } else {
+          prefix = '<span class="org-mark debutant" title="Ny 2026: tidigare stavning saknas i historiken" aria-label="Ny 2026">○</span>';
         }
         return prefix + escapeHtml(orgName);
       }).join(', ')+'</div>' +
       (function(){
-        // Build the small explanatory legend if any markers were rendered
-        var nVet = 0, nDeb = 0;
+        // Always show legend + history link (every organiser now has a status)
+        var nVet = 0, nErf = 0, nDeb = 0;
         e.arr.forEach(function(o){
           var s = orgStatus(o);
           if(s === 'veteran') nVet++;
-          else if(s === 'debutant') nDeb++;
+          else if(s === 'erfaren') nErf++;
+          else nDeb++;
         });
-        if(nVet === 0 && nDeb === 0) return '';
         var legendBits = [];
-        if(nDeb > 0) legendBits.push('<span class="org-legend-item"><span class="org-mark debutant">★</span>ny 2026</span>');
+        if(nDeb > 0) legendBits.push('<span class="org-legend-item"><span class="org-mark debutant">○</span>ny 2026</span>');
+        if(nErf > 0) legendBits.push('<span class="org-legend-item"><span class="org-mark erfaren">◐</span>1-4 år tidigare</span>');
         if(nVet > 0) legendBits.push('<span class="org-legend-item"><span class="org-mark veteran">●</span>5+ år tidigare</span>');
         legendBits.push('<button class="org-legend-link" data-action="org-details" data-event-id="' + escapeAttr(e.id) + '">visa arrangörshistorik</button>');
         return '<div class="org-legend">' + legendBits.join('<span style="color:var(--border)">·</span>') + '</div>' +
@@ -2234,15 +2242,15 @@ function selectEvent(id, panTo){
           var label, cls;
           if(status === 'veteran'){
             var yrs = orgYearCount(orgName);
-            label = yrs + ' år tidigare';
+            label = 'Veteran (' + yrs + ' år tidigare)';
             cls = 'veteran';
-          } else if(status === 'debutant'){
+          } else if(status === 'erfaren'){
+            var yrs2 = orgYearCount(orgName);
+            label = 'Erfaren (' + yrs2 + ' år tidigare)';
+            cls = 'erfaren';
+          } else {
             label = 'Ny 2026';
             cls = 'debutant';
-          } else {
-            var yrs2 = orgYearCount(orgName);
-            label = yrs2 > 0 ? (yrs2 + ' år tidigare') : '';
-            cls = '';
           }
           return '<div class="org-details-popover-row">' +
             '<span class="org-details-popover-name">' + escapeHtml(orgName) + '</span>' +
@@ -3131,13 +3139,14 @@ function renderOverview(){
   var topTypOrg = Object.keys(typorgCounts).map(function(k){ return [k, typorgCounts[k]]; })
     .sort(function(a, b){ return b[1] - a[1]; }).slice(0, 6);
 
-  // Veteran / debutant counts among this year's organisers (only valid if HISTORY loaded)
-  var vetCount = 0, debCount = 0;
+  // Veteran / erfaren / debutant counts among this year's organisers (only valid if HISTORY loaded)
+  var vetCount = 0, erfCount = 0, debCount = 0;
   if(HISTORY){
     Object.keys(orgSet).forEach(function(o){
       var s = orgStatus(o);
       if(s === 'veteran') vetCount++;
-      else if(s === 'debutant') debCount++;
+      else if(s === 'erfaren') erfCount++;
+      else debCount++;
     });
   }
 
@@ -3176,7 +3185,7 @@ function renderOverview(){
     '</div>'
   );
 
-  // Block 3: top organisers (with veteran/debutant tags)
+  // Block 3: top organisers (with veteran/erfaren/debutant tags)
   blocks.push(
     '<div class="overview-block">' +
       '<div class="overview-block-h">Mest aktiva arrangörer</div>' +
@@ -3185,6 +3194,7 @@ function renderOverview(){
           var status = HISTORY ? orgStatus(p[0]) : null;
           var tag = '';
           if(status === 'veteran') tag = '<span class="overview-org-tag vet" title="' + orgYearCount(p[0]) + ' år tidigare">Vet</span>';
+          else if(status === 'erfaren') tag = '<span class="overview-org-tag erf" title="' + orgYearCount(p[0]) + ' år tidigare">Erf</span>';
           else if(status === 'debutant') tag = '<span class="overview-org-tag deb">Ny</span>';
           return '<div class="overview-org-row">' +
             '<span class="overview-org-name">' +
@@ -3278,27 +3288,26 @@ function renderOverview(){
     );
   }
 
-  // Block 8: veteran/debutant breakdown (only if history is loaded)
-  if(HISTORY && (vetCount > 0 || debCount > 0)){
-    var midCount = orgUnique - vetCount - debCount;
+  // Block 8: veteran/erfaren/debutant breakdown (only if history is loaded)
+  if(HISTORY && (vetCount > 0 || erfCount > 0 || debCount > 0)){
     blocks.push(
       '<div class="overview-block">' +
         '<div class="overview-block-h">Arrangörer över tid</div>' +
         '<div class="overview-bars">' +
           '<div class="overview-bar-row">' +
             '<div class="overview-bar-label"><span>Veteraner (5+ år)</span><span class="overview-bar-pct">' + vetCount + ' st</span></div>' +
-            '<div class="overview-bar-track"><div class="overview-bar-fill" style="width:' + Math.round(vetCount/orgUnique*100) + '%;background:#B8862A"></div></div>' +
+            '<div class="overview-bar-track"><div class="overview-bar-fill" style="width:' + Math.round(vetCount/orgUnique*100) + '%;background:#7A5A1C"></div></div>' +
           '</div>' +
           '<div class="overview-bar-row">' +
-            '<div class="overview-bar-label"><span>Återkommande (1-4 år)</span><span class="overview-bar-pct">' + midCount + ' st</span></div>' +
-            '<div class="overview-bar-track"><div class="overview-bar-fill" style="width:' + Math.round(midCount/orgUnique*100) + '%"></div></div>' +
+            '<div class="overview-bar-label"><span>Erfarna (1-4 år)</span><span class="overview-bar-pct">' + erfCount + ' st</span></div>' +
+            '<div class="overview-bar-track"><div class="overview-bar-fill" style="width:' + Math.round(erfCount/orgUnique*100) + '%;background:#B8862A"></div></div>' +
           '</div>' +
           '<div class="overview-bar-row">' +
-            '<div class="overview-bar-label"><span>Debutanter</span><span class="overview-bar-pct">' + debCount + ' st</span></div>' +
+            '<div class="overview-bar-label"><span>Nya 2026</span><span class="overview-bar-pct">' + debCount + ' st</span></div>' +
             '<div class="overview-bar-track"><div class="overview-bar-fill alt" style="width:' + Math.round(debCount/orgUnique*100) + '%"></div></div>' +
           '</div>' +
         '</div>' +
-        '<div class="overview-num-sub" style="margin-top:10px">Baserat på namnmatchning mot 2009-2024. Avvikande stavning räknas som ny arrangör.</div>' +
+        '<div class="overview-num-sub" style="margin-top:10px">Baserat på exakt namnmatchning mot 2009-2025. Avvikande stavning räknas som ny arrangör.</div>' +
       '</div>'
     );
   }
