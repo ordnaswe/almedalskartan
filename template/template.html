@@ -204,7 +204,12 @@
   .tab:hover{color:var(--text)}
   .tab.active{color:var(--text);border-bottom-color:var(--influera-red)}
   .tab-count{margin-left:5px;color:var(--gold-d);font-size:10px}
-  .sort-bar{display:flex;align-items:center;gap:8px;padding:7px 14px;background:var(--bg);border-bottom:1px solid var(--border-s);font-size:10.5px;color:var(--muted);letter-spacing:1.4px;text-transform:uppercase}
+  .sort-bar{display:flex;align-items:center;gap:6px;padding:7px 14px;background:var(--bg);border-bottom:1px solid var(--border-s);font-size:10.5px;color:var(--muted);letter-spacing:1.4px;text-transform:uppercase;flex-wrap:wrap}
+  .sort-chip{background:transparent;border:1px solid var(--border);color:var(--muted);padding:3px 8px;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;cursor:pointer;border-radius:1px;font-family:inherit;font-weight:500;transition:all .12s}
+  .sort-chip:hover{border-color:var(--gold);color:var(--gold)}
+  .sort-chip.active{background:var(--gold);color:#FFFFFF;border-color:var(--gold);font-weight:600}
+  .sort-result-count{margin-left:auto;font-size:18px;font-weight:700;color:var(--influera-red);letter-spacing:0;font-variant-numeric:tabular-nums;text-transform:none}
+  .sort-result-count::after{content:" resultat";font-size:10px;color:var(--muted);font-weight:500;letter-spacing:1.4px;text-transform:uppercase;margin-left:4px}
   .sort-mode{color:var(--gold);font-weight:600}
   .page-bar{display:flex;align-items:center;gap:8px;padding:6px 14px;background:var(--bg);border-bottom:1px solid var(--border-s);font-size:10.5px;justify-content:space-between}
   .page-size{display:flex;align-items:center;gap:5px}
@@ -725,10 +730,14 @@
       <button class="tab active" data-tab="all">I urval <span class="tab-count" id="cntAll">0</span></button>
       <button class="tab" data-tab="agenda">Min agenda <span class="tab-count" id="cntAgenda">0</span></button>
     </div>
-    <div class="sort-bar">
-      <span>Sortering:</span>
-      <span class="sort-mode" id="sortMode">Tid</span>
-      <span style="margin-left:auto;font-size:9.5px" id="resultCount">0 resultat</span>
+    <div class="sort-bar" id="sortBar">
+      <span>Sortera:</span>
+      <button class="sort-chip" data-sort="auto">Auto</button>
+      <button class="sort-chip" data-sort="tid">Tid</button>
+      <button class="sort-chip" data-sort="amne">Ämnesvikt</button>
+      <button class="sort-chip" data-sort="plats">Plats</button>
+      <button class="sort-chip" data-sort="arr">Arrangör</button>
+      <span class="sort-result-count" id="resultCount">0</span>
     </div>
     <div class="page-bar" id="pageBar">
       <div class="page-size">
@@ -1021,8 +1030,19 @@ var state = {
   filterMat: false,
   filterEko: false,
   // Accessibility
-  fontSize: loadFontSize()
+  fontSize: loadFontSize(),
+  // Sort mode: 'auto' (default — Ämnesvikt if topics chosen, else Tid), 'tid', 'amne', 'plats', 'arr'
+  sortMode: loadSortMode()
 };
+
+var LS_SORTMODE = 'influera_almedal_sortmode_v1';
+function loadSortMode(){
+  try {
+    var s = safeStore.get(LS_SORTMODE);
+    return ['auto','tid','amne','plats','arr'].indexOf(s) >= 0 ? s : 'auto';
+  } catch(e){ return 'auto'; }
+}
+function saveSortMode(){ try { safeStore.set(LS_SORTMODE, state.sortMode); } catch(e){} }
 
 var LS_FONTSIZE = 'influera_almedal_fontsize_v1';
 function loadFontSize(){
@@ -1282,6 +1302,39 @@ document.querySelectorAll('.tab').forEach(function(t){
   });
 });
 
+// Sort chips: switch sort mode
+document.querySelectorAll('.sort-chip').forEach(function(c){
+  c.addEventListener('click', function(){
+    var mode = c.getAttribute('data-sort');
+    if(state.sortMode === mode) return;
+    state.sortMode = mode;
+    saveSortMode();
+    resetPage();
+    render();
+  });
+});
+
+// Helper: request geolocation when user picks "Plats" sort but has no position.
+// On success, re-renders so the list resorts by distance.
+function requestPositionForSort(){
+  if(!navigator.geolocation) return;
+  if(window._positionRequestInFlight) return;
+  window._positionRequestInFlight = true;
+  navigator.geolocation.getCurrentPosition(function(p){
+    window._positionRequestInFlight = false;
+    state.userPos = [p.coords.latitude, p.coords.longitude];
+    drawUserMarker();
+    render();
+  }, function(){
+    // User declined or position unavailable. Show a soft notice and fall back to 'tid'.
+    window._positionRequestInFlight = false;
+    showToast('Plats kunde inte hämtas. Sorterar på tid istället.', null);
+    state.sortMode = 'tid';
+    saveSortMode();
+    render();
+  }, { timeout: 10000 });
+}
+
 // Agenda bulk actions
 document.getElementById('exportAllBtn').addEventListener('click', function(){
   var ids = profiles[state.profile].agenda || [];
@@ -1342,6 +1395,8 @@ document.getElementById('resetBtn').addEventListener('click', function(){
   state.filterMat = false;
   state.filterEko = false;
   state.searchFields = { rubrik: true, arr: true, med: true, plats: true, besk: false };
+  state.sortMode = 'auto';
+  saveSortMode();
   updateFilterBadge();
 
   resetPage();
@@ -1813,32 +1868,64 @@ function activeFilterCount(){
 function render(){
   var list = filtered();
   var hasWeights = Object.keys(effectiveWeights()).length > 0;
-  var sortModeEl = document.getElementById('sortMode');
-  if(hasWeights){
-    list.forEach(function(e){ e._score = scoreEvent(e); });
-    list.sort(function(a,b){
-      if(b._score !== a._score) return b._score - a._score;
-      if(a.dag !== b.dag) return a.dag < b.dag ? -1 : 1;
-      return (a.start || '').localeCompare(b.start || '');
-    });
-    sortModeEl.textContent = 'Ämnesvikt';
-  } else {
-    list.sort(function(a,b){
-      if(a.dag !== b.dag) return a.dag < b.dag ? -1 : 1;
-      return (a.start || '').localeCompare(b.start || '');
-    });
-    sortModeEl.textContent = 'Tid';
+
+  // Determine effective sort mode: 'auto' means Ämnesvikt if weights chosen, else Tid.
+  var effSort = state.sortMode;
+  if(effSort === 'auto') effSort = hasWeights ? 'amne' : 'tid';
+
+  // If user picked 'plats' but we have no position, ask for it now.
+  // If they cancel, fall back to 'tid' for this render.
+  if(effSort === 'plats' && !state.userPos){
+    requestPositionForSort();
+    effSort = 'tid'; // temporary fallback while waiting / if denied
   }
 
-  // If Nu is active, show the live window in the sort bar
-  if(state.now){
-    var nu = nuWindow();
-    sortModeEl.textContent = 'Just nu ' + fmtTime(Math.max(0, nu.from)) + ' till ' + fmtTime(Math.min(23.5, nu.to));
+  // Always compute score so cards can show the percent badge even when sorted differently
+  if(hasWeights) list.forEach(function(e){ e._score = scoreEvent(e); });
+
+  var byStartTime = function(a, b){
+    if(a.dag !== b.dag) return a.dag < b.dag ? -1 : 1;
+    return (a.start || '').localeCompare(b.start || '');
+  };
+
+  if(effSort === 'amne'){
+    list.sort(function(a, b){
+      var sa = a._score || 0, sb = b._score || 0;
+      if(sb !== sa) return sb - sa;
+      return byStartTime(a, b);
+    });
+  } else if(effSort === 'plats' && state.userPos){
+    list.sort(function(a, b){
+      var da = distanceMetersFromUser(a);
+      var db = distanceMetersFromUser(b);
+      if(da !== null && db !== null && da !== db) return da - db;
+      if(da !== null && db === null) return -1;
+      if(da === null && db !== null) return 1;
+      return byStartTime(a, b);
+    });
+  } else if(effSort === 'arr'){
+    list.sort(function(a, b){
+      var aArr = (a.arr && a.arr[0]) ? a.arr[0].toLowerCase() : 'ö';
+      var bArr = (b.arr && b.arr[0]) ? b.arr[0].toLowerCase() : 'ö';
+      if(aArr !== bArr) return aArr < bArr ? -1 : 1;
+      return byStartTime(a, b);
+    });
+  } else {
+    // 'tid' (default fallback)
+    list.sort(byStartTime);
   }
+
+  // If Nu is active, override the result counter line
+  // (the sort UI itself remains untouched — sort mode still applies)
+
+  // Update sort chips active state
+  document.querySelectorAll('.sort-chip').forEach(function(c){
+    c.classList.toggle('active', c.getAttribute('data-sort') === state.sortMode);
+  });
 
   document.getElementById('cntAll').textContent = EVENTS.length;
   document.getElementById('cntAgenda').textContent = currentAgenda().size;
-  document.getElementById('resultCount').textContent = list.length + ' resultat';
+  document.getElementById('resultCount').textContent = list.length;
 
   // Pagination math
   var totalPages = Math.max(1, Math.ceil(list.length / state.pageSize));
