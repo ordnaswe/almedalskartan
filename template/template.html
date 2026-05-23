@@ -1280,12 +1280,16 @@ var DAY_LABELS = {
 };
 var DAYS = Object.keys(DAY_LABELS);
 
-// Weather forecast for Visby (provided server-side by build pipeline).
-// Data is embedded by scripts/build_site.py which fetches SMHI Open Data
-// at build time. This avoids CORS issues with direct browser fetches.
-var WEATHER_DATA = __WEATHER_DATA__;
-var weatherCache = WEATHER_DATA.byDay || {};
-var visbyNow = WEATHER_DATA.now || null;
+// Weather: fetched directly from SMHI client-side. No server-side build step needed,
+// so changes to weather don't trigger Netlify builds and credits aren't burned.
+// Cached in localStorage for up to 1 hour to be polite to SMHI.
+var weatherCache = {};
+var visbyNow = null;
+
+var WEATHER_CACHE_KEY = 'influera_almedal_weather_v2';
+var WEATHER_CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
+var VISBY_LAT = 57.6398;
+var VISBY_LON = 18.2952;
 
 function smhiSymbolToIcon(wsymb2){
   if(wsymb2 == null) return '';
@@ -1303,6 +1307,145 @@ function smhiSymbolToIcon(wsymb2){
   return '';
 }
 
+// Extract a value from an SMHI time-series entry. The API has migrated formats
+// (pmp3g/v2 used a parameters[] array; snow1g/v1 uses flat data fields).
+// Try both to be resilient.
+function smhiExtractValue(entry, paramName){
+  // Old format: parameters: [{ name: 't', values: [12.5] }, ...]
+  if(Array.isArray(entry.parameters)){
+    var altMap = { 't': 'air_temperature', 'Wsymb2': 'symbol_code' };
+    for(var i = 0; i < entry.parameters.length; i++){
+      var p = entry.parameters[i];
+      if(p.name === paramName || p.name === altMap[paramName]){
+        return Array.isArray(p.values) ? p.values[0] : p.value;
+      }
+    }
+  }
+  // New format: flat fields
+  var newKeys = { 't': 'air_temperature', 'Wsymb2': 'symbol_code' };
+  if(entry[newKeys[paramName]] != null) return entry[newKeys[paramName]];
+  if(entry[paramName] != null) return entry[paramName];
+  return null;
+}
+
+function smhiExtractTime(entry){
+  return entry.validTime || entry.time || null;
+}
+
+function parseSmhiData(json){
+  // Returns { now: {temp, icon}, byDay: { 'YYYY-MM-DD': {temp, icon} } }
+  var series = (json && json.timeSeries) || [];
+  if(!series.length) return null;
+  var now = new Date();
+  var result = { now: null, byDay: {} };
+  // Find closest time entry to "now" for current weather
+  var closest = null, closestDelta = Infinity;
+  series.forEach(function(entry){
+    var time = smhiExtractTime(entry);
+    if(!time) return;
+    var d = new Date(time);
+    var delta = Math.abs(d.getTime() - now.getTime());
+    if(delta < closestDelta){
+      closestDelta = delta;
+      closest = entry;
+    }
+  });
+  if(closest){
+    var t = smhiExtractValue(closest, 't');
+    var sym = smhiExtractValue(closest, 'Wsymb2');
+    if(t !== null && t !== 9999){
+      result.now = {
+        temp: Math.round(t),
+        icon: smhiSymbolToIcon(sym)
+      };
+    }
+  }
+  // For day forecasts, pick the entry closest to 12:00 local time for each day in DAYS
+  DAYS.forEach(function(day){
+    var targetDate = new Date(day + 'T12:00:00');
+    var best = null, bestDelta = Infinity;
+    series.forEach(function(entry){
+      var time = smhiExtractTime(entry);
+      if(!time) return;
+      var d = new Date(time);
+      if(d.toISOString().slice(0, 10) !== day) return;
+      var delta = Math.abs(d.getTime() - targetDate.getTime());
+      if(delta < bestDelta){
+        bestDelta = delta;
+        best = entry;
+      }
+    });
+    if(best){
+      var t2 = smhiExtractValue(best, 't');
+      var sym2 = smhiExtractValue(best, 'Wsymb2');
+      if(t2 !== null && t2 !== 9999){
+        result.byDay[day] = {
+          temp: Math.round(t2),
+          icon: smhiSymbolToIcon(sym2)
+        };
+      }
+    }
+  });
+  return result;
+}
+
+function loadWeatherFromCache(){
+  try {
+    var raw = safeStore.get(WEATHER_CACHE_KEY);
+    if(!raw) return null;
+    var parsed = JSON.parse(raw);
+    if(!parsed || !parsed.fetchedAt) return null;
+    if(Date.now() - parsed.fetchedAt > WEATHER_CACHE_TTL_MS) return null;
+    return parsed.data || null;
+  } catch(e){ return null; }
+}
+
+function saveWeatherToCache(data){
+  try {
+    safeStore.set(WEATHER_CACHE_KEY, JSON.stringify({
+      fetchedAt: Date.now(),
+      data: data
+    }));
+  } catch(e){}
+}
+
+function applyWeatherData(data){
+  if(!data) return;
+  weatherCache = data.byDay || {};
+  visbyNow = data.now || null;
+  updateVisbyWeather();
+  updateDayChipsWithWeather();
+}
+
+function fetchWeather(){
+  // Try cache first
+  var cached = loadWeatherFromCache();
+  if(cached){
+    applyWeatherData(cached);
+    return;
+  }
+  // Fetch from SMHI. snow1g/v1 is the current endpoint (pmp3g/v2 was deprecated 2026-03-31).
+  // If snow1g fails or returns unexpected format, try pmp3g as fallback.
+  var endpoints = [
+    'https://opendata-download-metfcst.smhi.se/api/category/snow1g/version/1/geotype/point/lon/' + VISBY_LON + '/lat/' + VISBY_LAT + '/data.json',
+    'https://opendata-download-metfcst.smhi.se/api/category/pmp3g/version/2/geotype/point/lon/' + VISBY_LON + '/lat/' + VISBY_LAT + '/data.json'
+  ];
+  function tryNext(i){
+    if(i >= endpoints.length) return; // silently fail — sajten fungerar utan väder
+    fetch(endpoints[i])
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(json){
+        if(!json){ tryNext(i + 1); return; }
+        var data = parseSmhiData(json);
+        if(!data){ tryNext(i + 1); return; }
+        saveWeatherToCache(data);
+        applyWeatherData(data);
+      })
+      .catch(function(){ tryNext(i + 1); });
+  }
+  tryNext(0);
+}
+
 function updateVisbyWeather(){
   var el = document.getElementById('visbyWeather');
   if(!el) return;
@@ -1318,7 +1461,7 @@ function updateDayChipsWithWeather(){
   document.querySelectorAll('#dayChips .chip').forEach(function(chip){
     var d = chip.getAttribute('data-day');
     if(d === 'all') return;
-    if(chip.querySelector('.chip-weather')) return;
+    if(chip.querySelector('.chip-weather')) chip.querySelector('.chip-weather').remove();
     var w = weatherCache[d];
     if(!w) return;
     var span = document.createElement('span');
@@ -1334,9 +1477,8 @@ var dayChips = document.getElementById('dayChips');
 dayChips.innerHTML = '<button class="chip active" data-day="all">Alla</button>' +
   DAYS.map(function(d){ return '<button class="chip" data-day="'+d+'"><span class="chip-day-label">'+DAY_LABELS[d]+'</span></button>'; }).join('');
 
-// Update weather widgets immediately using server-embedded data
-updateVisbyWeather();
-updateDayChipsWithWeather();
+// Fetch weather from SMHI directly (no server build needed)
+fetchWeather();
 dayChips.addEventListener('click', function(e){
   var b = e.target.closest('.chip'); if(!b) return;
   dayChips.querySelectorAll('.chip').forEach(function(c){ c.classList.remove('active'); });
