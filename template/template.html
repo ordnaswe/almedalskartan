@@ -211,7 +211,7 @@
   .sort-result-count{margin-left:auto;font-size:18px;font-weight:700;color:var(--influera-red);letter-spacing:0;font-variant-numeric:tabular-nums;text-transform:none}
   .sort-result-count::after{content:" resultat";font-size:10px;color:var(--muted);font-weight:500;letter-spacing:1.4px;text-transform:uppercase;margin-left:4px}
   .sort-mode{color:var(--gold);font-weight:600}
-  .page-bar{display:flex;align-items:center;gap:8px;padding:6px 14px;background:var(--bg);border-bottom:1px solid var(--border-s);font-size:10.5px;justify-content:space-between}
+  .page-bar{display:flex;align-items:center;gap:8px;padding:6px 14px;background:var(--bg);border-top:1px solid var(--border-s);font-size:10.5px;justify-content:space-between}
   .page-size{display:flex;align-items:center;gap:5px}
   .page-label{font-size:10px;color:var(--muted);letter-spacing:1.4px;text-transform:uppercase;margin-right:3px}
   .page-size-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:3px 8px;font-size:10.5px;letter-spacing:0.5px;cursor:pointer;border-radius:1px;font-family:inherit;font-variant-numeric:tabular-nums;font-weight:600}
@@ -739,6 +739,11 @@
       <button class="sort-chip" data-sort="arr">Arrangör</button>
       <span class="sort-result-count" id="resultCount">0</span>
     </div>
+    <div class="agenda-actions" id="agendaActions" style="display:none">
+      <button class="chip alt" id="exportAllBtn">Exportera hela agendan (.ics)</button>
+      <button class="chip alt" id="clearAgendaBtn">Töm agenda</button>
+    </div>
+    <div class="list" id="list"></div>
     <div class="page-bar" id="pageBar">
       <div class="page-size">
         <span class="page-label">Visa</span>
@@ -752,11 +757,6 @@
         <button class="page-arrow" id="pageNext" aria-label="Nästa sida">›</button>
       </div>
     </div>
-    <div class="agenda-actions" id="agendaActions" style="display:none">
-      <button class="chip alt" id="exportAllBtn">Exportera hela agendan (.ics)</button>
-      <button class="chip alt" id="clearAgendaBtn">Töm agenda</button>
-    </div>
-    <div class="list" id="list"></div>
   </aside>
 
   <div class="map-wrap">
@@ -1882,6 +1882,13 @@ function render(){
 
   // Always compute score so cards can show the percent badge even when sorted differently
   if(hasWeights) list.forEach(function(e){ e._score = scoreEvent(e); });
+
+  // When ämnesvikter are active, drop events with 0% match. These are events
+  // that don't touch any of the user's chosen topics at all, so they would
+  // dilute the result count and obscure what's actually relevant.
+  if(hasWeights){
+    list = list.filter(function(e){ return (e._score || 0) > 0; });
+  }
 
   var byStartTime = function(a, b){
     if(a.dag !== b.dag) return a.dag < b.dag ? -1 : 1;
