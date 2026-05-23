@@ -1107,7 +1107,10 @@ function renderProfileMenu(){
       '<button class="font-size-btn '+(state.fontSize==='lg'?'active':'')+'" data-fs="lg" aria-label="Större text">A+</button>' +
       '<button class="font-size-btn '+(state.fontSize==='xl'?'active':'')+'" data-fs="xl" aria-label="Extra stor text">A++</button>' +
     '</div>' +
-  '</div>';
+  '</div>' +
+  '<div class="profile-divider"></div>' +
+  '<div class="profile-action" id="exportData">Exportera mina data</div>' +
+  '<div class="profile-action" id="importData">Importera mina data</div>';
 
   menu.querySelectorAll('.profile-item').forEach(function(it){
     it.addEventListener('click', function(){
@@ -1145,6 +1148,95 @@ function renderProfileMenu(){
       saveFontSize();
       renderProfileMenu();
     });
+  });
+
+  // Export user data as a downloadable JSON file
+  var exp = document.getElementById('exportData');
+  if(exp) exp.addEventListener('click', function(){
+    menu.classList.remove('open');
+    try {
+      var payload = {
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        app: 'almedalskartan',
+        profiles: profiles,
+        activeProfile: state.profile,
+        sortMode: state.sortMode,
+        pageSize: state.pageSize,
+        fontSize: state.fontSize,
+        searchFields: state.searchFields
+      };
+      var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      var url = URL.createObjectURL(blob);
+      var d = new Date();
+      var dateStr = d.getFullYear() + '-' +
+        String(d.getMonth()+1).padStart(2,'0') + '-' +
+        String(d.getDate()).padStart(2,'0');
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'almedalskartan-backup-' + dateStr + '.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+      showToast('Dina data har laddats ner som backup-fil.', null);
+    } catch(err){
+      showToast('Kunde inte exportera. Försök igen.', null);
+    }
+  });
+
+  // Import user data from a JSON file (replaces current local data)
+  var imp = document.getElementById('importData');
+  if(imp) imp.addEventListener('click', function(){
+    menu.classList.remove('open');
+    if(!confirm('Detta skriver över alla profiler, agendor och inställningar du har sparat just nu. Fortsätt?')) return;
+    var input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/json,.json';
+    input.addEventListener('change', function(){
+      var file = input.files && input.files[0];
+      if(!file) return;
+      var reader = new FileReader();
+      reader.onload = function(){
+        try {
+          var data = JSON.parse(reader.result);
+          if(!data || data.app !== 'almedalskartan' || !data.profiles){
+            showToast('Filen verkar inte vara en backup från Almedalskartan.', null);
+            return;
+          }
+          // Apply imported data
+          profiles = data.profiles;
+          saveProfiles();
+          if(data.activeProfile && profiles[data.activeProfile]){
+            state.profile = data.activeProfile;
+            saveActive();
+          }
+          if(data.sortMode && ['auto','tid','amne','plats','arr'].indexOf(data.sortMode) >= 0){
+            state.sortMode = data.sortMode;
+            saveSortMode();
+          }
+          if(data.pageSize && [20,50,100].indexOf(data.pageSize) >= 0){
+            state.pageSize = data.pageSize;
+            savePageSize();
+          }
+          if(data.fontSize && ['sm','md','lg','xl'].indexOf(data.fontSize) >= 0){
+            state.fontSize = data.fontSize;
+            applyFontSize();
+            saveFontSize();
+          }
+          if(data.searchFields && typeof data.searchFields === 'object'){
+            state.searchFields = data.searchFields;
+          }
+          renderProfileMenu();
+          render();
+          showToast('Dina data har importerats.', null);
+        } catch(err){
+          showToast('Kunde inte läsa filen. Är det rätt JSON-format?', null);
+        }
+      };
+      reader.readAsText(file);
+    });
+    input.click();
   });
 }
 
