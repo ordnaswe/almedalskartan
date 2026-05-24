@@ -832,8 +832,10 @@ svg.leaflet-image-layer.leaflet-interactive path {
     header{padding:6px 12px;gap:8px}
     .brand-mark{width:22px;height:28px}
     .brand-title{font-size:12px;letter-spacing:1.2px}
-    .brand-by{font-size:8.5px;letter-spacing:1.4px}
+    .brand-by{display:none}
     .header-meta{display:none}
+    .visby-weather{padding:3px 6px}
+    .visby-weather .vw-label{display:none}
     .profile-btn{padding:4px 8px;font-size:10px;letter-spacing:1px}
     #profileName{display:none}
     .toolbar{padding:6px 10px;gap:5px}
@@ -845,14 +847,16 @@ svg.leaflet-image-layer.leaflet-interactive path {
     #dayChips .chip{padding:3px 7px;font-size:9.5px;letter-spacing:0.3px;flex-shrink:0;height:auto}
     /* Action button row: tighten */
     .toolbar-right .chip{padding:3px 8px;font-size:9.5px;letter-spacing:0.5px;height:26px}
+    /* Återställ: narrow enough to fit on the same row as the other action chips */
+    .toolbar-right #resetBtn{padding:3px 6px;font-size:9px;letter-spacing:0.3px}
     /* Time slider: take full row width on mobile, sliders flex equally */
     .range-row{gap:6px;width:100%;flex:1 0 100%;justify-content:space-between}
     .range-row input[type=range]{flex:1;min-width:0;width:auto}
     .range-val{font-size:10px;min-width:36px;letter-spacing:0.5px;flex-shrink:0}
     .search{min-width:0;width:100%;flex:1 0 100%;padding:6px 10px;font-size:12px;height:32px}
-    .tab{padding:13px 8px;font-size:11.5px;letter-spacing:1.5px}
-    .tab-count{margin-left:7px;font-size:11px;font-weight:700;color:var(--text)}
-    .tab.active .tab-count{color:var(--influera-red)}
+    .tabs{padding:7px 12px;gap:10px}
+    .tab[data-tab="all"]{font-size:10.5px}
+    .tab[data-tab="agenda"]{padding:6px 10px;font-size:10.5px}
     .sort-bar{padding:9px 14px;font-size:11px;letter-spacing:1.3px}
     .map-wrap{height:28vh;min-height:180px}
     .d-title{font-size:15px}
@@ -860,17 +864,31 @@ svg.leaflet-image-layer.leaflet-interactive path {
 
   /* Sidebar (event list) */
   .sidebar{background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;min-height:0}
-  .tabs{display:flex;border-bottom:1px solid var(--border)}
-  .tab{flex:1;padding:11px 8px;background:transparent;border:none;color:var(--muted);font-size:10.5px;letter-spacing:1.8px;text-transform:uppercase;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
-  .tab:hover{color:var(--text)}
-  .tab.active{color:var(--text);border-bottom-color:var(--influera-red)}
-  .tab-count{margin-left:5px;color:var(--gold-d);font-size:10px}
+  /* Tabs: visually distinguish system state ("I urval") from user collection ("Min agenda").
+     "I urval" is a passive system counter, "Min agenda" is an active user-curated set. */
+  .tabs{display:flex;align-items:center;gap:14px;padding:8px 14px;border-bottom:1px solid var(--border);background:var(--bg2)}
+  /* "I urval" — quiet system counter */
+  .tab[data-tab="all"]{flex:0 0 auto;padding:5px 0;background:transparent;border:none;color:var(--muted);font-size:10px;letter-spacing:1.4px;text-transform:uppercase;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;transition:color .15s}
+  .tab[data-tab="all"]::before{content:"";display:inline-block;width:11px;height:11px;background:currentColor;-webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polygon points='22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3'/></svg>") center/contain no-repeat;mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polygon points='22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3'/></svg>") center/contain no-repeat;opacity:0.55;flex-shrink:0}
+  .tab[data-tab="all"]:hover{color:var(--text)}
+  .tab[data-tab="all"]:hover::before{opacity:1}
+  /* When agenda is active, "I urval" subtly hints it's a clickable way back */
+  body.agenda-active .tab[data-tab="all"]{text-decoration:underline;text-decoration-color:var(--border);text-underline-offset:3px}
+  .tab[data-tab="all"] .tab-count{color:var(--text);font-weight:600;letter-spacing:0;font-size:10.5px;font-variant-numeric:tabular-nums}
+  /* "Min agenda" — prominent user-collection pill */
+  .tab[data-tab="agenda"]{margin-left:auto;padding:6px 12px;background:transparent;border:1px solid var(--border);color:var(--text);font-size:10.5px;letter-spacing:1.4px;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:2px;font-family:inherit;display:inline-flex;align-items:center;gap:7px;transition:all .15s}
+  .tab[data-tab="agenda"]::before{content:"";display:inline-block;width:12px;height:14px;background:currentColor;-webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><path d='M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z'/></svg>") center/contain no-repeat;mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><path d='M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z'/></svg>") center/contain no-repeat;flex-shrink:0;color:var(--influera-red)}
+  .tab[data-tab="agenda"]:hover{border-color:var(--influera-red);color:var(--influera-red)}
+  .tab[data-tab="agenda"].active{background:var(--influera-red);border-color:var(--influera-red);color:#FFFFFF}
+  .tab[data-tab="agenda"].active::before{color:#FFFFFF}
+  .tab[data-tab="agenda"] .tab-count{color:var(--influera-red);font-weight:700;font-variant-numeric:tabular-nums;font-size:11px;letter-spacing:0}
+  .tab[data-tab="agenda"].active .tab-count{color:#FFFFFF}
   .sort-bar{display:flex;align-items:center;gap:6px;padding:7px 14px;background:var(--bg);border-bottom:1px solid var(--border-s);font-size:10.5px;color:var(--muted);letter-spacing:1.4px;text-transform:uppercase;flex-wrap:wrap}
   .sort-chip{background:transparent;border:1px solid var(--border);color:var(--muted);padding:3px 8px;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;cursor:pointer;border-radius:1px;font-family:inherit;font-weight:500;transition:all .12s}
   .sort-chip:hover{border-color:var(--gold);color:var(--gold)}
   .sort-chip.active{background:var(--gold);color:#FFFFFF;border-color:var(--gold);font-weight:600}
-  .sort-result-count{margin-left:auto;font-size:18px;font-weight:700;color:var(--influera-red);letter-spacing:0;font-variant-numeric:tabular-nums;text-transform:none}
-  .sort-result-count::after{content:" resultat";font-size:10px;color:var(--muted);font-weight:500;letter-spacing:1.4px;text-transform:uppercase;margin-left:4px}
+  .sort-result-count{margin-left:auto;font-size:13px;font-weight:600;color:var(--influera-red);letter-spacing:0;font-variant-numeric:tabular-nums;text-transform:none}
+  .sort-result-count::after{content:" resultat";font-size:9.5px;color:var(--muted);font-weight:500;letter-spacing:1.3px;text-transform:uppercase;margin-left:3px}
   .sort-mode{color:var(--gold);font-weight:600}
   .page-bar{display:flex;align-items:center;gap:8px;padding:6px 14px;background:var(--bg);border-top:1px solid var(--border-s);font-size:10.5px;justify-content:space-between}
   .page-size{display:flex;align-items:center;gap:5px}
@@ -917,7 +935,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   }
   .tag{font-size:9px;letter-spacing:1.3px;text-transform:uppercase;padding:2px 6px;border:1px solid var(--border);color:var(--muted);border-radius:1px}
   .tag.primary{border-color:var(--gold);color:var(--gold)}
-  .tag.t-type{border-color:rgba(244,239,227,0.2);color:rgba(244,239,227,0.7)}
+  .tag.t-type{border-color:var(--border-s);color:var(--muted)}
   .card-score{position:absolute;top:10px;right:12px;font-size:9.5px;color:var(--gold-d);font-weight:700;letter-spacing:0.3px;font-variant-numeric:tabular-nums;display:flex;flex-direction:column;align-items:flex-end;gap:3px;min-width:42px}
   .card-score-num{display:flex;align-items:baseline;gap:1px;line-height:1}
   .card-score-pct{font-size:13.5px;color:var(--text)}
@@ -938,7 +956,12 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .legend-dot.hot{background:var(--accent);box-shadow:0 0 6px rgba(220,69,32,0.5);border-color:#A52F15}
 
   /* Map markers */
-  .marker-cluster{background:#FFFFFF;color:#000000;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;border:2px solid #000000;box-shadow:0 2px 6px rgba(0,0,0,0.30);font-variant-numeric:tabular-nums;font-family:'Inter',sans-serif}
+  /* Marker clusters scale logarithmically with size for better visual density readout.
+     Five tiers from base (2-4 events) up to .size-5 (50+). */
+  .marker-cluster{background:#FFFFFF;color:#000000;display:flex;align-items:center;justify-content:center;font-weight:700;border:2px solid #000000;box-shadow:0 2px 6px rgba(0,0,0,0.30);font-variant-numeric:tabular-nums;font-family:'Inter',sans-serif;border-radius:50%;width:26px;height:26px;font-size:10.5px}
+  .marker-cluster.size-3{width:30px;height:30px;font-size:11.5px}
+  .marker-cluster.size-4{width:36px;height:36px;font-size:13px;border-width:2.5px}
+  .marker-cluster.size-5{width:44px;height:44px;font-size:15px;border-width:3px}
   .marker-cluster.hot{background:var(--accent);color:#FFFFFF;border-color:#A52F15;box-shadow:0 0 12px rgba(220,69,32,0.5),0 2px 6px rgba(0,0,0,0.30)}
   .marker-cluster.dim{opacity:0.4}
   .marker-cluster.single{background:#FFFFFF;color:transparent;border-color:#000000;width:14px;height:14px;font-size:0}
@@ -1946,12 +1969,16 @@ var DAY_LABELS = {
 };
 var DAYS = Object.keys(DAY_LABELS);
 
-// Weather forecast for Visby (provided server-side by build pipeline).
-// Data is embedded by scripts/build_site.py which fetches SMHI Open Data
-// at build time. This avoids CORS issues with direct browser fetches.
-var WEATHER_DATA = {"byDay":{},"now":{"temp":14,"icon":"☀"}};
-var weatherCache = WEATHER_DATA.byDay || {};
-var visbyNow = WEATHER_DATA.now || null;
+// Weather: fetched directly from SMHI client-side. No server-side build step needed,
+// so changes to weather don't trigger Netlify builds and credits aren't burned.
+// Cached in localStorage for up to 1 hour to be polite to SMHI.
+var weatherCache = {};
+var visbyNow = null;
+
+var WEATHER_CACHE_KEY = 'influera_almedal_weather_v2';
+var WEATHER_CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
+var VISBY_LAT = 57.6398;
+var VISBY_LON = 18.2952;
 
 function smhiSymbolToIcon(wsymb2){
   if(wsymb2 == null) return '';
@@ -1969,6 +1996,145 @@ function smhiSymbolToIcon(wsymb2){
   return '';
 }
 
+// Extract a value from an SMHI time-series entry. The API has migrated formats
+// (pmp3g/v2 used a parameters[] array; snow1g/v1 uses flat data fields).
+// Try both to be resilient.
+function smhiExtractValue(entry, paramName){
+  // Old format: parameters: [{ name: 't', values: [12.5] }, ...]
+  if(Array.isArray(entry.parameters)){
+    var altMap = { 't': 'air_temperature', 'Wsymb2': 'symbol_code' };
+    for(var i = 0; i < entry.parameters.length; i++){
+      var p = entry.parameters[i];
+      if(p.name === paramName || p.name === altMap[paramName]){
+        return Array.isArray(p.values) ? p.values[0] : p.value;
+      }
+    }
+  }
+  // New format: flat fields
+  var newKeys = { 't': 'air_temperature', 'Wsymb2': 'symbol_code' };
+  if(entry[newKeys[paramName]] != null) return entry[newKeys[paramName]];
+  if(entry[paramName] != null) return entry[paramName];
+  return null;
+}
+
+function smhiExtractTime(entry){
+  return entry.validTime || entry.time || null;
+}
+
+function parseSmhiData(json){
+  // Returns { now: {temp, icon}, byDay: { 'YYYY-MM-DD': {temp, icon} } }
+  var series = (json && json.timeSeries) || [];
+  if(!series.length) return null;
+  var now = new Date();
+  var result = { now: null, byDay: {} };
+  // Find closest time entry to "now" for current weather
+  var closest = null, closestDelta = Infinity;
+  series.forEach(function(entry){
+    var time = smhiExtractTime(entry);
+    if(!time) return;
+    var d = new Date(time);
+    var delta = Math.abs(d.getTime() - now.getTime());
+    if(delta < closestDelta){
+      closestDelta = delta;
+      closest = entry;
+    }
+  });
+  if(closest){
+    var t = smhiExtractValue(closest, 't');
+    var sym = smhiExtractValue(closest, 'Wsymb2');
+    if(t !== null && t !== 9999){
+      result.now = {
+        temp: Math.round(t),
+        icon: smhiSymbolToIcon(sym)
+      };
+    }
+  }
+  // For day forecasts, pick the entry closest to 12:00 local time for each day in DAYS
+  DAYS.forEach(function(day){
+    var targetDate = new Date(day + 'T12:00:00');
+    var best = null, bestDelta = Infinity;
+    series.forEach(function(entry){
+      var time = smhiExtractTime(entry);
+      if(!time) return;
+      var d = new Date(time);
+      if(d.toISOString().slice(0, 10) !== day) return;
+      var delta = Math.abs(d.getTime() - targetDate.getTime());
+      if(delta < bestDelta){
+        bestDelta = delta;
+        best = entry;
+      }
+    });
+    if(best){
+      var t2 = smhiExtractValue(best, 't');
+      var sym2 = smhiExtractValue(best, 'Wsymb2');
+      if(t2 !== null && t2 !== 9999){
+        result.byDay[day] = {
+          temp: Math.round(t2),
+          icon: smhiSymbolToIcon(sym2)
+        };
+      }
+    }
+  });
+  return result;
+}
+
+function loadWeatherFromCache(){
+  try {
+    var raw = safeStore.get(WEATHER_CACHE_KEY);
+    if(!raw) return null;
+    var parsed = JSON.parse(raw);
+    if(!parsed || !parsed.fetchedAt) return null;
+    if(Date.now() - parsed.fetchedAt > WEATHER_CACHE_TTL_MS) return null;
+    return parsed.data || null;
+  } catch(e){ return null; }
+}
+
+function saveWeatherToCache(data){
+  try {
+    safeStore.set(WEATHER_CACHE_KEY, JSON.stringify({
+      fetchedAt: Date.now(),
+      data: data
+    }));
+  } catch(e){}
+}
+
+function applyWeatherData(data){
+  if(!data) return;
+  weatherCache = data.byDay || {};
+  visbyNow = data.now || null;
+  updateVisbyWeather();
+  updateDayChipsWithWeather();
+}
+
+function fetchWeather(){
+  // Try cache first
+  var cached = loadWeatherFromCache();
+  if(cached){
+    applyWeatherData(cached);
+    return;
+  }
+  // Fetch from SMHI. snow1g/v1 is the current endpoint (pmp3g/v2 was deprecated 2026-03-31).
+  // If snow1g fails or returns unexpected format, try pmp3g as fallback.
+  var endpoints = [
+    'https://opendata-download-metfcst.smhi.se/api/category/snow1g/version/1/geotype/point/lon/' + VISBY_LON + '/lat/' + VISBY_LAT + '/data.json',
+    'https://opendata-download-metfcst.smhi.se/api/category/pmp3g/version/2/geotype/point/lon/' + VISBY_LON + '/lat/' + VISBY_LAT + '/data.json'
+  ];
+  function tryNext(i){
+    if(i >= endpoints.length) return; // silently fail — sajten fungerar utan väder
+    fetch(endpoints[i])
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(json){
+        if(!json){ tryNext(i + 1); return; }
+        var data = parseSmhiData(json);
+        if(!data){ tryNext(i + 1); return; }
+        saveWeatherToCache(data);
+        applyWeatherData(data);
+      })
+      .catch(function(){ tryNext(i + 1); });
+  }
+  tryNext(0);
+}
+
 function updateVisbyWeather(){
   var el = document.getElementById('visbyWeather');
   if(!el) return;
@@ -1984,7 +2150,7 @@ function updateDayChipsWithWeather(){
   document.querySelectorAll('#dayChips .chip').forEach(function(chip){
     var d = chip.getAttribute('data-day');
     if(d === 'all') return;
-    if(chip.querySelector('.chip-weather')) return;
+    if(chip.querySelector('.chip-weather')) chip.querySelector('.chip-weather').remove();
     var w = weatherCache[d];
     if(!w) return;
     var span = document.createElement('span');
@@ -2000,9 +2166,8 @@ var dayChips = document.getElementById('dayChips');
 dayChips.innerHTML = '<button class="chip active" data-day="all">Alla</button>' +
   DAYS.map(function(d){ return '<button class="chip" data-day="'+d+'"><span class="chip-day-label">'+DAY_LABELS[d]+'</span></button>'; }).join('');
 
-// Update weather widgets immediately using server-embedded data
-updateVisbyWeather();
-updateDayChipsWithWeather();
+// Fetch weather from SMHI directly (no server build needed)
+fetchWeather();
 dayChips.addEventListener('click', function(e){
   var b = e.target.closest('.chip'); if(!b) return;
   dayChips.querySelectorAll('.chip').forEach(function(c){ c.classList.remove('active'); });
@@ -2055,6 +2220,7 @@ document.querySelectorAll('.tab').forEach(function(t){
     t.classList.add('active');
     state.tab = t.getAttribute('data-tab');
     document.getElementById('agendaActions').style.display = state.tab === 'agenda' ? 'flex' : 'none';
+    document.body.classList.toggle('agenda-active', state.tab === 'agenda');
     resetPage();
     render();
   });
@@ -2854,10 +3020,17 @@ function drawMarkers(list, hasWeights){
     var n = g.events.length;
     var isHot = hasWeights && maxScore > 0 && g.sumScore >= maxScore * 0.6 && g.sumScore > 0;
     var isDim = hasWeights && g.sumScore === 0;
-    var cls = 'marker-cluster' + (n===1?' single':'') + (isHot?' hot':'') + (isDim?' dim':'');
+    // Logarithmic size tier: 1=single, 2-4=base (26px), 5-15=size-3 (30px),
+    // 16-49=size-4 (36px), 50+=size-5 (44px). Anchors and icon sizes match CSS.
+    var sizeCls = '', iconPx = 26;
+    if(n === 1){ sizeCls = ' single'; iconPx = 18; }
+    else if(n >= 50){ sizeCls = ' size-5'; iconPx = 44; }
+    else if(n >= 16){ sizeCls = ' size-4'; iconPx = 36; }
+    else if(n >= 5){ sizeCls = ' size-3'; iconPx = 30; }
+    var cls = 'marker-cluster' + sizeCls + (isHot?' hot':'') + (isDim?' dim':'');
     var html = n===1 ? '<div class="'+cls+'"></div>' : '<div class="'+cls+'">'+n+'</div>';
     var m = L.marker([g.lat, g.lon], {
-      icon: L.divIcon({ className:'', html:html, iconSize:[n===1?18:28, n===1?18:28], iconAnchor:[n===1?9:14, n===1?9:14] })
+      icon: L.divIcon({ className:'', html:html, iconSize:[iconPx, iconPx], iconAnchor:[iconPx/2, iconPx/2] })
     });
     m.on('click', function(){
       var sorted = g.events.slice().sort(function(a,b){
