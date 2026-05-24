@@ -156,7 +156,8 @@
   /* Time popover trigger and panel (replaces always-visible time slider).
      Popover is appended to <body> and positioned with fixed coordinates set by JS,
      to avoid clipping/stacking-context issues inside the toolbar. */
-  .chip.time-btn{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+  /* Higher specificity to override #dayChips .chip {flex-direction:column} */
+  #dayChips .chip.time-btn{display:inline-flex;flex-direction:row;align-items:center;gap:5px;white-space:nowrap;padding:5px 10px}
   .chip.time-btn .caret{font-size:9px;line-height:1;opacity:0.6;margin-left:2px}
   .chip.time-btn.has-filter{border-color:var(--gold);color:var(--gold);font-weight:600}
   .time-popover{position:fixed;background:var(--bg2);border:1px solid var(--gold);border-radius:2px;box-shadow:var(--shadow);z-index:1200;display:none;min-width:230px;padding:5px 0;top:0;left:0}
@@ -216,8 +217,8 @@
     .toolbar-right .chip{padding:3px 8px;font-size:9.5px;letter-spacing:0.5px;height:26px}
     /* Reset icon on mobile: tighter square, kept inline with search */
     .chip.reset-icon{width:32px;height:32px;padding:0}
-    /* Time-button on mobile: same shrink as day chips */
-    #dayChips .chip.time-btn{padding:3px 8px;font-size:9.5px;letter-spacing:0.3px}
+    /* Time-button on mobile: same horizontal layout and tight shrink as day chips */
+    #dayChips .chip.time-btn{padding:3px 7px;font-size:9.5px;letter-spacing:0.3px;flex-direction:row}
     .time-popover{min-width:200px}
     .time-preset{padding:10px 12px;font-size:12.5px}
     .search-wrap{width:100%;flex:1 0 100%}
@@ -2366,17 +2367,29 @@ function computeAgendaConflicts(){
       }
 
       // Walking time check for consecutive events (next event starts after this one ends)
-      // Only flag if the gap between end of A and start of next event B is shorter than walking time
+      // Only flag if the gap between end of A and start of next event B is shorter than walking time.
+      // We scan ALL subsequent events that start at or shortly after A ends, not just the very next,
+      // because multiple events can start at the same time and we want to flag tight walks against
+      // each of them. Skip candidates with missing coordinates (continue), don't abort the whole scan.
       if(aSlut !== null){
+        var scanned = 0;
         for(var k = i + 1; k < events.length; k++){
           var nxt = events[k];
           var nxtStart = timeToNum(nxt.start);
           if(nxtStart === null) continue;
           // Only consider events that start AFTER A ends (no overlap)
           if(nxtStart < aSlut) continue;
+          // Stop scanning once we've moved past events that start within 60 min of A's end —
+          // a longer gap means walking time isn't tight by any reasonable measure.
+          if((nxtStart - aSlut) * 60 > 60) break;
           var gapMin = (nxtStart - aSlut) * 60;
           var walkMin = walkingMinutes(a, nxt);
-          if(walkMin === null) break; // Coordinates missing; can't compute
+          if(walkMin === null){
+            // Coordinates missing for this candidate — can't compute, but don't abort the whole scan
+            scanned++;
+            if(scanned >= 5) break; // safety: don't scan endlessly
+            continue;
+          }
           if(walkMin > gapMin + 0.5){ // 0.5 min tolerance to avoid spurious flags
             if(!conflicts[nxt.id]) conflicts[nxt.id] = { overlaps: [], tightWalks: [] };
             conflicts[nxt.id].tightWalks.push({
@@ -2387,7 +2400,8 @@ function computeAgendaConflicts(){
               gapMin: Math.round(gapMin)
             });
           }
-          break; // Only check the immediate next event in time
+          scanned++;
+          if(scanned >= 5) break; // safety: usually 1-2 events start at same time
         }
       }
     }
