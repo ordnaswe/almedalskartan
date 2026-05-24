@@ -1,0 +1,26 @@
+# This workflow has been disabled.
+#
+# Weather is now fetched client-side directly from SMHI in the browser.
+# No server-side weather build is needed, so this hourly job is no longer used.
+#
+# Previously this ran on an hourly schedule, which consumed GitHub Actions minutes
+# and triggered Netlify rebuilds on every weather change.
+#
+# If you want to remove it entirely, delete this file from the repo.
+# Keeping it here with only a manual trigger is also fine — it won't run automatically.
+
+name: Update weather (disabled)
+
+on:
+  # Manual trigger only. The previous hourly schedule has been removed.
+  workflow_dispatch:
+
+jobs:
+  noop:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Explain
+        run: |
+          echo "This workflow is intentionally disabled."
+          echo "Weather updates are now done client-side directly from SMHI in the browser."
+          echo "No server-side build is needed for weather any longer."
