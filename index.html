@@ -814,6 +814,31 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .range-val{font-size:11px;color:var(--gold);letter-spacing:1px;font-variant-numeric:tabular-nums;min-width:42px}
   .toolbar-right{margin-left:auto;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 
+  /* Time popover trigger and panel (replaces always-visible time slider) */
+  .time-wrap{position:relative;display:inline-flex}
+  .chip.time-btn{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+  .chip.time-btn .caret{font-size:9px;line-height:1;opacity:0.6;margin-left:2px}
+  .chip.time-btn.has-filter{border-color:var(--gold);color:var(--gold);font-weight:600}
+  .time-popover{position:absolute;top:calc(100% + 6px);right:0;background:var(--bg2);border:1px solid var(--gold);border-radius:2px;box-shadow:var(--shadow);z-index:950;display:none;min-width:230px;padding:5px 0}
+  .time-popover.open{display:block}
+  .time-preset{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 14px;font-size:12px;letter-spacing:0.3px;cursor:pointer;background:transparent;border:none;width:100%;text-align:left;font-family:inherit;color:var(--text)}
+  .time-preset:hover{background:rgba(0,0,0,0.08)}
+  .time-preset.active{color:var(--gold);font-weight:600}
+  .time-preset .check{color:var(--gold);font-weight:700}
+  .time-preset-sub{color:var(--muted);font-size:11px;letter-spacing:0.2px;font-variant-numeric:tabular-nums;font-weight:500}
+  .time-preset.active .time-preset-sub{color:var(--gold)}
+  .time-divider{height:1px;background:var(--border-s);margin:4px 0}
+  .time-custom{padding:9px 14px 12px;display:none}
+  .time-custom.open{display:block}
+  .time-custom-row{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:11px;color:var(--muted);letter-spacing:0.4px}
+  .time-custom-row input[type=range]{flex:1;accent-color:var(--gold)}
+  .time-custom-val{font-size:11px;color:var(--gold);letter-spacing:0.5px;font-variant-numeric:tabular-nums;min-width:42px;font-weight:600}
+
+  /* Reset action — icon-only button. Pinned to far right of toolbar-right via margin-left:auto. */
+  .chip.reset-icon{margin-left:auto;width:30px;padding:0;display:inline-flex;align-items:center;justify-content:center;color:var(--muted)}
+  .chip.reset-icon:hover{color:var(--gold);border-color:var(--gold)}
+  .chip.reset-icon svg{width:14px;height:14px;display:block}
+
   /* Layout */
   .layout{display:grid;grid-template-columns:360px 1fr 400px;height:calc(100vh - 100px);min-height:500px;overflow:hidden;flex-shrink:0}
   @media (max-width:1280px){.layout{grid-template-columns:320px 1fr 360px}}
@@ -847,12 +872,12 @@ svg.leaflet-image-layer.leaflet-interactive path {
     #dayChips .chip{padding:3px 7px;font-size:9.5px;letter-spacing:0.3px;flex-shrink:0;height:auto}
     /* Action button row: tighten */
     .toolbar-right .chip{padding:3px 8px;font-size:9.5px;letter-spacing:0.5px;height:26px}
-    /* Återställ: narrow enough to fit on the same row as the other action chips */
-    .toolbar-right #resetBtn{padding:3px 6px;font-size:9px;letter-spacing:0.3px}
-    /* Time slider: take full row width on mobile, sliders flex equally */
-    .range-row{gap:6px;width:100%;flex:1 0 100%;justify-content:space-between}
-    .range-row input[type=range]{flex:1;min-width:0;width:auto}
-    .range-val{font-size:10px;min-width:36px;letter-spacing:0.5px;flex-shrink:0}
+    /* Reset icon: square on mobile, tighter padding */
+    .toolbar-right .chip.reset-icon{width:26px;padding:0}
+    /* Time-button on mobile: same shrink as day chips */
+    #dayChips .chip.time-btn{padding:3px 8px;font-size:9.5px;letter-spacing:0.3px}
+    .time-popover{min-width:200px}
+    .time-preset{padding:10px 12px;font-size:12.5px}
     .search{min-width:0;width:100%;flex:1 0 100%;padding:6px 10px;font-size:12px;height:32px}
     .tabs{padding:7px 12px;gap:10px}
     .tab[data-tab="all"]{font-size:10.5px}
@@ -1321,14 +1346,9 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <span class="tbl-label">Dag</span>
   <div class="tbl-group" id="dayChips"></div>
 
-  <span class="tbl-label" style="margin-left:10px">Tid</span>
-  <div class="range-row">
-    <input type="range" id="timeFrom" min="6" max="23" step="0.5" value="6">
-    <span class="range-val" id="timeFromVal">06:00</span>
-    <span style="color:var(--muted);font-size:11px;letter-spacing:1.4px">till</span>
-    <input type="range" id="timeTo" min="6" max="23" step="0.5" value="23">
-    <span class="range-val" id="timeToVal">23:00</span>
-  </div>
+  <!-- Hidden time inputs: the actual filter state still lives here, the popover writes to them. -->
+  <input type="hidden" id="timeFrom" value="6">
+  <input type="hidden" id="timeTo" value="23">
 
   <span class="tbl-label" style="margin-left:10px">Sök</span>
   <input type="text" class="search" id="search" placeholder="rubrik, arrangör, plats, talare">
@@ -1341,7 +1361,9 @@ svg.leaflet-image-layer.leaflet-interactive path {
     </div>
     <button class="chip alt nunaesta-mobile-trigger" id="nunaestaMobileBtn">Nu &amp; nästa</button>
     <button class="chip alt chip-pill" id="filterBtn">Filter <span class="chip-badge" id="filterCount">0</span></button>
-    <button class="chip alt" id="resetBtn">Återställ</button>
+    <button class="chip alt reset-icon" id="resetBtn" title="Återställ alla filter" aria-label="Återställ alla filter">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 4 3 9 8 9"/></svg>
+    </button>
   </div>
 </div>
 
@@ -1699,7 +1721,7 @@ saveProfiles();
 // State
 var state = {
   day: 'all',
-  tFrom: 6, tTo: 23,
+  tFrom: 0, tTo: 24,
   q: '',
   tab: 'all',
   selectedId: null,
@@ -2161,16 +2183,55 @@ function updateDayChipsWithWeather(){
   });
 }
 
-// Build day chips
+// Build day chips, with a "Time" popover button as the last item in the row.
+// The time button opens a popover with presets (Hela dagen, Förmiddag, Eftermiddag,
+// Kväll) and an "Egen tid"-section with two range sliders.
 var dayChips = document.getElementById('dayChips');
 dayChips.innerHTML = '<button class="chip active" data-day="all">Alla</button>' +
-  DAYS.map(function(d){ return '<button class="chip" data-day="'+d+'"><span class="chip-day-label">'+DAY_LABELS[d]+'</span></button>'; }).join('');
+  DAYS.map(function(d){ return '<button class="chip" data-day="'+d+'"><span class="chip-day-label">'+DAY_LABELS[d]+'</span></button>'; }).join('') +
+  '<span class="time-wrap" id="timeWrap">' +
+    '<button class="chip time-btn" id="timeBtn" type="button" aria-haspopup="true" aria-expanded="false">' +
+      '<span id="timeBtnLabel">Tid</span><span class="caret">▾</span>' +
+    '</button>' +
+    '<div class="time-popover" id="timePopover" role="menu">' +
+      '<button class="time-preset active" data-preset="all" type="button" role="menuitemradio" aria-checked="true">' +
+        '<span>Hela dagen</span><span class="time-preset-sub">00-24</span><span class="check">✓</span>' +
+      '</button>' +
+      '<button class="time-preset" data-preset="fm" type="button" role="menuitemradio" aria-checked="false">' +
+        '<span>Förmiddag</span><span class="time-preset-sub">08-12</span>' +
+      '</button>' +
+      '<button class="time-preset" data-preset="em" type="button" role="menuitemradio" aria-checked="false">' +
+        '<span>Eftermiddag</span><span class="time-preset-sub">12-17</span>' +
+      '</button>' +
+      '<button class="time-preset" data-preset="kvall" type="button" role="menuitemradio" aria-checked="false">' +
+        '<span>Kväll</span><span class="time-preset-sub">17-23</span>' +
+      '</button>' +
+      '<div class="time-divider"></div>' +
+      '<button class="time-preset" data-preset="custom" type="button" role="menuitem">' +
+        '<span>Egen tid…</span>' +
+      '</button>' +
+      '<div class="time-custom" id="timeCustom">' +
+        '<div class="time-custom-row">' +
+          '<span style="text-transform:uppercase;letter-spacing:1.3px;font-size:9.5px">Från</span>' +
+          '<input type="range" id="timeFromRange" min="0" max="24" step="0.5" value="0">' +
+          '<span class="time-custom-val" id="timeFromVal">00:00</span>' +
+        '</div>' +
+        '<div class="time-custom-row">' +
+          '<span style="text-transform:uppercase;letter-spacing:1.3px;font-size:9.5px">Till</span>' +
+          '<input type="range" id="timeToRange" min="0" max="24" step="0.5" value="24">' +
+          '<span class="time-custom-val" id="timeToVal">24:00</span>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+  '</span>';
 
 // Fetch weather from SMHI directly (no server build needed)
 fetchWeather();
+
+// Only day buttons (not the time button) toggle day selection
 dayChips.addEventListener('click', function(e){
-  var b = e.target.closest('.chip'); if(!b) return;
-  dayChips.querySelectorAll('.chip').forEach(function(c){ c.classList.remove('active'); });
+  var b = e.target.closest('.chip[data-day]'); if(!b) return;
+  dayChips.querySelectorAll('.chip[data-day]').forEach(function(c){ c.classList.remove('active'); });
   b.classList.add('active');
   state.day = b.getAttribute('data-day');
   if(state.now){ state.now = false; document.getElementById('nowBtn').classList.remove('active'); }
@@ -2178,28 +2239,139 @@ dayChips.addEventListener('click', function(e){
   render();
 });
 
-// Time sliders
-var tFrom = document.getElementById('timeFrom');
-var tTo = document.getElementById('timeTo');
-var tFromVal = document.getElementById('timeFromVal');
-var tToVal = document.getElementById('timeToVal');
+// ============== Time popover ==============
+// Presets: 'all' (00-24, no filtering), 'fm' (08-12), 'em' (12-17), 'kvall' (17-23),
+// 'custom' (whatever the sliders inside the popover say).
+// State.tFrom and state.tTo continue to drive the actual filter; the popover just writes to them.
+var TIME_PRESETS = {
+  all:   { from: 0,  to: 24, label: 'Tid' },
+  fm:    { from: 8,  to: 12, label: '08-12' },
+  em:    { from: 12, to: 17, label: '12-17' },
+  kvall: { from: 17, to: 23, label: '17-23' }
+};
+var timeBtn = document.getElementById('timeBtn');
+var timeBtnLabel = document.getElementById('timeBtnLabel');
+var timePopover = document.getElementById('timePopover');
+var timeCustom = document.getElementById('timeCustom');
+var timeFromRange = document.getElementById('timeFromRange');
+var timeToRange = document.getElementById('timeToRange');
+var timeFromVal = document.getElementById('timeFromVal');
+var timeToVal = document.getElementById('timeToVal');
+
+// State tFrom/tTo now go 0-24 (previously 6-23). Default: "Hela dagen" 0-24.
+state.tFrom = 0;
+state.tTo = 24;
+
 function fmtTime(v){
   var h = Math.floor(v);
   var m = (v - h) === 0.5 ? '30' : '00';
   return (h<10?'0':'') + h + ':' + m;
 }
-function updateTime(ev){
-  var a = parseFloat(tFrom.value), b = parseFloat(tTo.value);
-  if(a > b){ if(ev && ev.target === tFrom){ tTo.value = a; b = a; } else { tFrom.value = b; a = b; } }
-  state.tFrom = a; state.tTo = b;
-  tFromVal.textContent = fmtTime(a);
-  tToVal.textContent = fmtTime(b);
+
+function applyTimePreset(name){
+  var p = TIME_PRESETS[name];
+  if(!p) return;
+  state.tFrom = p.from;
+  state.tTo = p.to;
+  timeFromRange.value = p.from;
+  timeToRange.value = p.to;
+  timeFromVal.textContent = fmtTime(p.from);
+  timeToVal.textContent = fmtTime(p.to);
+  updateTimeButtonLabel(name);
+  // Mark active preset visually
+  timePopover.querySelectorAll('.time-preset').forEach(function(el){
+    var on = el.getAttribute('data-preset') === name;
+    el.classList.toggle('active', on);
+    el.setAttribute('aria-checked', on ? 'true' : 'false');
+    // Show/hide the inline check
+    var existingCheck = el.querySelector('.check');
+    if(on && !existingCheck && name !== 'custom'){
+      var c = document.createElement('span');
+      c.className = 'check';
+      c.textContent = '✓';
+      el.appendChild(c);
+    } else if(!on && existingCheck){
+      existingCheck.remove();
+    }
+  });
+  timeCustom.classList.remove('open');
   if(state.now){ state.now = false; document.getElementById('nowBtn').classList.remove('active'); }
   resetPage();
   render();
 }
-tFrom.addEventListener('input', updateTime);
-tTo.addEventListener('input', updateTime);
+
+function updateTimeButtonLabel(presetName){
+  if(presetName === 'all'){
+    timeBtnLabel.textContent = 'Tid';
+    timeBtn.classList.remove('has-filter');
+  } else if(presetName === 'custom'){
+    timeBtnLabel.textContent = fmtTime(state.tFrom) + '-' + fmtTime(state.tTo);
+    timeBtn.classList.add('has-filter');
+  } else {
+    timeBtnLabel.textContent = TIME_PRESETS[presetName].label;
+    timeBtn.classList.add('has-filter');
+  }
+}
+
+timeBtn.addEventListener('click', function(e){
+  e.stopPropagation();
+  var open = timePopover.classList.toggle('open');
+  timeBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+});
+
+// Preset buttons inside popover
+timePopover.addEventListener('click', function(e){
+  var btn = e.target.closest('.time-preset');
+  if(!btn) return;
+  e.stopPropagation();
+  var preset = btn.getAttribute('data-preset');
+  if(preset === 'custom'){
+    // Open custom sliders, keep popover open
+    timeCustom.classList.add('open');
+    // Mark "Egen tid…" as visually active
+    timePopover.querySelectorAll('.time-preset').forEach(function(el){
+      el.classList.remove('active');
+      var ec = el.querySelector('.check'); if(ec) ec.remove();
+    });
+    btn.classList.add('active');
+    return;
+  }
+  applyTimePreset(preset);
+  // Close popover after picking a preset (custom stays open via early return above)
+  timePopover.classList.remove('open');
+  timeBtn.setAttribute('aria-expanded', 'false');
+});
+
+function updateCustomTime(ev){
+  var a = parseFloat(timeFromRange.value), b = parseFloat(timeToRange.value);
+  if(a > b){ if(ev && ev.target === timeFromRange){ timeToRange.value = a; b = a; } else { timeFromRange.value = b; a = b; } }
+  state.tFrom = a; state.tTo = b;
+  timeFromVal.textContent = fmtTime(a);
+  timeToVal.textContent = fmtTime(b);
+  updateTimeButtonLabel('custom');
+  if(state.now){ state.now = false; document.getElementById('nowBtn').classList.remove('active'); }
+  resetPage();
+  render();
+}
+timeFromRange.addEventListener('input', updateCustomTime);
+timeToRange.addEventListener('input', updateCustomTime);
+
+// Close popover when clicking outside it
+document.addEventListener('click', function(e){
+  if(!timePopover.classList.contains('open')) return;
+  if(e.target.closest('#timeWrap')) return;
+  timePopover.classList.remove('open');
+  timeBtn.setAttribute('aria-expanded', 'false');
+});
+
+// References that the rest of the code (reset button, etc.) still uses
+var tFrom = document.getElementById('timeFrom');
+var tTo = document.getElementById('timeTo');
+// Update the hidden inputs whenever state.tFrom/tTo change (legacy compatibility)
+function syncHiddenTimeInputs(){
+  tFrom.value = state.tFrom;
+  tTo.value = state.tTo;
+}
 
 // Search
 var searchInp = document.getElementById('search');
@@ -2287,13 +2459,15 @@ document.getElementById('geoBtn').addEventListener('click', function(){
 // Reset: clears all session filters (date, time, search, location, Now, tab) and mutes topics for session.
 // Topic weights are persisted per profile and are NOT deleted here. Use the Ämnen panel to permanently clear them.
 document.getElementById('resetBtn').addEventListener('click', function(){
-  state.day = 'all'; state.q = ''; state.tFrom = 6; state.tTo = 23; state.tab = 'all';
+  state.day = 'all'; state.q = ''; state.tab = 'all';
   state.now = false;
   state.userPos = null;
 
-  tFrom.value = 6; tTo.value = 23; searchInp.value = '';
-  tFromVal.textContent = '06:00'; tToVal.textContent = '23:00';
-  dayChips.querySelectorAll('.chip').forEach(function(c){ c.classList.toggle('active', c.getAttribute('data-day')==='all'); });
+  searchInp.value = '';
+  // Reset time to "Hela dagen" via the preset machinery (which also updates labels & state)
+  applyTimePreset('all');
+  // Reset day chips (only those with data-day, not the time button)
+  dayChips.querySelectorAll('.chip[data-day]').forEach(function(c){ c.classList.toggle('active', c.getAttribute('data-day')==='all'); });
   document.querySelectorAll('.tab').forEach(function(t){ t.classList.toggle('active', t.getAttribute('data-tab')==='all'); });
   document.getElementById('nowBtn').classList.remove('active');
   document.getElementById('agendaActions').style.display = 'none';
