@@ -153,12 +153,13 @@
   .range-val{font-size:11px;color:var(--gold);letter-spacing:1px;font-variant-numeric:tabular-nums;min-width:42px}
   .toolbar-right{margin-left:auto;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 
-  /* Time popover trigger and panel (replaces always-visible time slider) */
-  .time-wrap{position:relative;display:inline-flex;align-items:center}
+  /* Time popover trigger and panel (replaces always-visible time slider).
+     Popover is appended to <body> and positioned with fixed coordinates set by JS,
+     to avoid clipping/stacking-context issues inside the toolbar. */
   .chip.time-btn{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
   .chip.time-btn .caret{font-size:9px;line-height:1;opacity:0.6;margin-left:2px}
   .chip.time-btn.has-filter{border-color:var(--gold);color:var(--gold);font-weight:600}
-  .time-popover{position:absolute;top:calc(100% + 6px);right:0;background:var(--bg2);border:1px solid var(--gold);border-radius:2px;box-shadow:var(--shadow);z-index:950;display:none;min-width:230px;padding:5px 0}
+  .time-popover{position:fixed;background:var(--bg2);border:1px solid var(--gold);border-radius:2px;box-shadow:var(--shadow);z-index:1200;display:none;min-width:230px;padding:5px 0;top:0;left:0}
   .time-popover.open{display:block}
   .time-preset{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 14px;font-size:12px;letter-spacing:0.3px;cursor:pointer;background:transparent;border:none;width:100%;text-align:left;font-family:inherit;color:var(--text)}
   .time-preset:hover{background:rgba(0,0,0,0.08)}
@@ -173,8 +174,10 @@
   .time-custom-row input[type=range]{flex:1;accent-color:var(--gold)}
   .time-custom-val{font-size:11px;color:var(--gold);letter-spacing:0.5px;font-variant-numeric:tabular-nums;min-width:42px;font-weight:600}
 
-  /* Reset action — icon-only button. Pinned to far right of toolbar-right via margin-left:auto. */
-  .chip.reset-icon{margin-left:auto;width:30px;padding:0;display:inline-flex;align-items:center;justify-content:center;color:var(--muted)}
+  /* Reset action — icon-only button. Placed next to search input via .search-wrap. */
+  .search-wrap{display:inline-flex;align-items:center;gap:6px;flex:1 1 auto;min-width:0}
+  .search-wrap .search{flex:1 1 auto;min-width:0}
+  .chip.reset-icon{width:30px;padding:0;display:inline-flex;align-items:center;justify-content:center;color:var(--muted);flex-shrink:0}
   .chip.reset-icon:hover{color:var(--gold);border-color:var(--gold)}
   .chip.reset-icon svg{width:14px;height:14px;display:block}
 
@@ -211,13 +214,14 @@
     #dayChips .chip{padding:3px 7px;font-size:9.5px;letter-spacing:0.3px;flex-shrink:0;height:auto}
     /* Action button row: tighten */
     .toolbar-right .chip{padding:3px 8px;font-size:9.5px;letter-spacing:0.5px;height:26px}
-    /* Reset icon on mobile: tight square, flow inline (no auto margin = no wrap) */
-    .toolbar-right .chip.reset-icon{width:26px;padding:0;margin-left:0}
+    /* Reset icon on mobile: tighter square, kept inline with search */
+    .chip.reset-icon{width:32px;height:32px;padding:0}
     /* Time-button on mobile: same shrink as day chips */
     #dayChips .chip.time-btn{padding:3px 8px;font-size:9.5px;letter-spacing:0.3px}
     .time-popover{min-width:200px}
     .time-preset{padding:10px 12px;font-size:12.5px}
-    .search{min-width:0;width:100%;flex:1 0 100%;padding:6px 10px;font-size:12px;height:32px}
+    .search-wrap{width:100%;flex:1 0 100%}
+    .search{min-width:0;padding:6px 10px;font-size:12px;height:32px}
     .tabs{padding:7px 12px;gap:10px}
     .tab[data-tab="all"]{font-size:10.5px}
     .tab[data-tab="agenda"]{padding:6px 10px;font-size:10.5px}
@@ -690,7 +694,12 @@
   <input type="hidden" id="timeTo" value="23">
 
   <span class="tbl-label" style="margin-left:10px">Sök</span>
-  <input type="text" class="search" id="search" placeholder="rubrik, arrangör, plats, talare">
+  <div class="search-wrap">
+    <input type="text" class="search" id="search" placeholder="rubrik, arrangör, plats, talare">
+    <button class="chip alt reset-icon" id="resetBtn" title="Återställ alla filter" aria-label="Återställ alla filter">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 4 3 9 8 9"/></svg>
+    </button>
+  </div>
 
   <div class="toolbar-right">
     <button class="chip featured chip-pill" id="topicBtn">Ämnen <span class="chip-badge" id="topicCount">0</span></button>
@@ -700,9 +709,6 @@
     </div>
     <button class="chip alt nunaesta-mobile-trigger" id="nunaestaMobileBtn">Nu &amp; nästa</button>
     <button class="chip alt chip-pill" id="filterBtn">Filter <span class="chip-badge" id="filterCount">0</span></button>
-    <button class="chip alt reset-icon" id="resetBtn" title="Återställ alla filter" aria-label="Återställ alla filter">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 4 3 9 8 9"/></svg>
-    </button>
   </div>
 </div>
 
@@ -1517,47 +1523,51 @@ function updateDayChipsWithWeather(){
   });
 }
 
-// Build day chips, with a "Time" popover button as the last item in the row.
-// The time button opens a popover with presets (Hela dagen, Förmiddag, Eftermiddag,
-// Kväll) and an "Egen tid"-section with two range sliders.
+// Build day chips, with a "Time" popover trigger button as the last item in the row.
+// The popover panel itself is rendered separately at the body level (see below) to avoid
+// stacking-context and clipping issues inside the flex toolbar.
 var dayChips = document.getElementById('dayChips');
 dayChips.innerHTML = '<button class="chip active" data-day="all">Alla</button>' +
   DAYS.map(function(d){ return '<button class="chip" data-day="'+d+'"><span class="chip-day-label">'+DAY_LABELS[d]+'</span></button>'; }).join('') +
-  '<div class="time-wrap" id="timeWrap">' +
-    '<button class="chip time-btn" id="timeBtn" type="button" aria-haspopup="true" aria-expanded="false">' +
-      '<span id="timeBtnLabel">Tid</span><span class="caret">▾</span>' +
-    '</button>' +
-    '<div class="time-popover" id="timePopover" role="menu">' +
-      '<button class="time-preset active" data-preset="all" type="button" role="menuitemradio" aria-checked="true">' +
-        '<span>Hela dagen</span><span class="time-preset-sub">00-24</span><span class="check">✓</span>' +
-      '</button>' +
-      '<button class="time-preset" data-preset="fm" type="button" role="menuitemradio" aria-checked="false">' +
-        '<span>Förmiddag</span><span class="time-preset-sub">08-12</span>' +
-      '</button>' +
-      '<button class="time-preset" data-preset="em" type="button" role="menuitemradio" aria-checked="false">' +
-        '<span>Eftermiddag</span><span class="time-preset-sub">12-17</span>' +
-      '</button>' +
-      '<button class="time-preset" data-preset="kvall" type="button" role="menuitemradio" aria-checked="false">' +
-        '<span>Kväll</span><span class="time-preset-sub">17-23</span>' +
-      '</button>' +
-      '<div class="time-divider"></div>' +
-      '<button class="time-preset" data-preset="custom" type="button" role="menuitem">' +
-        '<span>Egen tid…</span>' +
-      '</button>' +
-      '<div class="time-custom" id="timeCustom">' +
-        '<div class="time-custom-row">' +
-          '<span style="text-transform:uppercase;letter-spacing:1.3px;font-size:9.5px">Från</span>' +
-          '<input type="range" id="timeFromRange" min="0" max="24" step="0.5" value="0">' +
-          '<span class="time-custom-val" id="timeFromVal">00:00</span>' +
-        '</div>' +
-        '<div class="time-custom-row">' +
-          '<span style="text-transform:uppercase;letter-spacing:1.3px;font-size:9.5px">Till</span>' +
-          '<input type="range" id="timeToRange" min="0" max="24" step="0.5" value="24">' +
-          '<span class="time-custom-val" id="timeToVal">24:00</span>' +
-        '</div>' +
-      '</div>' +
+  '<button class="chip time-btn" id="timeBtn" type="button" aria-haspopup="true" aria-expanded="false">' +
+    '<span id="timeBtnLabel">Tid</span><span class="caret">▾</span>' +
+  '</button>';
+
+// Time popover lives outside dayChips, attached to <body>, positioned dynamically
+var timePopoverEl = document.createElement('div');
+timePopoverEl.className = 'time-popover';
+timePopoverEl.id = 'timePopover';
+timePopoverEl.setAttribute('role', 'menu');
+timePopoverEl.innerHTML =
+  '<button class="time-preset active" data-preset="all" type="button" role="menuitemradio" aria-checked="true">' +
+    '<span>Hela dagen</span><span class="time-preset-sub">00-24</span><span class="check">✓</span>' +
+  '</button>' +
+  '<button class="time-preset" data-preset="fm" type="button" role="menuitemradio" aria-checked="false">' +
+    '<span>Förmiddag</span><span class="time-preset-sub">08-12</span>' +
+  '</button>' +
+  '<button class="time-preset" data-preset="em" type="button" role="menuitemradio" aria-checked="false">' +
+    '<span>Eftermiddag</span><span class="time-preset-sub">12-17</span>' +
+  '</button>' +
+  '<button class="time-preset" data-preset="kvall" type="button" role="menuitemradio" aria-checked="false">' +
+    '<span>Kväll</span><span class="time-preset-sub">17-23</span>' +
+  '</button>' +
+  '<div class="time-divider"></div>' +
+  '<button class="time-preset" data-preset="custom" type="button" role="menuitem">' +
+    '<span>Egen tid…</span>' +
+  '</button>' +
+  '<div class="time-custom" id="timeCustom">' +
+    '<div class="time-custom-row">' +
+      '<span style="text-transform:uppercase;letter-spacing:1.3px;font-size:9.5px">Från</span>' +
+      '<input type="range" id="timeFromRange" min="0" max="24" step="0.5" value="0">' +
+      '<span class="time-custom-val" id="timeFromVal">00:00</span>' +
+    '</div>' +
+    '<div class="time-custom-row">' +
+      '<span style="text-transform:uppercase;letter-spacing:1.3px;font-size:9.5px">Till</span>' +
+      '<input type="range" id="timeToRange" min="0" max="24" step="0.5" value="24">' +
+      '<span class="time-custom-val" id="timeToVal">24:00</span>' +
     '</div>' +
   '</div>';
+document.body.appendChild(timePopoverEl);
 
 // Fetch weather from SMHI directly (no server build needed)
 fetchWeather();
@@ -1591,6 +1601,20 @@ var timeFromRange = document.getElementById('timeFromRange');
 var timeToRange = document.getElementById('timeToRange');
 var timeFromVal = document.getElementById('timeFromVal');
 var timeToVal = document.getElementById('timeToVal');
+
+function positionTimePopover(){
+  // Anchor below the time button, right-aligned. Use viewport (fixed) coords.
+  var rect = timeBtn.getBoundingClientRect();
+  var popW = timePopover.offsetWidth || 230;
+  var viewportW = document.documentElement.clientWidth;
+  var top = rect.bottom + 6;
+  // Right-align under the button, but clamp to viewport (8px padding)
+  var left = rect.right - popW;
+  if(left + popW > viewportW - 8) left = viewportW - 8 - popW;
+  if(left < 8) left = 8;
+  timePopover.style.top = top + 'px';
+  timePopover.style.left = left + 'px';
+}
 
 // State tFrom/tTo now go 0-24 (previously 6-23). Default: "Hela dagen" 0-24.
 state.tFrom = 0;
@@ -1650,13 +1674,24 @@ function updateTimeButtonLabel(presetName){
 timeBtn.addEventListener('click', function(e){
   e.preventDefault();
   e.stopPropagation();
-  var open = timePopover.classList.toggle('open');
-  timeBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  var willOpen = !timePopover.classList.contains('open');
+  if(willOpen){
+    timePopover.classList.add('open');
+    // Defer one frame so popover has dimensions before we position it
+    requestAnimationFrame(positionTimePopover);
+  } else {
+    timePopover.classList.remove('open');
+  }
+  timeBtn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
 });
-// Defensive: also handle pointerdown so iOS Safari registers the tap even if click is suppressed elsewhere
-timeBtn.addEventListener('pointerdown', function(e){
-  e.stopPropagation();
+
+// Reposition popover on resize/scroll while open
+window.addEventListener('resize', function(){
+  if(timePopover.classList.contains('open')) positionTimePopover();
 });
+window.addEventListener('scroll', function(){
+  if(timePopover.classList.contains('open')) positionTimePopover();
+}, true);
 
 // Preset buttons inside popover
 timePopover.addEventListener('click', function(e){
@@ -1695,10 +1730,11 @@ function updateCustomTime(ev){
 timeFromRange.addEventListener('input', updateCustomTime);
 timeToRange.addEventListener('input', updateCustomTime);
 
-// Close popover when clicking outside it
+// Close popover when clicking outside it (outside both the button and the panel)
 document.addEventListener('click', function(e){
   if(!timePopover.classList.contains('open')) return;
-  if(e.target.closest('#timeWrap')) return;
+  if(e.target === timeBtn || timeBtn.contains(e.target)) return;
+  if(e.target === timePopover || timePopover.contains(e.target)) return;
   timePopover.classList.remove('open');
   timeBtn.setAttribute('aria-expanded', 'false');
 });
