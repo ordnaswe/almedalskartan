@@ -912,6 +912,14 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .tab[data-tab="agenda"].active::before{color:#FFFFFF}
   .tab[data-tab="agenda"] .tab-count{color:var(--influera-red);font-weight:700;font-variant-numeric:tabular-nums;font-size:11px;letter-spacing:0}
   .tab[data-tab="agenda"].active .tab-count{color:#FFFFFF}
+
+  /* B.1: Info button next to "I urval" — explains that ämnesvikt sorts but doesn't filter */
+  .urval-info{background:transparent;border:none;padding:2px 4px 2px 0;margin:0;cursor:pointer;color:var(--muted);display:inline-flex;align-items:center;line-height:0;font-family:inherit}
+  .urval-info svg{width:13px;height:13px;display:block}
+  .urval-info:hover{color:var(--gold)}
+  .urval-tip{position:fixed;background:#1A1A1A;color:#FFFFFF;padding:9px 12px;border-radius:3px;box-shadow:0 6px 22px rgba(0,0,0,0.22);font-size:12px;line-height:1.45;letter-spacing:0.1px;max-width:280px;z-index:1200;display:none;top:0;left:0}
+  .urval-tip.open{display:block}
+  .urval-tip::before{content:"";position:absolute;width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:6px solid #1A1A1A;top:-6px;left:14px}
   .sort-bar{display:flex;align-items:center;gap:6px;padding:7px 14px;background:var(--bg);border-bottom:1px solid var(--border-s);font-size:10.5px;color:var(--muted);letter-spacing:1.4px;text-transform:uppercase;flex-wrap:wrap}
   .sort-chip{background:transparent;border:1px solid var(--border);color:var(--muted);padding:3px 8px;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;cursor:pointer;border-radius:1px;font-family:inherit;font-weight:500;transition:all .12s}
   .sort-chip:hover{border-color:var(--gold);color:var(--gold)}
@@ -965,14 +973,19 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .tag{font-size:9px;letter-spacing:1.3px;text-transform:uppercase;padding:2px 6px;border:1px solid var(--border);color:var(--muted);border-radius:1px}
   .tag.primary{border-color:var(--gold);color:var(--gold)}
   .tag.t-type{border-color:var(--border-s);color:var(--muted)}
-  .card-score{position:absolute;top:10px;right:12px;font-size:9.5px;color:var(--gold-d);font-weight:700;letter-spacing:0.3px;font-variant-numeric:tabular-nums;display:flex;flex-direction:column;align-items:flex-end;gap:3px;min-width:42px}
-  .card-score-num{display:flex;align-items:baseline;gap:1px;line-height:1}
-  .card-score-pct{font-size:13.5px;color:var(--text)}
-  .card-score-unit{font-size:9px;color:var(--muted);font-weight:500}
-  .card-score-bar{width:38px;height:3px;background:rgba(0,0,0,0.15);border-radius:2px;overflow:hidden;position:relative}
-  .card-score-fill{position:absolute;left:0;top:0;bottom:0;background:var(--gold);border-radius:2px}
-  .card-score.high .card-score-pct{color:var(--influera-red)}
-  .card-score.high .card-score-fill{background:var(--influera-red)}
+  /* B.4: Match indicator on event cards: three colored bars, no percentage number.
+     Three levels (low, mid, high) based on match score thresholds. */
+  .card-score{position:absolute;top:10px;right:12px;display:flex;flex-direction:column;align-items:flex-end;gap:4px;min-width:38px}
+  .card-score .match-label{font-size:8.5px;color:var(--muted);letter-spacing:1.4px;text-transform:uppercase;font-weight:600;line-height:1}
+  .card-score .match-bars{display:flex;gap:2px;align-items:flex-end}
+  .card-score .match-bar{display:inline-block;width:7px;background:rgba(0,0,0,0.12);border-radius:1px}
+  .card-score .match-bar:nth-child(1){height:5px}
+  .card-score .match-bar:nth-child(2){height:8px}
+  .card-score .match-bar:nth-child(3){height:11px}
+  .card-score.lvl-1 .match-bar.on{background:#B8862A}
+  .card-score.lvl-2 .match-bar.on{background:#B8862A}
+  .card-score.lvl-3 .match-bar.on{background:var(--influera-red)}
+  .card-score.lvl-3 .match-label{color:var(--influera-red)}
   .empty{padding:30px 18px;color:var(--muted);font-size:12px;text-align:center;line-height:1.6}
 
   /* Map */
@@ -1214,6 +1227,42 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .org-mark.veteran{color:#7A5A1C}
   .org-mark.erfaren{color:#B8862A}
   .org-mark.debutant{color:var(--influera-red)}
+  /* B.2: Clickable organiser name in detail view */
+  .org-link{background:transparent;border:none;padding:0;margin:0;color:var(--text);font-family:inherit;font-size:inherit;font-weight:inherit;text-decoration:underline;text-decoration-color:var(--border);text-underline-offset:2px;cursor:pointer;display:inline}
+  .org-link:hover{color:var(--gold);text-decoration-color:var(--gold)}
+
+  /* B.3: Organiser profile modal content */
+  .org-prof-stat-row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;align-items:center}
+  .org-prof-status{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;letter-spacing:1.4px;text-transform:uppercase;padding:4px 9px;border-radius:2px;font-weight:600}
+  .org-prof-status.veteran{background:rgba(122,90,28,0.10);color:#7A5A1C;border:1px solid rgba(122,90,28,0.45)}
+  .org-prof-status.erfaren{background:rgba(184,134,42,0.10);color:#B8862A;border:1px solid rgba(184,134,42,0.40)}
+  .org-prof-status.debutant{background:rgba(220,69,32,0.10);color:var(--influera-red);border:1px solid rgba(220,69,32,0.45)}
+  .org-prof-count{font-size:13px;color:var(--text);font-weight:500}
+  .org-prof-count strong{font-size:16px;font-weight:700;color:var(--gold);font-variant-numeric:tabular-nums}
+  .org-prof-section{margin:14px 0 4px;padding-top:14px;border-top:1px solid var(--border-s)}
+  .org-prof-section:first-child{border-top:none;margin-top:0;padding-top:0}
+  .org-prof-section-h{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:10px}
+  /* Timeline: row of small year squares 2009-2025 */
+  .org-prof-timeline{display:flex;flex-wrap:wrap;gap:3px;font-size:9.5px;letter-spacing:0.2px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .org-prof-year{width:24px;height:24px;border:1px solid var(--border);border-radius:2px;display:flex;align-items:center;justify-content:center;background:#FFFFFF;color:var(--muted);font-weight:500;font-size:9.5px;letter-spacing:0;flex-shrink:0}
+  .org-prof-year.on{background:#7A5A1C;color:#FFFFFF;border-color:#7A5A1C;font-weight:600}
+  .org-prof-year.current{background:var(--influera-red);color:#FFFFFF;border-color:var(--influera-red);font-weight:700}
+  .org-prof-timeline-note{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;font-style:italic}
+  /* Lists of topics / places */
+  .org-prof-tag-list{display:flex;flex-wrap:wrap;gap:6px}
+  .org-prof-tag{font-size:11px;letter-spacing:0.3px;padding:4px 9px;border:1px solid var(--border);color:var(--text);border-radius:1px;background:#FFFFFF;font-weight:500;display:inline-flex;align-items:baseline;gap:5px}
+  .org-prof-tag .org-prof-tag-n{color:var(--muted);font-size:10px;font-variant-numeric:tabular-nums}
+  /* List of events */
+  .org-prof-events{display:flex;flex-direction:column;gap:5px}
+  .org-prof-event{display:grid;grid-template-columns:54px 1fr;gap:9px;padding:8px 10px;background:rgba(0,0,0,0.04);border-left:2px solid var(--gold-d);border-radius:1px;cursor:pointer;align-items:start;transition:background .12s}
+  .org-prof-event:hover{background:rgba(0,0,0,0.10)}
+  .org-prof-event-time{font-size:10.5px;color:var(--gold);font-weight:600;letter-spacing:0.4px;font-variant-numeric:tabular-nums;line-height:1.35;padding-top:1px}
+  .org-prof-event-main{min-width:0}
+  .org-prof-event-title{font-size:12.5px;font-weight:500;color:var(--text);line-height:1.35;margin:0 0 3px}
+  .org-prof-event-place{font-size:11px;color:var(--muted);line-height:1.35}
+  .org-prof-event-conflict{display:inline-block;margin-left:6px;background:#B8862A;color:#FFFFFF;font-size:9px;padding:1px 5px;border-radius:1px;letter-spacing:0.6px;text-transform:uppercase;font-weight:600;vertical-align:1px}
+  .org-prof-event-saved{display:inline-block;margin-left:6px;color:var(--influera-red);font-size:11px;font-weight:700}
+  .org-prof-empty{color:var(--muted);font-style:italic;font-size:12px}
   .org-legend{font-size:10.5px;color:var(--muted);letter-spacing:0.2px;margin-top:8px;line-height:1.5;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
   .org-legend-item{display:inline-flex;align-items:center;gap:5px}
   .org-legend-item .org-mark{margin-right:0;cursor:default}
@@ -1440,6 +1489,9 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <aside class="sidebar">
     <div class="tabs">
       <button class="tab active" data-tab="all">I urval <span class="tab-count" id="cntAll">0</span></button>
+      <button class="urval-info" id="urvalInfo" type="button" title="Vad betyder I urval?" aria-label="Vad betyder I urval?">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      </button>
       <button class="tab" data-tab="agenda">Min agenda <span class="tab-count" id="cntAgenda">0</span></button>
     </div>
     <div class="sort-bar" id="sortBar">
@@ -1581,6 +1633,24 @@ svg.leaflet-image-layer.leaflet-interactive path {
     <div class="modal-foot">
       <button class="chip" id="profileCancel">Avbryt</button>
       <button class="chip active" id="profileCreate">Skapa</button>
+    </div>
+  </div>
+</div>
+
+<!-- B.3: Modal: Arrangörsprofil -->
+<div class="modal-overlay" id="orgProfileModal">
+  <div class="modal" id="orgProfileModalInner">
+    <div class="modal-head">
+      <div style="min-width:0;flex:1">
+        <h3 class="modal-title" id="orgProfileTitle">Arrangör</h3>
+        <div class="modal-sub" id="orgProfileSub"></div>
+      </div>
+      <button class="icon-btn" id="orgProfileClose">✕</button>
+    </div>
+    <div class="modal-body" id="orgProfileBody"></div>
+    <div class="modal-foot">
+      <button class="chip" id="orgProfileBatchAdd" style="display:none">Lägg till alla i agenda</button>
+      <button class="chip active" id="orgProfileDone">Klar</button>
     </div>
   </div>
 </div>
@@ -2439,6 +2509,50 @@ document.querySelectorAll('.tab').forEach(function(t){
   });
 });
 
+// B.1: Info tooltip explaining what "I urval" means and that Ämnesvikt doesn't filter
+var urvalInfoBtn = document.getElementById('urvalInfo');
+if(urvalInfoBtn){
+  var urvalTipEl = document.createElement('div');
+  urvalTipEl.className = 'urval-tip';
+  urvalTipEl.textContent = 'Ämnesvikt påverkar sortering, inte urval. Använd Filter för att begränsa antalet.';
+  document.body.appendChild(urvalTipEl);
+
+  function positionUrvalTip(){
+    var rect = urvalInfoBtn.getBoundingClientRect();
+    var tipW = urvalTipEl.offsetWidth || 280;
+    var viewportW = document.documentElement.clientWidth;
+    var top = rect.bottom + 8;
+    var left = rect.left;
+    if(left + tipW > viewportW - 8) left = viewportW - 8 - tipW;
+    if(left < 8) left = 8;
+    urvalTipEl.style.top = top + 'px';
+    urvalTipEl.style.left = left + 'px';
+  }
+  urvalInfoBtn.addEventListener('click', function(e){
+    e.preventDefault();
+    e.stopPropagation();
+    var willOpen = !urvalTipEl.classList.contains('open');
+    if(willOpen){
+      urvalTipEl.classList.add('open');
+      requestAnimationFrame(positionUrvalTip);
+    } else {
+      urvalTipEl.classList.remove('open');
+    }
+  });
+  document.addEventListener('click', function(e){
+    if(!urvalTipEl.classList.contains('open')) return;
+    if(e.target === urvalInfoBtn || urvalInfoBtn.contains(e.target)) return;
+    if(e.target === urvalTipEl || urvalTipEl.contains(e.target)) return;
+    urvalTipEl.classList.remove('open');
+  });
+  window.addEventListener('resize', function(){
+    if(urvalTipEl.classList.contains('open')) positionUrvalTip();
+  });
+  window.addEventListener('scroll', function(){
+    if(urvalTipEl.classList.contains('open')) positionUrvalTip();
+  }, true);
+}
+
 // Sort chips: switch sort mode
 document.querySelectorAll('.sort-chip').forEach(function(c){
   c.addEventListener('click', function(){
@@ -3164,10 +3278,20 @@ function render(){
       return '<div class="card '+(state.selectedId===e.id?'selected':'')+'" data-id="'+e.id+'">' +
         conflictMark +
         (hasWeights && pct > 0 ? (
-          '<div class="card-score'+(pct>=80?' high':'')+'">' +
-            '<div class="card-score-num"><span class="card-score-pct">'+pct+'</span><span class="card-score-unit">%</span></div>' +
-            '<div class="card-score-bar"><div class="card-score-fill" style="width:'+pct+'%"></div></div>' +
-          '</div>'
+          // B.4: three-bar visual match indicator instead of percentage.
+          // Three thresholds: 1=>33 (low), 34-66 (mid), 67+ (high). Each lit bar gets a colour.
+          (function(){
+            var lvl = pct >= 67 ? 3 : (pct >= 34 ? 2 : 1);
+            var cls = 'card-score lvl-' + lvl;
+            return '<div class="' + cls + '" title="Matchning mot dina ämnesvikter">' +
+              '<span class="match-label">Match</span>' +
+              '<div class="match-bars">' +
+                '<span class="match-bar' + (lvl >= 1 ? ' on' : '') + '"></span>' +
+                '<span class="match-bar' + (lvl >= 2 ? ' on' : '') + '"></span>' +
+                '<span class="match-bar' + (lvl >= 3 ? ' on' : '') + '"></span>' +
+              '</div>' +
+            '</div>';
+          })()
         ) : '') +
         '<div class="card-row1">' +
           '<span class="card-time">'+escapeHtml(formatHM(e.start))+(e.slut?'-'+escapeHtml(formatHM(e.slut)):'')+'</span>' +
@@ -3336,7 +3460,11 @@ function selectEvent(id, panTo){
     '<button class="mobile-back" id="mobileBack"><span class="mb-arrow">←</span><span>Tillbaka till listan</span></button>' +
     '<div class="detail-head">' +
       '<div class="d-eyebrow">' +
-        '<span>Programpunkt' + (hasW && score>0 ? ' • Match ' + scorePercent(e) + '%' : '') + '</span>' +
+        '<span>Programpunkt' + (hasW && score>0 ? (function(){
+          var p = scorePercent(e);
+          var lbl = p >= 67 ? 'Hög matchning' : (p >= 34 ? 'Delvis matchning' : 'Låg matchning');
+          return ' • ' + lbl;
+        })() : '') + '</span>' +
         '<button class="d-close" id="detClose">✕</button>' +
       '</div>' +
       '<h2 class="d-title">'+escapeHtml(e.rubrik)+'</h2>' +
@@ -3383,7 +3511,8 @@ function selectEvent(id, panTo){
         } else {
           prefix = '<span class="org-mark debutant" title="Ny 2026: tidigare stavning saknas i historiken" aria-label="Ny 2026">○</span>';
         }
-        return prefix + escapeHtml(orgName);
+        // B.2: Wrap name in a clickable button that opens the organiser profile modal
+        return prefix + '<button class="org-link" data-org-profile="' + escapeAttr(orgName) + '" type="button" title="Visa arrangörsprofil">' + escapeHtml(orgName) + '</button>';
       }).join(', ')+'</div>' +
       (function(){
         // Always show legend + history link (every organiser now has a status)
@@ -3507,6 +3636,15 @@ function selectEvent(id, panTo){
     });
   });
 
+  // B.2/B.3: Click on organiser name opens the profile modal
+  detailEl.querySelectorAll('.org-link').forEach(function(btn){
+    btn.addEventListener('click', function(ev){
+      ev.preventDefault();
+      ev.stopPropagation();
+      openOrgProfile(btn.getAttribute('data-org-profile'));
+    });
+  });
+
   // B1: "visa fördelning"-toggle for organiser veteran/debutant breakdown
   detailEl.querySelectorAll('[data-action="org-details"]').forEach(function(btn){
     btn.addEventListener('click', function(){
@@ -3568,6 +3706,262 @@ function selectEvent(id, panTo){
     }
   } catch(err){}
 }
+
+// ============== B.3: Organiser profile modal ==============
+// Opens a modal with a complete view of an organiser: their 2026 events,
+// historical timeline 2009-2025, most common topics, most common places,
+// and a batch-add-to-agenda action.
+var orgProfileModal = document.getElementById('orgProfileModal');
+var orgProfileTitle = document.getElementById('orgProfileTitle');
+var orgProfileSub = document.getElementById('orgProfileSub');
+var orgProfileBody = document.getElementById('orgProfileBody');
+var orgProfileBatchAdd = document.getElementById('orgProfileBatchAdd');
+var orgProfileCloseBtn = document.getElementById('orgProfileClose');
+var orgProfileDoneBtn = document.getElementById('orgProfileDone');
+var orgProfileCurrentName = null; // tracks which organiser the modal is currently showing
+
+var HIST_YEAR_FROM = 2009;
+var HIST_YEAR_TO = 2025; // History covers 2009-2025; 2026 is "current year" (this year's program)
+
+function openOrgProfile(orgName){
+  if(!orgName) return;
+  orgProfileCurrentName = orgName;
+
+  // Find all events for this organiser in 2026
+  var orgEvents = EVENTS.filter(function(e){
+    return (e.arr || []).indexOf(orgName) >= 0;
+  });
+
+  // Status + year count
+  var status = orgStatus(orgName);
+  var yrs = orgYearCount(orgName);
+  var statusLabel = '';
+  var statusCls = '';
+  if(status === 'veteran'){
+    statusLabel = 'Veteran (' + yrs + ' år 2009-2025)';
+    statusCls = 'veteran';
+  } else if(status === 'erfaren'){
+    statusLabel = 'Erfaren (' + yrs + ' år 2009-2025)';
+    statusCls = 'erfaren';
+  } else {
+    statusLabel = 'Ny 2026';
+    statusCls = 'debutant';
+  }
+
+  orgProfileTitle.textContent = orgName;
+  orgProfileSub.textContent = 'Översikt av arrangörens program och historik. Klick på en programpunkt öppnar den.';
+
+  // Topic counts in 2026
+  var topicCounts = {};
+  orgEvents.forEach(function(ev){
+    if(ev.amne1) topicCounts[ev.amne1] = (topicCounts[ev.amne1] || 0) + 1;
+    if(ev.amne2) topicCounts[ev.amne2] = (topicCounts[ev.amne2] || 0) + 1;
+  });
+  var topTopics = Object.keys(topicCounts).map(function(k){ return [k, topicCounts[k]]; })
+    .sort(function(a, b){ return b[1] - a[1]; }).slice(0, 8);
+
+  // Place counts in 2026
+  var placeCounts = {};
+  orgEvents.forEach(function(ev){
+    var p = (ev.plats || '').trim();
+    if(p) placeCounts[p] = (placeCounts[p] || 0) + 1;
+  });
+  var topPlaces = Object.keys(placeCounts).map(function(k){ return [k, placeCounts[k]]; })
+    .sort(function(a, b){ return b[1] - a[1]; }).slice(0, 6);
+
+  // Years they were present (history data)
+  var presentYears = {};
+  if(HISTORY && HISTORY[orgName]){
+    HISTORY[orgName].forEach(function(y){ presentYears[y] = true; });
+  }
+  // Build timeline rows
+  var timelineHtml = '';
+  for(var y = HIST_YEAR_FROM; y <= HIST_YEAR_TO; y++){
+    var cls = presentYears[y] ? 'org-prof-year on' : 'org-prof-year';
+    timelineHtml += '<div class="' + cls + '" title="' + y + (presentYears[y] ? ': med i programmet' : ': ej i historiken') + '">' + (String(y).slice(2)) + '</div>';
+  }
+  // Add 2026 as "current year" marker
+  timelineHtml += '<div class="org-prof-year current" title="2026: med i årets program">26</div>';
+
+  // Sort events by day+time
+  orgEvents.sort(function(a, b){
+    if(a.dag !== b.dag) return a.dag < b.dag ? -1 : 1;
+    return (a.start || '').localeCompare(b.start || '');
+  });
+
+  // Check which 2026 events are already in agenda and which would conflict
+  var agendaSet = currentAgenda();
+  var existingConflicts = computeAgendaConflicts();
+
+  var eventsHtml = '';
+  if(orgEvents.length === 0){
+    eventsHtml = '<div class="org-prof-empty">Inga programpunkter 2026.</div>';
+  } else {
+    eventsHtml = '<div class="org-prof-events">' + orgEvents.map(function(ev){
+      var dayLabel = '';
+      for(var k in DAY_LABELS){ if(ev.dag.indexOf(k) === 0){ dayLabel = DAY_LABELS[k]; break; } }
+      var saved = agendaSet.has(ev.id);
+      var hasConflict = existingConflicts[ev.id] && (existingConflicts[ev.id].overlaps.length > 0);
+      return '<div class="org-prof-event" data-jump-id="' + escapeAttr(ev.id) + '">' +
+        '<div class="org-prof-event-time">' +
+          escapeHtml(formatHM(ev.start)) + (ev.slut ? '<br>' + escapeHtml(formatHM(ev.slut)) : '') +
+        '</div>' +
+        '<div class="org-prof-event-main">' +
+          '<div class="org-prof-event-title">' + escapeHtml(ev.rubrik) +
+            (saved ? '<span class="org-prof-event-saved" title="Redan i din agenda">✓</span>' : '') +
+            (hasConflict ? '<span class="org-prof-event-conflict">krock</span>' : '') +
+          '</div>' +
+          '<div class="org-prof-event-place">' +
+            (dayLabel ? escapeHtml(dayLabel) + ' · ' : '') +
+            escapeHtml(ev.plats || 'Plats ej angiven') +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('') + '</div>';
+  }
+
+  var topicsHtml = topTopics.length === 0
+    ? '<div class="org-prof-empty">Inga ämnen taggade.</div>'
+    : '<div class="org-prof-tag-list">' + topTopics.map(function(p){
+        return '<span class="org-prof-tag">' + escapeHtml(p[0]) + '<span class="org-prof-tag-n">' + p[1] + '</span></span>';
+      }).join('') + '</div>';
+
+  var placesHtml = topPlaces.length === 0
+    ? '<div class="org-prof-empty">Inga platser angivna.</div>'
+    : '<div class="org-prof-tag-list">' + topPlaces.map(function(p){
+        return '<span class="org-prof-tag">' + escapeHtml(p[0]) + (p[1] > 1 ? '<span class="org-prof-tag-n">' + p[1] + '</span>' : '') + '</span>';
+      }).join('') + '</div>';
+
+  // Compute how many of org's events are not yet in agenda
+  var notYetInAgenda = orgEvents.filter(function(ev){ return !agendaSet.has(ev.id); });
+
+  orgProfileBody.innerHTML =
+    '<div class="org-prof-stat-row">' +
+      '<span class="org-prof-status ' + statusCls + '">' + escapeHtml(statusLabel) + '</span>' +
+      '<span class="org-prof-count"><strong>' + orgEvents.length + '</strong> programpunkter 2026</span>' +
+    '</div>' +
+
+    '<div class="org-prof-section">' +
+      '<div class="org-prof-section-h">Programpunkter 2026</div>' +
+      eventsHtml +
+    '</div>' +
+
+    (topTopics.length ? '<div class="org-prof-section">' +
+      '<div class="org-prof-section-h">Vanligaste ämnen</div>' +
+      topicsHtml +
+    '</div>' : '') +
+
+    (topPlaces.length ? '<div class="org-prof-section">' +
+      '<div class="org-prof-section-h">Vanligaste platser</div>' +
+      placesHtml +
+    '</div>' : '') +
+
+    '<div class="org-prof-section">' +
+      '<div class="org-prof-section-h">Historik 2009-2026</div>' +
+      '<div class="org-prof-timeline">' + timelineHtml + '</div>' +
+      '<div class="org-prof-timeline-note">Baserat på exakt namnmatchning. Ifyllda rutor = arrangören finns med det året. Tomma rutor = ingen post i historiken med denna stavning.</div>' +
+    '</div>';
+
+  // Configure batch-add button
+  if(notYetInAgenda.length > 0){
+    orgProfileBatchAdd.style.display = '';
+    orgProfileBatchAdd.textContent = 'Lägg till ' + notYetInAgenda.length + ' i agenda';
+    orgProfileBatchAdd.onclick = function(){
+      doBatchAddOrgEvents(orgName, notYetInAgenda);
+    };
+  } else {
+    orgProfileBatchAdd.style.display = '';
+    orgProfileBatchAdd.textContent = 'Alla redan i agenda';
+    orgProfileBatchAdd.disabled = true;
+    orgProfileBatchAdd.style.opacity = '0.5';
+    orgProfileBatchAdd.style.cursor = 'default';
+    orgProfileBatchAdd.onclick = null;
+  }
+
+  // Wire up event-click-to-jump
+  orgProfileBody.querySelectorAll('.org-prof-event').forEach(function(el){
+    el.addEventListener('click', function(){
+      var jumpId = el.getAttribute('data-jump-id');
+      orgProfileModal.classList.remove('open');
+      selectEvent(jumpId, true);
+    });
+  });
+
+  orgProfileModal.classList.add('open');
+}
+
+function doBatchAddOrgEvents(orgName, candidateEvents){
+  // Count how many would create conflicts in the agenda after adding
+  // (simple check: time overlap with existing agenda events on same day)
+  var agendaIds = profiles[state.profile].agenda || [];
+  var agendaEvents = agendaIds.map(function(id){ return EVENTS.find(function(x){ return x.id === id; }); }).filter(Boolean);
+
+  function overlapsAny(candidate, list){
+    var cStart = timeToNum(candidate.start);
+    var cSlut = timeToNum(candidate.slut);
+    if(cStart === null) return false;
+    var cDate = (candidate.dag || '').slice(0, 10);
+    for(var i = 0; i < list.length; i++){
+      var other = list[i];
+      if((other.dag || '').slice(0, 10) !== cDate) continue;
+      var oStart = timeToNum(other.start);
+      var oSlut = timeToNum(other.slut);
+      if(oStart === null) continue;
+      if(cSlut !== null && oSlut !== null && cSlut > oStart && cStart < oSlut) return true;
+    }
+    return false;
+  }
+
+  var willConflict = [];
+  var noConflict = [];
+  candidateEvents.forEach(function(ev){
+    if(overlapsAny(ev, agendaEvents)) willConflict.push(ev);
+    else noConflict.push(ev);
+  });
+
+  var msg;
+  var toAdd;
+  if(willConflict.length === 0){
+    msg = 'Lägg till ' + candidateEvents.length + ' programpunkter från ' + orgName + ' i din agenda?';
+    toAdd = candidateEvents;
+  } else if(noConflict.length === 0){
+    msg = 'Alla ' + candidateEvents.length + ' programpunkter krockar med din befintliga agenda. Lägg till ändå?';
+    toAdd = candidateEvents;
+  } else {
+    msg = noConflict.length + ' programpunkter kan läggas till utan krock. ' +
+          willConflict.length + ' krockar med befintlig agenda.\n\n' +
+          'OK = lägg till alla ' + candidateEvents.length + ' (inklusive krockar).\n' +
+          'Avbryt = lägg bara till de ' + noConflict.length + ' som inte krockar.';
+    toAdd = null; // handled below
+  }
+
+  if(toAdd === null){
+    // Three-way choice: confirm() returns true=add all, false=add only non-conflicting
+    var addAll = confirm(msg);
+    toAdd = addAll ? candidateEvents : noConflict;
+  } else {
+    if(!confirm(msg)) return;
+  }
+
+  var ag = currentAgenda();
+  toAdd.forEach(function(ev){ ag.add(ev.id); });
+  setAgenda(ag);
+  renderProfileMenu();
+  render();
+  showToast('Tillagda i agenda: ' + toAdd.length + ' programpunkter från ' + orgName, null);
+  // Refresh the profile modal so saved-markers update
+  if(orgProfileCurrentName === orgName) openOrgProfile(orgName);
+}
+
+orgProfileCloseBtn.addEventListener('click', function(){
+  orgProfileModal.classList.remove('open');
+});
+orgProfileDoneBtn.addEventListener('click', function(){
+  orgProfileModal.classList.remove('open');
+});
+orgProfileModal.addEventListener('click', function(e){
+  if(e.target === orgProfileModal) orgProfileModal.classList.remove('open');
+});
 
 function clearDetail(){
   state.selectedId = null;
@@ -3725,8 +4119,14 @@ function renderNuNastaItem(e, hasWeights){
   }
   var scoreCell = '';
   if(pct > 0){
-    scoreCell = '<div class="nunaesta-item-score' + (pct >= 80 ? ' high' : '') + '">' +
-      '<span class="nunaesta-item-score-pct">' + pct + '%</span>' +
+    var lvl = pct >= 67 ? 3 : (pct >= 34 ? 2 : 1);
+    scoreCell = '<div class="card-score lvl-' + lvl + '" title="Matchning mot dina ämnesvikter" style="position:static">' +
+      '<span class="match-label">Match</span>' +
+      '<div class="match-bars">' +
+        '<span class="match-bar' + (lvl >= 1 ? ' on' : '') + '"></span>' +
+        '<span class="match-bar' + (lvl >= 2 ? ' on' : '') + '"></span>' +
+        '<span class="match-bar' + (lvl >= 3 ? ' on' : '') + '"></span>' +
+      '</div>' +
     '</div>';
   } else {
     scoreCell = '<div></div>';
