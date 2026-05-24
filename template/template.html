@@ -154,7 +154,7 @@
   .toolbar-right{margin-left:auto;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 
   /* Time popover trigger and panel (replaces always-visible time slider) */
-  .time-wrap{position:relative;display:inline-flex}
+  .time-wrap{position:relative;display:inline-flex;align-items:center}
   .chip.time-btn{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
   .chip.time-btn .caret{font-size:9px;line-height:1;opacity:0.6;margin-left:2px}
   .chip.time-btn.has-filter{border-color:var(--gold);color:var(--gold);font-weight:600}
@@ -211,8 +211,8 @@
     #dayChips .chip{padding:3px 7px;font-size:9.5px;letter-spacing:0.3px;flex-shrink:0;height:auto}
     /* Action button row: tighten */
     .toolbar-right .chip{padding:3px 8px;font-size:9.5px;letter-spacing:0.5px;height:26px}
-    /* Reset icon: square on mobile, tighter padding */
-    .toolbar-right .chip.reset-icon{width:26px;padding:0}
+    /* Reset icon on mobile: tight square, flow inline (no auto margin = no wrap) */
+    .toolbar-right .chip.reset-icon{width:26px;padding:0;margin-left:0}
     /* Time-button on mobile: same shrink as day chips */
     #dayChips .chip.time-btn{padding:3px 8px;font-size:9.5px;letter-spacing:0.3px}
     .time-popover{min-width:200px}
@@ -1523,7 +1523,7 @@ function updateDayChipsWithWeather(){
 var dayChips = document.getElementById('dayChips');
 dayChips.innerHTML = '<button class="chip active" data-day="all">Alla</button>' +
   DAYS.map(function(d){ return '<button class="chip" data-day="'+d+'"><span class="chip-day-label">'+DAY_LABELS[d]+'</span></button>'; }).join('') +
-  '<span class="time-wrap" id="timeWrap">' +
+  '<div class="time-wrap" id="timeWrap">' +
     '<button class="chip time-btn" id="timeBtn" type="button" aria-haspopup="true" aria-expanded="false">' +
       '<span id="timeBtnLabel">Tid</span><span class="caret">▾</span>' +
     '</button>' +
@@ -1557,7 +1557,7 @@ dayChips.innerHTML = '<button class="chip active" data-day="all">Alla</button>' 
         '</div>' +
       '</div>' +
     '</div>' +
-  '</span>';
+  '</div>';
 
 // Fetch weather from SMHI directly (no server build needed)
 fetchWeather();
@@ -1648,9 +1648,14 @@ function updateTimeButtonLabel(presetName){
 }
 
 timeBtn.addEventListener('click', function(e){
+  e.preventDefault();
   e.stopPropagation();
   var open = timePopover.classList.toggle('open');
   timeBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+});
+// Defensive: also handle pointerdown so iOS Safari registers the tap even if click is suppressed elsewhere
+timeBtn.addEventListener('pointerdown', function(e){
+  e.stopPropagation();
 });
 
 // Preset buttons inside popover
