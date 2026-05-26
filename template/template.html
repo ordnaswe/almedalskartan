@@ -162,6 +162,36 @@
   .chip.time-btn.has-filter{border-color:var(--gold);color:var(--gold);font-weight:600}
   .time-popover{position:fixed;background:var(--bg2);border:1px solid var(--gold);border-radius:2px;box-shadow:var(--shadow);z-index:1200;display:none;min-width:230px;padding:5px 0;top:0;left:0}
   .time-popover.open{display:block}
+  /* Combined day+time popover */
+  .daytime-popover{position:fixed;background:var(--bg2);border:1px solid var(--gold);border-radius:2px;box-shadow:var(--shadow);z-index:1200;display:none;min-width:280px;max-width:340px;padding:8px 0;top:0;left:0}
+  .daytime-popover.open{display:block}
+  .daytime-section-h{font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-weight:700;padding:6px 14px 4px}
+  .daytime-day-grid{display:grid;grid-template-columns:repeat(3, 1fr);gap:4px;padding:2px 10px 6px}
+  .daytime-day-btn{background:#FFFFFF;border:1px solid var(--border);border-radius:1px;cursor:pointer;font-family:inherit;color:var(--text);padding:7px 4px;display:flex;flex-direction:column;align-items:center;gap:2px;font-weight:500;transition:all .12s}
+  .daytime-day-btn:hover{border-color:var(--gold);color:var(--gold)}
+  .daytime-day-btn.active{background:var(--text);color:#FFFFFF;border-color:var(--text);font-weight:600}
+  .daytime-day-btn .ddb-label{font-size:11px;letter-spacing:1.2px;text-transform:uppercase}
+  .daytime-day-btn .ddb-weather{font-size:9.5px;color:var(--muted);font-weight:500;letter-spacing:0.2px;text-transform:none}
+  .daytime-day-btn.active .ddb-weather{color:rgba(255,255,255,0.85)}
+  .daytime-day-btn .ddb-weather:empty{display:none}
+  .daytime-divider{height:1px;background:var(--border-s);margin:6px 0 4px}
+
+  /* Combined Dagar/Tid trigger button */
+  .chip.daytime-btn{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;font-weight:500}
+  .chip.daytime-btn.has-filter{border-color:var(--gold);color:var(--gold);font-weight:600}
+  .chip.daytime-btn .caret{font-size:9px;line-height:1;opacity:0.6;margin-left:2px}
+
+  /* "Mer"-dropdown popover */
+  .more-popover{position:fixed;background:var(--bg2);border:1px solid var(--gold);border-radius:2px;box-shadow:var(--shadow);z-index:1200;display:none;min-width:280px;max-width:340px;padding:5px 0;top:0;left:0}
+  .more-popover.open{display:block}
+  .more-item{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:10px 14px;font-size:12px;cursor:pointer;background:transparent;border:none;width:100%;text-align:left;font-family:inherit;color:var(--text)}
+  .more-item:hover{background:rgba(0,0,0,0.08)}
+  .more-item.active{color:var(--gold);font-weight:600}
+  .more-item.active::after{content:"✓";color:var(--gold);position:absolute;right:14px;font-weight:700}
+  .more-item{position:relative}
+  .more-item-label{font-size:12.5px;letter-spacing:0.3px;font-weight:600}
+  .more-item-sub{font-size:11px;color:var(--muted);letter-spacing:0.2px;line-height:1.35;font-weight:400}
+  .chip#moreBtn.has-filter{border-color:var(--gold);color:var(--gold);font-weight:600}
   .time-preset{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 14px;font-size:12px;letter-spacing:0.3px;cursor:pointer;background:transparent;border:none;width:100%;text-align:left;font-family:inherit;color:var(--text)}
   .time-preset:hover{background:rgba(0,0,0,0.08)}
   .time-preset.active{color:var(--gold);font-weight:600}
@@ -206,23 +236,28 @@
     .visby-weather .vw-label{display:none}
     .profile-btn{padding:4px 8px;font-size:10px;letter-spacing:1px}
     #profileName{display:none}
-    .toolbar{padding:6px 10px;gap:5px}
+    .toolbar{padding:8px 12px;gap:8px;flex-wrap:wrap}
     .tbl-label{display:none}
-    .chip{padding:4px 9px;font-size:10.5px;letter-spacing:1.1px;height:28px}
-    /* Day chips: aggressive shrink + horizontal scroll backup so 6 chips always fit on one row */
-    #dayChips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;max-width:100%;padding:1px}
-    #dayChips::-webkit-scrollbar{display:none}
-    #dayChips .chip{padding:3px 7px;font-size:9.5px;letter-spacing:0.3px;flex-shrink:0;height:auto}
-    /* Action button row: tighten */
-    .toolbar-right .chip{padding:3px 8px;font-size:9.5px;letter-spacing:0.5px;height:26px}
+    .chip{padding:6px 10px;font-size:11.5px;letter-spacing:1px;height:32px}
+    /* On mobile we use two rows. Row 1: search-wrap + reset (already 100% wide) + Dagar/tid pill.
+       Row 2: Ämnen + Mer + Filter. */
+    .search-wrap{flex:1 1 56%;min-width:0}
+    .search{min-width:0;padding:8px 12px;font-size:16px;height:36px} /* 16px prevents iOS Safari auto-zoom on focus */
+    .chip.daytime-btn{flex:0 0 auto;height:36px;padding:6px 12px;font-size:11.5px;letter-spacing:0.4px;font-weight:600}
+    .chip.daytime-btn .caret{font-size:10px}
+    .toolbar-right{flex:1 1 100%;display:flex;gap:6px;justify-content:flex-start}
+    .toolbar-right .chip{padding:6px 10px;font-size:11px;letter-spacing:0.6px;height:32px;flex:1 1 auto;justify-content:center}
+    .chip.featured{flex:1 1 auto}
     /* Reset icon on mobile: tighter square, kept inline with search */
-    .chip.reset-icon{width:32px;height:32px;padding:0}
-    /* Time-button on mobile: same horizontal layout and tight shrink as day chips */
-    #dayChips .chip.time-btn{padding:3px 7px;font-size:9.5px;letter-spacing:0.3px;flex-direction:row}
+    .chip.reset-icon{width:36px;height:36px;padding:0;flex:0 0 auto}
+    /* Tighter popover content on mobile */
     .time-popover{min-width:200px}
+    .daytime-popover{min-width:260px;max-width:92vw}
+    .daytime-day-grid{grid-template-columns:repeat(3, 1fr);gap:5px}
+    .daytime-day-btn{padding:8px 4px}
+    .daytime-day-btn .ddb-label{font-size:11px}
     .time-preset{padding:10px 12px;font-size:12.5px}
-    .search-wrap{width:100%;flex:1 0 100%}
-    .search{min-width:0;padding:6px 10px;font-size:12px;height:32px}
+    .more-popover{min-width:240px;max-width:92vw}
     .tabs{padding:7px 12px;gap:10px}
     .tab[data-tab="all"]{font-size:10.5px}
     .tab[data-tab="agenda"]{padding:6px 10px;font-size:10.5px}
@@ -327,6 +362,11 @@
   .card-score.lvl-3 .match-bar.on{background:var(--influera-red)}
   .card-score.lvl-3 .match-label{color:var(--influera-red)}
   .empty{padding:30px 18px;color:var(--muted);font-size:12px;text-align:center;line-height:1.6}
+  .empty-rich{padding:36px 20px 40px;display:flex;flex-direction:column;align-items:center;text-align:center}
+  .empty-rich .empty-icon{width:48px;height:48px;color:var(--muted);margin-bottom:14px;opacity:0.7}
+  .empty-rich .empty-icon svg{width:100%;height:100%}
+  .empty-rich .empty-title{font-size:15px;font-weight:600;color:var(--text);margin-bottom:8px;letter-spacing:0.2px}
+  .empty-rich .empty-body{font-size:12.5px;color:var(--muted);line-height:1.55;max-width:340px}
 
   /* Map */
   .map-wrap{position:relative;background:#E8E2D2;min-height:300px}
@@ -736,14 +776,8 @@
 </header>
 
 <div class="toolbar">
-  <span class="tbl-label">Dag</span>
-  <div class="tbl-group" id="dayChips"></div>
-
-  <!-- Hidden time inputs: the actual filter state still lives here, the popover writes to them. -->
-  <input type="hidden" id="timeFrom" value="6">
-  <input type="hidden" id="timeTo" value="23">
-
-  <span class="tbl-label" style="margin-left:10px">Sök</span>
+  <!-- Mobile rad 1: sökfält + reset + kombinerad DAGAR/TID-knapp -->
+  <span class="tbl-label">Sök</span>
   <div class="search-wrap">
     <input type="text" class="search" id="search" placeholder="rubrik, arrangör, plats, talare">
     <button class="chip alt reset-icon" id="resetBtn" title="Återställ alla filter" aria-label="Återställ alla filter">
@@ -751,13 +785,29 @@
     </button>
   </div>
 
+  <!-- Combined day+time popover trigger. Replaces the old day-chip row + Tid button. -->
+  <button class="chip alt chip-pill daytime-btn" id="dayTimeBtn" type="button" aria-haspopup="true" aria-expanded="false">
+    <span id="dayTimeBtnLabel">Dagar / tid</span><span class="caret">▾</span>
+  </button>
+
+  <!-- Hidden state for day chips and time inputs. Popover writes to these. -->
+  <div id="dayChips" style="display:none"></div>
+  <input type="hidden" id="timeFrom" value="0">
+  <input type="hidden" id="timeTo" value="24">
+
+  <!-- Hidden originals: existing event handlers bind to these by id. The visible "Mer" dropdown clicks them. -->
+  <div style="display:none">
+    <button class="chip alt" id="nowBtn">Nu</button>
+    <button class="chip alt" id="geoBtn">Nära mig</button>
+    <button class="chip alt nunaesta-mobile-trigger" id="nunaestaMobileBtn">Nu &amp; nästa</button>
+  </div>
+
   <div class="toolbar-right">
     <button class="chip featured chip-pill" id="topicBtn">Ämnen <span class="chip-badge" id="topicCount">0</span></button>
-    <div class="chip-loc-group">
-      <button class="chip alt" id="nowBtn">Nu</button>
-      <button class="chip alt" id="geoBtn">Nära mig</button>
-    </div>
-    <button class="chip alt nunaesta-mobile-trigger" id="nunaestaMobileBtn">Nu &amp; nästa</button>
+    <!-- "Mer" dropdown hides Nu, Nära mig, Nu & nästa -->
+    <button class="chip alt chip-pill" id="moreBtn" type="button" aria-haspopup="true" aria-expanded="false">
+      Mer<span class="caret">▾</span>
+    </button>
     <button class="chip alt chip-pill" id="filterBtn">Filter <span class="chip-badge" id="filterCount">0</span></button>
   </div>
 </div>
@@ -1430,23 +1480,43 @@ function smhiSymbolToIcon(wsymb2){
 }
 
 // Extract a value from an SMHI time-series entry. The API has migrated formats
-// (pmp3g/v2 used a parameters[] array; snow1g/v1 uses flat data fields).
+// (pmp3g/v2 used a parameters[] array; snow1g/v1 uses flat fields under entry.data).
 // Try both to be resilient.
 function smhiExtractValue(entry, paramName){
-  // Old format: parameters: [{ name: 't', values: [12.5] }, ...]
+  var altMap = { 't': 'air_temperature', 'Wsymb2': 'symbol_code' };
+  var newKey = altMap[paramName] || paramName;
+
+  // New format (snow1g/v1): { time: "...", data: { air_temperature: 12.5, symbol_code: 1, ... } }
+  if(entry.data && typeof entry.data === 'object'){
+    if(entry.data[newKey] != null){
+      var v = entry.data[newKey];
+      // SMHI uses 9999 as sentinel for missing values
+      if(v === 9999) return null;
+      return v;
+    }
+    if(entry.data[paramName] != null){
+      var v2 = entry.data[paramName];
+      if(v2 === 9999) return null;
+      return v2;
+    }
+  }
+
+  // Old format (pmp3g/v2): { validTime: "...", parameters: [{ name: 't', values: [12.5] }, ...] }
   if(Array.isArray(entry.parameters)){
-    var altMap = { 't': 'air_temperature', 'Wsymb2': 'symbol_code' };
     for(var i = 0; i < entry.parameters.length; i++){
       var p = entry.parameters[i];
-      if(p.name === paramName || p.name === altMap[paramName]){
-        return Array.isArray(p.values) ? p.values[0] : p.value;
+      if(p.name === paramName || p.name === newKey){
+        var val = Array.isArray(p.values) ? p.values[0] : p.value;
+        if(val === 9999) return null;
+        return val;
       }
     }
   }
-  // New format: flat fields
-  var newKeys = { 't': 'air_temperature', 'Wsymb2': 'symbol_code' };
-  if(entry[newKeys[paramName]] != null) return entry[newKeys[paramName]];
-  if(entry[paramName] != null) return entry[paramName];
+
+  // Final fallback: try flat field directly on entry (some clients normalize this way)
+  if(entry[newKey] != null && entry[newKey] !== 9999) return entry[newKey];
+  if(entry[paramName] != null && entry[paramName] !== 9999) return entry[paramName];
+
   return null;
 }
 
@@ -1580,6 +1650,7 @@ function updateVisbyWeather(){
 
 function updateDayChipsWithWeather(){
   if(!weatherCache) return;
+  // Update hidden #dayChips (kept for state compatibility)
   document.querySelectorAll('#dayChips .chip').forEach(function(chip){
     var d = chip.getAttribute('data-day');
     if(d === 'all') return;
@@ -1592,24 +1663,46 @@ function updateDayChipsWithWeather(){
     span.setAttribute('aria-label', 'Prognos från SMHI');
     chip.appendChild(span);
   });
+  // Also update the visible day buttons inside the daytime popover
+  document.querySelectorAll('.daytime-day-btn[data-day]').forEach(function(btn){
+    var d = btn.getAttribute('data-day');
+    if(d === 'all') return;
+    var slot = btn.querySelector('.ddb-weather');
+    if(!slot) return;
+    var w = weatherCache[d];
+    if(!w){ slot.textContent = ''; return; }
+    slot.innerHTML = (w.icon ? w.icon + ' ' : '') + w.temp + '°';
+    slot.setAttribute('aria-label', 'Prognos från SMHI');
+  });
 }
 
-// Build day chips, with a "Time" popover trigger button as the last item in the row.
-// The popover panel itself is rendered separately at the body level (see below) to avoid
-// stacking-context and clipping issues inside the flex toolbar.
+// Build day chip buttons. They live inside a hidden #dayChips container that acts as
+// the source of truth for "which day is active". The new #dayTimeBtn opens a popover
+// that mirrors these buttons visually inside the popover, plus shows time presets below.
 var dayChips = document.getElementById('dayChips');
 dayChips.innerHTML = '<button class="chip active" data-day="all">Alla</button>' +
-  DAYS.map(function(d){ return '<button class="chip" data-day="'+d+'"><span class="chip-day-label">'+DAY_LABELS[d]+'</span></button>'; }).join('') +
-  '<button class="chip time-btn" id="timeBtn" type="button" aria-haspopup="true" aria-expanded="false">' +
-    '<span id="timeBtnLabel">Tid</span><span class="caret">▾</span>' +
-  '</button>';
+  DAYS.map(function(d){ return '<button class="chip" data-day="'+d+'"><span class="chip-day-label">'+DAY_LABELS[d]+'</span></button>'; }).join('');
 
-// Time popover lives outside dayChips, attached to <body>, positioned dynamically
-var timePopoverEl = document.createElement('div');
-timePopoverEl.className = 'time-popover';
-timePopoverEl.id = 'timePopover';
-timePopoverEl.setAttribute('role', 'menu');
-timePopoverEl.innerHTML =
+// Combined day+time popover, attached to <body> and positioned via JS to avoid clipping.
+var dayTimePopoverEl = document.createElement('div');
+dayTimePopoverEl.className = 'daytime-popover';
+dayTimePopoverEl.id = 'dayTimePopover';
+dayTimePopoverEl.setAttribute('role', 'menu');
+dayTimePopoverEl.innerHTML =
+  '<div class="daytime-section-h">Dag</div>' +
+  '<div class="daytime-day-grid" id="dayTimeDayGrid">' +
+    '<button class="daytime-day-btn active" data-day="all" type="button"><span class="ddb-label">Alla dagar</span></button>' +
+    DAYS.map(function(d){
+      return '<button class="daytime-day-btn" data-day="' + d + '" type="button">' +
+        '<span class="ddb-label">' + DAY_LABELS[d] + '</span>' +
+        '<span class="ddb-weather" data-day-weather="' + d + '"></span>' +
+      '</button>';
+    }).join('') +
+  '</div>' +
+
+  '<div class="daytime-divider"></div>' +
+
+  '<div class="daytime-section-h">Tid på dagen</div>' +
   '<button class="time-preset active" data-preset="all" type="button" role="menuitemradio" aria-checked="true">' +
     '<span>Hela dagen</span><span class="time-preset-sub">00-24</span><span class="check">✓</span>' +
   '</button>' +
@@ -1638,7 +1731,128 @@ timePopoverEl.innerHTML =
       '<span class="time-custom-val" id="timeToVal">24:00</span>' +
     '</div>' +
   '</div>';
-document.body.appendChild(timePopoverEl);
+document.body.appendChild(dayTimePopoverEl);
+
+// "Mer"-popover: hides Nu, Nära mig, Nu & nästa behind a dropdown
+var morePopoverEl = document.createElement('div');
+morePopoverEl.className = 'more-popover';
+morePopoverEl.id = 'morePopover';
+morePopoverEl.setAttribute('role', 'menu');
+morePopoverEl.innerHTML =
+  '<button class="more-item" type="button" data-more="now">' +
+    '<span class="more-item-label">Nu</span>' +
+    '<span class="more-item-sub">Filtrera till det som pågår nu</span>' +
+  '</button>' +
+  '<button class="more-item" type="button" data-more="geo">' +
+    '<span class="more-item-label">Nära mig</span>' +
+    '<span class="more-item-sub">Sortera efter avstånd från din position</span>' +
+  '</button>' +
+  '<button class="more-item" type="button" data-more="nunaesta">' +
+    '<span class="more-item-label">Nu &amp; nästa</span>' +
+    '<span class="more-item-sub">Realtidsvy över vad som pågår och vad som börjar snart</span>' +
+  '</button>';
+document.body.appendChild(morePopoverEl);
+
+var moreBtn = document.getElementById('moreBtn');
+function positionMorePopover(){
+  var rect = moreBtn.getBoundingClientRect();
+  var popW = morePopoverEl.offsetWidth || 280;
+  var viewportW = document.documentElement.clientWidth;
+  var top = rect.bottom + 6;
+  var left = rect.right - popW;
+  if(left + popW > viewportW - 8) left = viewportW - 8 - popW;
+  if(left < 8) left = 8;
+  morePopoverEl.style.top = top + 'px';
+  morePopoverEl.style.left = left + 'px';
+}
+moreBtn.addEventListener('click', function(e){
+  e.preventDefault();
+  e.stopPropagation();
+  var willOpen = !morePopoverEl.classList.contains('open');
+  if(willOpen){
+    morePopoverEl.classList.add('open');
+    requestAnimationFrame(positionMorePopover);
+  } else {
+    morePopoverEl.classList.remove('open');
+  }
+  moreBtn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+});
+morePopoverEl.addEventListener('click', function(e){
+  var item = e.target.closest('.more-item');
+  if(!item) return;
+  e.stopPropagation();
+  var which = item.getAttribute('data-more');
+  // Click the corresponding hidden original button to trigger its existing logic
+  var targetId = which === 'now' ? 'nowBtn' : (which === 'geo' ? 'geoBtn' : 'nunaestaMobileBtn');
+  var target = document.getElementById(targetId);
+  if(target) target.click();
+  morePopoverEl.classList.remove('open');
+  moreBtn.setAttribute('aria-expanded', 'false');
+  // Reflect active state on the dropdown items
+  updateMoreItemActiveStates();
+});
+function updateMoreItemActiveStates(){
+  // Highlight items that are currently active
+  morePopoverEl.querySelectorAll('.more-item').forEach(function(it){
+    var which = it.getAttribute('data-more');
+    var active = false;
+    if(which === 'now') active = state.now === true;
+    else if(which === 'geo') active = state.geo === true;
+    // 'nunaesta' has no persistent active state
+    it.classList.toggle('active', active);
+  });
+  // Mark moreBtn as having an active filter
+  var anyActive = state.now || state.geo;
+  moreBtn.classList.toggle('has-filter', !!anyActive);
+}
+document.addEventListener('click', function(e){
+  if(!morePopoverEl.classList.contains('open')) return;
+  if(e.target === moreBtn || moreBtn.contains(e.target)) return;
+  if(e.target === morePopoverEl || morePopoverEl.contains(e.target)) return;
+  morePopoverEl.classList.remove('open');
+  moreBtn.setAttribute('aria-expanded', 'false');
+});
+window.addEventListener('resize', function(){
+  if(morePopoverEl.classList.contains('open')) positionMorePopover();
+});
+window.addEventListener('scroll', function(){
+  if(morePopoverEl.classList.contains('open')) positionMorePopover();
+}, true);
+
+// Wire up day buttons inside the popover to drive the hidden dayChips state
+dayTimePopoverEl.querySelectorAll('.daytime-day-btn').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    var d = btn.getAttribute('data-day');
+    // Find matching hidden chip and click it (preserves all existing handler logic)
+    var target = dayChips.querySelector('[data-day="' + d + '"]');
+    if(target) target.click();
+    // Update visual state inside popover
+    dayTimePopoverEl.querySelectorAll('.daytime-day-btn').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    // Update label on the trigger button to show currently selected day
+    updateDayTimeBtnLabel();
+  });
+});
+
+function updateDayTimeBtnLabel(){
+  var btn = document.getElementById('dayTimeBtnLabel');
+  if(!btn) return;
+  var activeDay = dayChips.querySelector('.chip.active');
+  var dayLabel = 'Alla dagar';
+  if(activeDay){
+    var d = activeDay.getAttribute('data-day');
+    if(d !== 'all') dayLabel = DAY_LABELS[d] || dayLabel;
+  }
+  // Time label only when not default
+  var tFrom = parseFloat(document.getElementById('timeFrom').value);
+  var tTo = parseFloat(document.getElementById('timeTo').value);
+  var timeBit = '';
+  if(tFrom > 0 || tTo < 24){
+    function fmt(h){ var hh = Math.floor(h); var mm = Math.round((h - hh) * 60); return (hh < 10 ? '0' : '') + hh + ':' + (mm < 10 ? '0' : '') + mm; }
+    timeBit = ' · ' + fmt(tFrom) + '-' + fmt(tTo);
+  }
+  btn.textContent = dayLabel + timeBit;
+}
 
 // Fetch weather from SMHI directly (no server build needed)
 fetchWeather();
@@ -1650,6 +1864,18 @@ dayChips.addEventListener('click', function(e){
   b.classList.add('active');
   state.day = b.getAttribute('data-day');
   if(state.now){ state.now = false; document.getElementById('nowBtn').classList.remove('active'); }
+  // Sync the new in-popover day buttons too
+  var d = state.day;
+  if(dayTimePopoverEl){
+    dayTimePopoverEl.querySelectorAll('.daytime-day-btn').forEach(function(btn){
+      btn.classList.toggle('active', btn.getAttribute('data-day') === d);
+    });
+  }
+  // Update the combined Dagar/Tid trigger label
+  if(typeof updateTimeButtonLabel === 'function'){
+    var activePreset = dayTimePopoverEl ? dayTimePopoverEl.querySelector('.time-preset.active') : null;
+    updateTimeButtonLabel(activePreset ? activePreset.getAttribute('data-preset') : 'all');
+  }
   resetPage();
   render();
 });
@@ -1664,9 +1890,9 @@ var TIME_PRESETS = {
   em:    { from: 12, to: 17, label: '12-17' },
   kvall: { from: 17, to: 23, label: '17-23' }
 };
-var timeBtn = document.getElementById('timeBtn');
-var timeBtnLabel = document.getElementById('timeBtnLabel');
-var timePopover = document.getElementById('timePopover');
+var timeBtn = document.getElementById('dayTimeBtn');
+var timeBtnLabel = document.getElementById('dayTimeBtnLabel');
+var timePopover = document.getElementById('dayTimePopover');
 var timeCustom = document.getElementById('timeCustom');
 var timeFromRange = document.getElementById('timeFromRange');
 var timeToRange = document.getElementById('timeToRange');
@@ -1674,9 +1900,9 @@ var timeFromVal = document.getElementById('timeFromVal');
 var timeToVal = document.getElementById('timeToVal');
 
 function positionTimePopover(){
-  // Anchor below the time button, right-aligned. Use viewport (fixed) coords.
+  // Anchor below the day/time button. Use viewport (fixed) coords.
   var rect = timeBtn.getBoundingClientRect();
-  var popW = timePopover.offsetWidth || 230;
+  var popW = timePopover.offsetWidth || 260;
   var viewportW = document.documentElement.clientWidth;
   var top = rect.bottom + 6;
   // Right-align under the button, but clamp to viewport (8px padding)
@@ -1730,16 +1956,25 @@ function applyTimePreset(name){
 }
 
 function updateTimeButtonLabel(presetName){
-  if(presetName === 'all'){
-    timeBtnLabel.textContent = 'Tid';
-    timeBtn.classList.remove('has-filter');
-  } else if(presetName === 'custom'){
-    timeBtnLabel.textContent = fmtTime(state.tFrom) + '-' + fmtTime(state.tTo);
-    timeBtn.classList.add('has-filter');
-  } else {
-    timeBtnLabel.textContent = TIME_PRESETS[presetName].label;
-    timeBtn.classList.add('has-filter');
+  // Label combines current day + time-preset state
+  var activeDay = dayChips.querySelector('.chip.active');
+  var dayLabel = 'Alla dagar';
+  if(activeDay){
+    var d = activeDay.getAttribute('data-day');
+    if(d !== 'all') dayLabel = DAY_LABELS[d] || dayLabel;
   }
+  var timeBit = '';
+  var hasTimeFilter = false;
+  if(presetName === 'custom'){
+    timeBit = ' · ' + fmtTime(state.tFrom) + '-' + fmtTime(state.tTo);
+    hasTimeFilter = true;
+  } else if(presetName && presetName !== 'all'){
+    timeBit = ' · ' + TIME_PRESETS[presetName].label;
+    hasTimeFilter = true;
+  }
+  timeBtnLabel.textContent = dayLabel + timeBit;
+  if(hasTimeFilter) timeBtn.classList.add('has-filter');
+  else timeBtn.classList.remove('has-filter');
 }
 
 timeBtn.addEventListener('click', function(e){
@@ -1829,6 +2064,24 @@ searchInp.addEventListener('input', function(){
     resetPage();
     render();
   }, 180);
+});
+// On Enter: commit search immediately and scroll to results (helpful on mobile where
+// the result list is below the map)
+searchInp.addEventListener('keydown', function(e){
+  if(e.key !== 'Enter') return;
+  e.preventDefault();
+  clearTimeout(searchTimer);
+  state.q = searchInp.value.trim().toLowerCase();
+  resetPage();
+  render();
+  searchInp.blur(); // dismiss the on-screen keyboard so user can see results
+  // Scroll the result list into view. On mobile the list is below the map.
+  setTimeout(function(){
+    var resultsAnchor = document.querySelector('.sort-bar') || document.getElementById('list') || document.getElementById('listView');
+    if(resultsAnchor && resultsAnchor.scrollIntoView){
+      resultsAnchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, 60);
 });
 
 // Tabs
@@ -2585,18 +2838,47 @@ function render(){
   }
 
   if(list.length === 0){
-    var emptyMsg;
+    var emptyTitle;
+    var emptyBody;
+    var showResetBtn = false;
     if(state.now){
       var n2 = nuWindow();
       if(n2.inEvent){
-        emptyMsg = 'Inga programpunkter just nu.<br><br>Inget startar inom 15 minuter bakåt eller den närmaste timmen.';
+        emptyTitle = 'Inga programpunkter just nu';
+        emptyBody = 'Inget startar inom 15 minuter bakåt eller den närmaste timmen.';
       } else {
-        emptyMsg = 'Almedalsveckan pågår 22 till 26 juni 2026.<br><br>"Nu" filtrerar i realtid under veckan, baserat på enhetens klocka. Just nu är det utanför eventet.';
+        emptyTitle = 'Utanför veckan';
+        emptyBody = 'Almedalsveckan pågår 22 till 26 juni 2026. "Nu" filtrerar i realtid under veckan, baserat på enhetens klocka.';
       }
+    } else if(state.q){
+      // Search returned nothing
+      emptyTitle = 'Inga träffar på "' + escapeHtml(state.q) + '"';
+      emptyBody = 'Pröva ett bredare sökord, kontrollera stavningen, eller återställ filtren om du har aktiverat någon avgränsning.';
+      showResetBtn = true;
     } else {
-      emptyMsg = 'Inga programpunkter matchar dina filter.<br><br>Pröva att vidga tidsintervallet eller återställa filtren.';
+      emptyTitle = 'Inga programpunkter matchar dina filter';
+      emptyBody = 'Pröva att vidga tidsintervallet, byta dag eller återställa filtren.';
+      showResetBtn = true;
     }
-    listEl.innerHTML = conflictBanner + '<div class="empty">' + emptyMsg + '</div>';
+    var resetBtnHtml = showResetBtn
+      ? '<button class="chip alt" id="emptyResetBtn" style="margin-top:14px" type="button">Återställ alla filter</button>'
+      : '';
+    listEl.innerHTML = conflictBanner +
+      '<div class="empty empty-rich">' +
+        '<div class="empty-icon" aria-hidden="true">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' +
+        '</div>' +
+        '<div class="empty-title">' + emptyTitle + '</div>' +
+        '<div class="empty-body">' + emptyBody + '</div>' +
+        resetBtnHtml +
+      '</div>';
+    var ebtn = document.getElementById('emptyResetBtn');
+    if(ebtn){
+      ebtn.addEventListener('click', function(){
+        var rb = document.getElementById('resetBtn');
+        if(rb) rb.click();
+      });
+    }
   } else {
     var agendaSetForCards = currentAgenda();
     listEl.innerHTML = conflictBanner + pageItems.map(function(e){
