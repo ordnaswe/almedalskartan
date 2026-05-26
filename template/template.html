@@ -413,6 +413,14 @@
   .marker-cluster.single.hot{background:var(--accent);border-color:#A52F15;box-shadow:0 0 8px rgba(220,69,32,0.45),0 2px 4px rgba(0,0,0,0.30)}
   .marker-cluster.single.hot::before{background:#FFFFFF}
 
+  /* Selected marker: pulsing gold ring around the marker, raised z-index via JS */
+  .marker-cluster.selected{box-shadow:0 0 0 3px var(--gold), 0 0 14px rgba(192,150,67,0.7), 0 2px 6px rgba(0,0,0,0.30);animation:marker-pulse 1.8s ease-in-out infinite}
+  .marker-cluster.selected.hot{box-shadow:0 0 0 3px var(--gold), 0 0 14px rgba(220,69,32,0.6), 0 2px 6px rgba(0,0,0,0.30)}
+  @keyframes marker-pulse{
+    0%, 100% { box-shadow:0 0 0 3px var(--gold), 0 0 10px rgba(192,150,67,0.55), 0 2px 6px rgba(0,0,0,0.30); }
+    50%      { box-shadow:0 0 0 5px var(--gold), 0 0 20px rgba(192,150,67,0.85), 0 2px 6px rgba(0,0,0,0.30); }
+  }
+
   /* Locate control: "min plats"-knapp on the map, styled like Leaflet's own controls */
   .leaflet-control.locate-control{margin-top:10px;border-radius:2px;overflow:hidden}
   .locate-btn{display:flex;align-items:center;justify-content:center;width:30px;height:30px;background:#FFFFFF;color:#333333;border:1px solid rgba(0,0,0,0.2);text-decoration:none;cursor:pointer;transition:background .12s, color .12s}
@@ -2555,7 +2563,7 @@ if(hasLeaflet){
       btn.title = 'Visa min plats på kartan';
       btn.setAttribute('role', 'button');
       btn.setAttribute('aria-label', 'Visa min plats på kartan');
-      btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg>';
+      btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="9"/><line x1="12" y1="1" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="23"/><line x1="1" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="23" y2="12"/></svg>';
       L.DomEvent.disableClickPropagation(container);
       L.DomEvent.on(btn, 'click', function(e){
         L.DomEvent.preventDefault(e);
@@ -3058,8 +3066,15 @@ function render(){
   });
 
   // Map still shows all (filtered) markers, not just current page
+  lastMarkerList = list;
+  lastMarkerHasWeights = hasWeights;
   drawMarkers(list, hasWeights);
 }
+
+// Cache of the last marker list, so we can redraw markers without a full render
+// (e.g., to update the "selected" highlight when a card is clicked).
+var lastMarkerList = [];
+var lastMarkerHasWeights = false;
 
 function drawMarkers(list, hasWeights){
   if(!map || !markerLayer) return;
@@ -3086,6 +3101,8 @@ function drawMarkers(list, hasWeights){
     var n = g.events.length;
     var isHot = hasWeights && maxScore > 0 && g.sumScore >= maxScore * 0.6 && g.sumScore > 0;
     var isDim = hasWeights && g.sumScore === 0;
+    // Highlight cluster if it contains the currently selected event
+    var containsSelected = state.selectedId && g.events.some(function(ev){ return ev.id === state.selectedId; });
     // Logarithmic size tier: 1=single, 2-4=base (26px), 5-15=size-3 (30px),
     // 16-49=size-4 (36px), 50+=size-5 (44px). Anchors and icon sizes match CSS.
     var sizeCls = '', iconPx = 26;
@@ -3093,10 +3110,12 @@ function drawMarkers(list, hasWeights){
     else if(n >= 50){ sizeCls = ' size-5'; iconPx = 44; }
     else if(n >= 16){ sizeCls = ' size-4'; iconPx = 36; }
     else if(n >= 5){ sizeCls = ' size-3'; iconPx = 30; }
-    var cls = 'marker-cluster' + sizeCls + (isHot?' hot':'') + (isDim?' dim':'');
+    var cls = 'marker-cluster' + sizeCls + (isHot?' hot':'') + (isDim?' dim':'') + (containsSelected?' selected':'');
     var html = n===1 ? '<div class="'+cls+'"></div>' : '<div class="'+cls+'">'+n+'</div>';
+    // When selected, give marker a higher z-index so the pulsing ring isn't covered by neighbours
     var m = L.marker([g.lat, g.lon], {
-      icon: L.divIcon({ className:'', html:html, iconSize:[iconPx, iconPx], iconAnchor:[iconPx/2, iconPx/2] })
+      icon: L.divIcon({ className:'', html:html, iconSize:[iconPx, iconPx], iconAnchor:[iconPx/2, iconPx/2] }),
+      zIndexOffset: containsSelected ? 1000 : 0
     });
     m.on('click', function(){
       var sorted = g.events.slice().sort(function(a,b){
@@ -3413,9 +3432,15 @@ function selectEvent(id, panTo){
     });
   });
 
-  if(panTo && map && e.lat && e.lon){
-    map.setView([e.lat, e.lon], 17);
+  // Always centre map on selected event when coordinates exist. Keep current zoom if it is
+  // already street-level (>= 15); otherwise zoom in to 16 so the user sees their context.
+  if(map && typeof e.lat === 'number' && typeof e.lon === 'number'){
+    var currentZoom = map.getZoom();
+    var targetZoom = currentZoom >= 15 ? currentZoom : 16;
+    map.setView([e.lat, e.lon], targetZoom, { animate: true });
   }
+  // Redraw markers so the selected pin gets the pulsing ring (without a full render cycle)
+  if(lastMarkerList.length) drawMarkers(lastMarkerList, lastMarkerHasWeights);
 
   // Scroll detail panel to top so the user sees the beginning of the event,
   // not whatever position the previous event was scrolled to. On mobile,
@@ -3697,6 +3722,8 @@ function clearDetail(){
   document.getElementById('detail').innerHTML =
     '<div class="nunaesta" id="nunaestaDesktopBody"></div>';
   renderNuNasta('nunaestaDesktopBody');
+  // Redraw markers so the pulsing ring is removed
+  if(lastMarkerList.length) drawMarkers(lastMarkerList, lastMarkerHasWeights);
 }
 
 // ============== A1: Nu+nästa view ==============
