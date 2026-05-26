@@ -1064,10 +1064,20 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .marker-cluster.size-5{width:44px;height:44px;font-size:15px;border-width:3px}
   .marker-cluster.hot{background:var(--accent);color:#FFFFFF;border-color:#A52F15;box-shadow:0 0 12px rgba(220,69,32,0.5),0 2px 6px rgba(0,0,0,0.30)}
   .marker-cluster.dim{opacity:0.4}
-  .marker-cluster.single{background:#FFFFFF;color:transparent;border-color:#000000;width:14px;height:14px;font-size:0}
-  .marker-cluster.single::before{content:"";width:6px;height:6px;background:#000000;border-radius:50%}
-  .marker-cluster.single.hot{background:var(--accent);border-color:#A52F15}
+  /* Single-pin markers: same visual language as cluster markers, just smaller and showing a center dot
+     instead of a count. This makes them feel like the same family of symbols. */
+  .marker-cluster.single{background:#FFFFFF;color:transparent;border-color:#000000;width:20px;height:20px;font-size:0;border-width:2px;position:relative}
+  .marker-cluster.single::before{content:"";width:7px;height:7px;background:#000000;border-radius:50%;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}
+  .marker-cluster.single.hot{background:var(--accent);border-color:#A52F15;box-shadow:0 0 8px rgba(220,69,32,0.45),0 2px 4px rgba(0,0,0,0.30)}
   .marker-cluster.single.hot::before{background:#FFFFFF}
+
+  /* Locate control: "min plats"-knapp on the map, styled like Leaflet's own controls */
+  .leaflet-control.locate-control{margin-top:10px;border-radius:2px;overflow:hidden}
+  .locate-btn{display:flex;align-items:center;justify-content:center;width:30px;height:30px;background:#FFFFFF;color:#333333;border:1px solid rgba(0,0,0,0.2);text-decoration:none;cursor:pointer;transition:background .12s, color .12s}
+  .locate-btn:hover{background:#F4F4F4;color:var(--gold)}
+  .locate-btn svg{width:18px;height:18px;display:block}
+  .locate-btn.loading{color:var(--gold);animation:locate-pulse 1.2s ease-in-out infinite}
+  @keyframes locate-pulse{0%,100%{opacity:1}50%{opacity:0.45}}
   .marker-pin{background:#2563EB;width:16px;height:16px;border-radius:50%;border:2px solid #FFFFFF;box-shadow:0 2px 6px rgba(0,0,0,0.4)}
 
   /* Mobile-only back button at top of detail panel */
@@ -3196,6 +3206,43 @@ if(hasLeaflet){
       .addAttribution('© OpenStreetMap-bidragsgivare')
       .addTo(map);
     markerLayer = L.layerGroup().addTo(map);
+
+    // "Min plats"-knapp: a Leaflet control button (top-left, under zoom) that
+    // centres the map on the user's GPS position. Reuses the same geolocation
+    // flow as the "Nära mig" button. On success: animates to the user's location.
+    var locateControl = L.control({ position: 'topleft' });
+    locateControl.onAdd = function(){
+      var container = L.DomUtil.create('div', 'leaflet-bar leaflet-control locate-control');
+      var btn = L.DomUtil.create('a', 'locate-btn', container);
+      btn.href = '#';
+      btn.title = 'Visa min plats på kartan';
+      btn.setAttribute('role', 'button');
+      btn.setAttribute('aria-label', 'Visa min plats på kartan');
+      btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg>';
+      L.DomEvent.disableClickPropagation(container);
+      L.DomEvent.on(btn, 'click', function(e){
+        L.DomEvent.preventDefault(e);
+        if(!navigator.geolocation){
+          alert('Geolokalisering stöds inte i denna webbläsare');
+          return;
+        }
+        btn.classList.add('loading');
+        navigator.geolocation.getCurrentPosition(function(pos){
+          btn.classList.remove('loading');
+          state.userPos = [pos.coords.latitude, pos.coords.longitude];
+          // Re-render so distance sorting/markers update; then animate map to user
+          render();
+          if(map){
+            map.setView(state.userPos, 16, { animate: true });
+          }
+        }, function(){
+          btn.classList.remove('loading');
+          alert('Kunde inte hämta din plats. Kontrollera att platsbehörighet är på.');
+        }, { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 });
+      });
+      return container;
+    };
+    locateControl.addTo(map);
 
     map.on('contextmenu', function(e){
       var name = prompt('Anteckning för pin:');
