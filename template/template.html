@@ -421,12 +421,14 @@
     50%      { box-shadow:0 0 0 5px var(--gold), 0 0 20px rgba(192,150,67,0.85), 0 2px 6px rgba(0,0,0,0.30); }
   }
 
-  /* Locate control: "min plats"-knapp on the map, styled like Leaflet's own controls */
+  /* Locate control: "min plats"-knapp on the map, styled like Leaflet's own controls.
+     Use high specificity (.leaflet-bar.locate-control a.locate-btn) to override Leaflet's
+     default .leaflet-bar a rules that add padding and left-align the content. */
   .leaflet-control.locate-control{margin-top:10px;border-radius:2px;overflow:hidden}
-  .locate-btn{display:flex;align-items:center;justify-content:center;width:30px;height:30px;background:#FFFFFF;color:#333333;border:1px solid rgba(0,0,0,0.2);text-decoration:none;cursor:pointer;transition:background .12s, color .12s}
-  .locate-btn:hover{background:#F4F4F4;color:var(--gold)}
-  .locate-btn svg{width:18px;height:18px;display:block}
-  .locate-btn.loading{color:var(--gold);animation:locate-pulse 1.2s ease-in-out infinite}
+  .leaflet-bar.locate-control a.locate-btn{display:flex;align-items:center;justify-content:center;width:30px;height:30px;padding:0;background:#FFFFFF;color:#333333;border:1px solid rgba(0,0,0,0.2);text-decoration:none;cursor:pointer;transition:background .12s, color .12s;text-align:center;line-height:0;box-sizing:border-box}
+  .leaflet-bar.locate-control a.locate-btn:hover{background:#F4F4F4;color:var(--gold)}
+  .leaflet-bar.locate-control a.locate-btn svg{width:18px;height:18px;display:block;margin:0}
+  .leaflet-bar.locate-control a.locate-btn.loading{color:var(--gold);animation:locate-pulse 1.2s ease-in-out infinite}
   @keyframes locate-pulse{0%,100%{opacity:1}50%{opacity:0.45}}
   .marker-pin{background:#2563EB;width:16px;height:16px;border-radius:50%;border:2px solid #FFFFFF;box-shadow:0 2px 6px rgba(0,0,0,0.4)}
 
