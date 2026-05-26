@@ -271,6 +271,9 @@
     /* When user is actively searching (input focused or has query), give results more space */
     body.searching-active .map-wrap{height:0;min-height:0;overflow:hidden;border:none}
     .d-title{font-size:15px}
+    /* Remove the left gold accent stripe on mobile cards; on a phone it just reads as a stray dark line. */
+    .card{border-left:none;padding-left:14px}
+    .card.selected{border-left:3px solid var(--gold);padding-left:11px}
   }
 
   /* Sidebar (event list) */
@@ -1022,7 +1025,7 @@
     <div class="modal-head">
       <div>
         <h3 class="modal-title">Ämnen</h3>
-        <div class="modal-sub">Dra spaken högre för ämnen du vill bevaka mest. Primärt ämne väger fullt, sekundärt halvt.</div>
+        <div class="modal-sub">Dra spaken högre för ämnen du vill se mest av. Listan sorteras efter relevans, så att ämnen du viktar högt hamnar överst. Ett ämne som är ett events primära ämne väger fullt, ett sekundärt ämne väger halvt.</div>
       </div>
       <button class="icon-btn" id="topicClose">✕</button>
     </div>
