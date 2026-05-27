@@ -399,27 +399,29 @@
 
   /* Map markers */
   /* Marker clusters scale logarithmically with size for better visual density readout.
-     Five tiers from base (2-4 events) up to .size-5 (50+). */
-  .marker-cluster{background:#FFFFFF;color:#000000;display:flex;align-items:center;justify-content:center;font-weight:700;border:2px solid #000000;box-shadow:0 1px 3px rgba(0,0,0,0.20);font-variant-numeric:tabular-nums;font-family:'Inter',sans-serif;border-radius:50%;width:26px;height:26px;font-size:10.5px}
+     Five tiers from base (2-4 events) up to .size-5 (50+).
+     No box-shadow: the 2px black border provides sufficient contrast against the map,
+     and shadow blur around small circles renders as a double-ring artifact on some browsers. */
+  .marker-cluster{background:#FFFFFF;color:#000000;display:flex;align-items:center;justify-content:center;font-weight:700;border:2px solid #000000;font-variant-numeric:tabular-nums;font-family:'Inter',sans-serif;border-radius:50%;width:26px;height:26px;font-size:10.5px}
   .marker-cluster.size-3{width:30px;height:30px;font-size:11.5px}
   .marker-cluster.size-4{width:36px;height:36px;font-size:13px}
   .marker-cluster.size-5{width:44px;height:44px;font-size:15px}
-  .marker-cluster.hot{background:var(--accent);color:#FFFFFF;border-color:#A52F15;box-shadow:0 1px 3px rgba(0,0,0,0.20)}
+  .marker-cluster.hot{background:var(--accent);color:#FFFFFF;border-color:#A52F15}
   .marker-cluster.dim{opacity:0.4}
   /* Single-pin markers: same visual language as cluster markers, just smaller and showing a center dot
      instead of a count. This makes them feel like the same family of symbols. */
   .marker-cluster.single{background:#FFFFFF;color:transparent;border-color:#000000;width:20px;height:20px;font-size:0;border-width:2px;position:relative}
   .marker-cluster.single::before{content:"";width:7px;height:7px;background:#000000;border-radius:50%;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}
-  .marker-cluster.single.hot{background:var(--accent);border-color:#A52F15;box-shadow:0 1px 3px rgba(0,0,0,0.20)}
+  .marker-cluster.single.hot{background:var(--accent);border-color:#A52F15}
   .marker-cluster.single.hot::before{background:#FFFFFF}
 
-  /* Selected marker: pulsing red ring around the marker (using the brand red since --gold is black
-     in this minimalist palette and would otherwise read as a thick black border). Raised z-index via JS. */
-  .marker-cluster.selected{box-shadow:0 0 0 3px var(--influera-red), 0 0 14px rgba(220,69,32,0.6), 0 1px 3px rgba(0,0,0,0.20);animation:marker-pulse 1.8s ease-in-out infinite}
-  .marker-cluster.selected.hot{box-shadow:0 0 0 3px #7A1A0A, 0 0 14px rgba(122,26,10,0.8), 0 1px 3px rgba(0,0,0,0.20)}
+  /* Selected marker: pulsing red ring around the marker. Uses --influera-red since --gold is black
+     in this minimalist palette. Raised z-index via JS so the ring isn't covered by neighbours. */
+  .marker-cluster.selected{box-shadow:0 0 0 3px var(--influera-red), 0 0 14px rgba(220,69,32,0.6);animation:marker-pulse 1.8s ease-in-out infinite}
+  .marker-cluster.selected.hot{box-shadow:0 0 0 3px #7A1A0A, 0 0 14px rgba(122,26,10,0.8)}
   @keyframes marker-pulse{
-    0%, 100% { box-shadow:0 0 0 3px var(--influera-red), 0 0 10px rgba(220,69,32,0.45), 0 1px 3px rgba(0,0,0,0.20); }
-    50%      { box-shadow:0 0 0 5px var(--influera-red), 0 0 20px rgba(220,69,32,0.75), 0 1px 3px rgba(0,0,0,0.20); }
+    0%, 100% { box-shadow:0 0 0 3px var(--influera-red), 0 0 10px rgba(220,69,32,0.45); }
+    50%      { box-shadow:0 0 0 5px var(--influera-red), 0 0 20px rgba(220,69,32,0.75); }
   }
 
   /* Locate control: "min plats"-knapp on the map, styled like Leaflet's own controls.
@@ -451,6 +453,8 @@
   .d-when strong{color:var(--gold);font-weight:600;letter-spacing:1.2px}
   .d-section{padding:14px 22px 16px;border-bottom:1px solid var(--border-s)}
   .d-section:last-child{border-bottom:none}
+  /* Notice shown when an event has no map coordinates */
+  .d-no-coords{margin-top:10px;padding:9px 12px;background:#FAF5E8;border:1px solid #E8D9B5;border-left:3px solid #B8862A;border-radius:1px;font-size:11.5px;color:#7A5A1C;letter-spacing:0.2px;line-height:1.5}
   .d-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:8px;display:flex;align-items:center;gap:8px}
   .d-text{font-size:12.5px;color:var(--text);line-height:1.55;white-space:pre-wrap}
   .d-muted{color:var(--muted)}
@@ -919,8 +923,8 @@
 <div class="layout">
   <aside class="sidebar">
     <div class="tabs">
-      <button class="tab active" data-tab="all">I urval <span class="tab-count" id="cntAll">0</span></button>
-      <button class="urval-info" id="urvalInfo" type="button" title="Vad betyder I urval?" aria-label="Vad betyder I urval?">
+      <button class="tab active" data-tab="all">Urval <span class="tab-count" id="cntAll">0</span></button>
+      <button class="urval-info" id="urvalInfo" type="button" title="Vad betyder Urval?" aria-label="Vad betyder Urval?">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
       </button>
       <button class="tab" data-tab="agenda">Min agenda <span class="tab-count" id="cntAgenda">0</span></button>
@@ -932,7 +936,6 @@
       <button class="sort-chip" data-sort="amne">Ämne</button>
       <button class="sort-chip" data-sort="plats">Plats</button>
       <button class="sort-chip" data-sort="arr">Arrangör</button>
-      <span class="sort-result-count" id="resultCount">0</span>
     </div>
     <div class="agenda-actions" id="agendaActions" style="display:none">
       <button class="chip alt" id="exportAllBtn">Exportera hela agendan (.ics)</button>
@@ -2892,9 +2895,10 @@ function render(){
     c.classList.toggle('active', c.getAttribute('data-sort') === state.sortMode);
   });
 
-  document.getElementById('cntAll').textContent = EVENTS.length;
+  // Urval-count shows the size of the current filtered list (after search/filters/topics).
+  // This replaces the previous "total events" count plus separate "resultat" line in the sort bar.
+  document.getElementById('cntAll').textContent = list.length;
   document.getElementById('cntAgenda').textContent = currentAgenda().size;
-  document.getElementById('resultCount').textContent = list.length;
 
   // Pagination math
   var totalPages = Math.max(1, Math.ceil(list.length / state.pageSize));
@@ -3244,6 +3248,9 @@ function selectEvent(id, panTo){
     (e.plats ? '<div class="d-section">' +
       '<div class="d-label">Plats</div>' +
       '<div class="d-text">'+escapeHtml(e.plats)+(e.platsbeskr ? '\n<span class="d-muted">'+escapeHtml(e.platsbeskr)+'</span>' : '')+'</div>' +
+      (typeof e.lat !== 'number' || typeof e.lon !== 'number'
+        ? '<div class="d-no-coords">Den här programpunkten saknar exakt koordinat och visas därför inte på kartan. Adressen ovan är från det officiella programmet.</div>'
+        : '') +
     '</div>' : '') +
 
     (e.arr && e.arr.length ? '<div class="d-section">' +
