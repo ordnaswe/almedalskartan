@@ -55,7 +55,7 @@
   .profile-gear{opacity:0.55;flex-shrink:0;margin-left:2px;transition:opacity .15s,transform .25s}
   .profile-btn:hover .profile-gear{opacity:1;transform:rotate(45deg)}
   .profile-dot{width:8px;height:8px;background:var(--gold);border-radius:50%}
-  .profile-menu{position:absolute;right:0;top:calc(100% + 6px);background:var(--bg2);border:1px solid var(--gold);border-radius:2px;min-width:240px;box-shadow:var(--shadow);z-index:950;display:none;padding:6px 0;max-height:80vh;overflow-y:auto}
+  .profile-menu{position:absolute;right:0;top:calc(100% + 6px);background:var(--bg2);border:1px solid var(--gold);border-radius:2px;min-width:240px;box-shadow:var(--shadow);z-index:1500;display:none;padding:6px 0;max-height:80vh;overflow-y:auto}
   .profile-menu.open{display:block}
   .profile-item{padding:8px 14px;font-size:12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;letter-spacing:0.5px}
   .profile-item:hover{background:rgba(0,0,0,0.10)}
@@ -116,6 +116,51 @@
   html[data-fs="xl"] .empty{font-size:15px}
   html[data-fs="xl"] .topic-name{font-size:15.5px}
   html[data-fs="xl"] .d-label,html[data-fs="xl"] .d-pill{font-size:11.5px}
+
+  /* ============== UI control typography scaling ==============
+     Apply scaling to chips, tabs, menus, popover items, and sort controls so the A-/A/A+/A++
+     buttons affect more than just the body text. Use !important sparingly to win over the more
+     specific selectors used in toolbar/popover CSS. */
+
+  /* sm (mindre) — for users who want compact UI */
+  html[data-fs="sm"] .chip{font-size:11px}
+  html[data-fs="sm"] .tab[data-tab="all"]{font-size:11.5px}
+  html[data-fs="sm"] .tab-count{font-size:10.5px}
+  html[data-fs="sm"] .sort-bar .sort-chip{font-size:10.5px}
+  html[data-fs="sm"] .sort-bar .sort-label{font-size:9.5px}
+  html[data-fs="sm"] .time-preset{font-size:11px}
+  html[data-fs="sm"] .more-item-label{font-size:12px}
+  html[data-fs="sm"] .more-item-sub{font-size:10.5px}
+  html[data-fs="sm"] .daytime-day-btn .ddb-label{font-size:10.5px}
+  html[data-fs="sm"] .modal-item,html[data-fs="sm"] .profile-menu-item{font-size:12px}
+
+  /* lg (större) */
+  html[data-fs="lg"] .chip{font-size:14px}
+  html[data-fs="lg"] .tab[data-tab="all"]{font-size:14px}
+  html[data-fs="lg"] .tab[data-tab="agenda"]{font-size:13.5px}
+  html[data-fs="lg"] .tab-count{font-size:13px}
+  html[data-fs="lg"] .sort-bar .sort-chip{font-size:12.5px}
+  html[data-fs="lg"] .sort-bar .sort-label{font-size:11.5px}
+  html[data-fs="lg"] .time-preset{font-size:14px}
+  html[data-fs="lg"] .more-item-label{font-size:14px}
+  html[data-fs="lg"] .more-item-sub{font-size:12.5px}
+  html[data-fs="lg"] .daytime-day-btn .ddb-label{font-size:12.5px}
+  html[data-fs="lg"] .modal-item,html[data-fs="lg"] .profile-menu-item{font-size:14px}
+  html[data-fs="lg"] .urval-info svg{width:15px;height:15px}
+
+  /* xl (extra stor) */
+  html[data-fs="xl"] .chip{font-size:15.5px}
+  html[data-fs="xl"] .tab[data-tab="all"]{font-size:15px}
+  html[data-fs="xl"] .tab[data-tab="agenda"]{font-size:14.5px}
+  html[data-fs="xl"] .tab-count{font-size:14px}
+  html[data-fs="xl"] .sort-bar .sort-chip{font-size:13.5px}
+  html[data-fs="xl"] .sort-bar .sort-label{font-size:12.5px}
+  html[data-fs="xl"] .time-preset{font-size:15.5px}
+  html[data-fs="xl"] .more-item-label{font-size:15.5px}
+  html[data-fs="xl"] .more-item-sub{font-size:13.5px}
+  html[data-fs="xl"] .daytime-day-btn .ddb-label{font-size:13.5px}
+  html[data-fs="xl"] .modal-item,html[data-fs="xl"] .profile-menu-item{font-size:15.5px}
+  html[data-fs="xl"] .urval-info svg{width:17px;height:17px}
 
   /* Toolbar */
   .toolbar{display:flex;flex-wrap:wrap;gap:8px;padding:9px 22px;background:var(--bg2);border-bottom:1px solid var(--border);align-items:center}
@@ -239,38 +284,42 @@
     #profileName{display:none}
     .toolbar{padding:8px 12px;gap:8px;flex-wrap:wrap}
     .tbl-label{display:none}
-    .chip{padding:6px 10px;font-size:11.5px;letter-spacing:1px;height:32px}
+    .chip{padding:7px 11px;font-size:13px;letter-spacing:0.8px;height:36px}
     /* On mobile we use two rows. Row 1: search-wrap + reset (already 100% wide) + Dagar/tid pill.
        Row 2: Ämnen + Mer + Filter. */
     .search-wrap{flex:1 1 56%;min-width:0}
-    .search{min-width:0;padding:8px 12px;font-size:16px;height:36px} /* 16px prevents iOS Safari auto-zoom on focus */
-    .chip.daytime-btn{flex:0 0 auto;height:36px;padding:6px 12px;font-size:11.5px;letter-spacing:0.4px;font-weight:600}
-    .chip.daytime-btn .caret{font-size:10px}
+    .search{min-width:0;padding:8px 12px;font-size:16px;height:38px} /* 16px prevents iOS Safari auto-zoom on focus */
+    .chip.daytime-btn{flex:0 0 auto;height:38px;padding:7px 13px;font-size:12.5px;letter-spacing:0.4px;font-weight:600}
+    .chip.daytime-btn .caret{font-size:11px}
     .toolbar-right{flex:1 1 100%;display:flex;gap:6px;justify-content:flex-start}
-    .toolbar-right .chip{padding:6px 10px;font-size:11px;letter-spacing:0.6px;height:32px;flex:1 1 auto;justify-content:center}
+    .toolbar-right .chip{padding:7px 11px;font-size:12.5px;letter-spacing:0.5px;height:36px;flex:1 1 auto;justify-content:center}
     .chip.featured{flex:1 1 auto}
     /* Reset icon on mobile: tighter square, kept inline with search */
-    .chip.reset-icon{width:36px;height:36px;padding:0;flex:0 0 auto}
+    .chip.reset-icon{width:38px;height:38px;padding:0;flex:0 0 auto}
     /* Tighter popover content on mobile */
     .time-popover{min-width:200px}
     .daytime-popover{min-width:260px;max-width:92vw}
     .daytime-day-grid{grid-template-columns:repeat(3, 1fr);gap:5px}
-    .daytime-day-btn{padding:8px 4px}
-    .daytime-day-btn .ddb-label{font-size:11px}
-    .time-preset{padding:10px 12px;font-size:12.5px}
+    .daytime-day-btn{padding:9px 4px}
+    .daytime-day-btn .ddb-label{font-size:12.5px}
+    .time-preset{padding:11px 13px;font-size:13.5px}
     .more-popover{min-width:240px;max-width:92vw}
+    .more-item{padding:11px 14px}
+    .more-item-label{font-size:13.5px}
+    .more-item-sub{font-size:11.5px}
     .tabs{padding:7px 12px;gap:10px}
-    .tab[data-tab="all"]{font-size:10.5px}
-    .tab[data-tab="agenda"]{padding:6px 10px;font-size:10.5px}
-    .sort-bar{padding:8px 12px;font-size:10px;letter-spacing:0.6px;gap:4px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none}
+    .tab[data-tab="all"]{font-size:12px}
+    .tab[data-tab="agenda"]{padding:7px 11px;font-size:12px}
+    .tab-count{font-size:11.5px}
+    .sort-bar{padding:9px 12px;font-size:11.5px;letter-spacing:0.6px;gap:5px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none}
     .sort-bar::-webkit-scrollbar{display:none}
-    .sort-bar .sort-chip{padding:3px 7px;font-size:10px;letter-spacing:0.5px;flex-shrink:0}
-    .sort-bar .sort-label{flex-shrink:0;text-transform:uppercase;letter-spacing:1px;font-size:9.5px}
-    .sort-bar .sort-result-count{margin-left:auto;flex-shrink:0;font-variant-numeric:tabular-nums;font-size:10px}
+    .sort-bar .sort-chip{padding:4px 9px;font-size:11.5px;letter-spacing:0.5px;flex-shrink:0}
+    .sort-bar .sort-label{flex-shrink:0;text-transform:uppercase;letter-spacing:1px;font-size:10.5px}
+    .sort-bar .sort-result-count{margin-left:auto;flex-shrink:0;font-variant-numeric:tabular-nums;font-size:11.5px}
     .map-wrap{height:28vh;min-height:180px;transition:height .2s ease, min-height .2s ease}
     /* When user is actively searching (input focused or has query), give results more space */
     body.searching-active .map-wrap{height:0;min-height:0;overflow:hidden;border:none}
-    .d-title{font-size:15px}
+    .d-title{font-size:16px}
     /* Remove the left gold accent stripe on mobile cards; on a phone it just reads as a stray dark line. */
     .card{border-left:none;padding-left:14px}
     .card.selected{border-left:3px solid var(--gold);padding-left:11px}
@@ -396,6 +445,17 @@
   .legend-dot{width:10px;height:10px;border-radius:50%;background:#FFFFFF;box-shadow:0 0 4px rgba(0,0,0,0.3);border:2px solid #000000}
   .legend-dot.user{background:#2563EB;box-shadow:0 0 4px rgba(37,99,235,0.5);border-color:#1D4ED8}
   .legend-dot.hot{background:var(--accent);box-shadow:0 0 6px rgba(220,69,32,0.5);border-color:#A52F15}
+
+  /* Override Leaflet's default marker icon container styles. iOS Safari can add a touch
+     focus outline that reads as a second ring around our circular markers. Belt and braces. */
+  .leaflet-marker-icon{outline:none !important;box-shadow:none;border:none;background:transparent}
+  .leaflet-marker-icon:focus,.leaflet-marker-icon:focus-visible,.leaflet-marker-icon:active{outline:none !important;-webkit-tap-highlight-color:transparent}
+  .leaflet-marker-icon > div{outline:none}
+  /* On mobile the map sits directly below the toolbar without padding. Push Leaflet's
+     top-left controls (+ / − / locate) down a bit so they don't get hidden under the toolbar's
+     bottom edge or the legend. */
+  .leaflet-top.leaflet-left{padding-top:8px}
+  .leaflet-control-zoom{margin-top:8px !important}
 
   /* Map markers */
   /* Marker clusters scale logarithmically with size for better visual density readout.
