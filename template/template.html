@@ -456,6 +456,9 @@
      bottom edge or the legend. */
   .leaflet-top.leaflet-left{padding-top:8px}
   .leaflet-control-zoom{margin-top:8px !important}
+  /* Hide Leaflet's copyright attribution when any overlay/menu is open, since on iOS Safari
+     it can bleed through fixed-positioned overlays regardless of z-index. */
+  body.menu-open .leaflet-control-attribution{visibility:hidden}
 
   /* Map markers */
   /* Marker clusters scale logarithmically with size for better visual density readout.
@@ -583,6 +586,12 @@
     .nunaesta-section-head{padding:9px 16px 6px}
     .nunaesta-item{padding:9px 16px 11px;grid-template-columns:50px 1fr auto;gap:8px}
     .nunaesta-geo-bar{padding:9px 16px}
+    /* Tighter modal padding and full available height on mobile, so head/body/foot all fit visibly */
+    .modal-overlay{padding:20px 12px}
+    .modal{max-height:calc(100vh - 40px)}
+    .modal-head{padding:14px 16px}
+    .modal-body{padding:12px 16px 8px}
+    .modal-foot{padding:11px 16px}
   }
 
   /* Conflict warnings (A3) — used only in agenda tab and in detail view */
@@ -628,14 +637,14 @@
   .spl-time{font-size:10px;color:var(--gold);letter-spacing:1px;font-weight:600}
 
   /* Modal: ämnesväljare */
-  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1000;display:none;align-items:flex-start;justify-content:center;padding:50px 20px;overflow-y:auto;backdrop-filter:blur(3px)}
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1000;display:none;align-items:flex-start;justify-content:center;padding:50px 20px;backdrop-filter:blur(3px);overflow:hidden}
   .modal-overlay.open{display:flex}
-  .modal{background:var(--bg2);border:1px solid var(--gold);max-width:680px;width:100%;border-radius:2px;box-shadow:var(--shadow);max-height:calc(100vh - 100px);display:flex;flex-direction:column}
-  .modal-head{padding:16px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .modal{background:var(--bg2);border:1px solid var(--gold);max-width:680px;width:100%;border-radius:2px;box-shadow:var(--shadow);max-height:calc(100vh - 100px);display:flex;flex-direction:column;overflow:hidden}
+  .modal-head{padding:16px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-shrink:0}
   .modal-title{font-size:14px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin:0}
   .modal-sub{font-size:11px;color:var(--muted);margin-top:4px;letter-spacing:0.3px}
-  .modal-body{padding:14px 22px 10px;overflow-y:auto;flex:1}
-  .modal-foot{padding:12px 22px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .modal-body{padding:14px 22px 10px;overflow-y:auto;flex:1;min-height:0}
+  .modal-foot{padding:12px 22px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-shrink:0;background:var(--bg2)}
 
   /* Topic spak rows */
   .topic-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;padding:7px 0;border-bottom:1px solid var(--border-s);align-items:center}
@@ -1518,10 +1527,13 @@ function renderProfileMenu(){
 
 document.getElementById('profileBtn').addEventListener('click', function(e){
   e.stopPropagation();
-  document.getElementById('profileMenu').classList.toggle('open');
+  var menu = document.getElementById('profileMenu');
+  menu.classList.toggle('open');
+  document.body.classList.toggle('menu-open', menu.classList.contains('open'));
 });
 document.addEventListener('click', function(){
   document.getElementById('profileMenu').classList.remove('open');
+  document.body.classList.remove('menu-open');
 });
 
 document.getElementById('profileCancel').addEventListener('click', function(){
@@ -3502,12 +3514,17 @@ function selectEvent(id, panTo){
     });
   });
 
-  // Always centre map on selected event when coordinates exist. Keep current zoom if it is
-  // already street-level (>= 15); otherwise zoom in to 16 so the user sees their context.
+  // Centre map on selected event when coordinates exist. Always zoom to street-level (17)
+  // so the user sees the precise location. Also bring back the map on mobile if it was
+  // hidden during search — selecting an event means the user is done searching.
   if(map && typeof e.lat === 'number' && typeof e.lon === 'number'){
+    document.body.classList.remove('searching-active');
     var currentZoom = map.getZoom();
-    var targetZoom = currentZoom >= 15 ? currentZoom : 16;
+    var targetZoom = Math.max(currentZoom, 17);
     map.setView([e.lat, e.lon], targetZoom, { animate: true });
+    // Wait for the map container to expand back from 0 height (animation 200ms),
+    // then call invalidateSize so Leaflet recalculates dimensions properly.
+    setTimeout(function(){ if(map) map.invalidateSize(); }, 240);
   }
   // Redraw markers so the selected pin gets the pulsing ring (without a full render cycle)
   if(lastMarkerList.length) drawMarkers(lastMarkerList, lastMarkerHasWeights);
