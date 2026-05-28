@@ -1972,7 +1972,7 @@ var state = {
   page: 1,
   pageSize: loadPageSize(),
   // Advanced filters
-  searchFields: { rubrik: true, arr: true, med: true, plats: true, besk: false },
+  searchFields: { rubrik: true, arr: true, med: true, plats: true, besk: true },
   filterTyp: '',
   filterTypOrg: '',
   filterSprak: '',
@@ -3131,7 +3131,7 @@ document.getElementById('resetBtn').addEventListener('click', function(){
   state.filterLive = false;
   state.filterMat = false;
   state.filterEko = false;
-  state.searchFields = { rubrik: true, arr: true, med: true, plats: true, besk: false };
+  state.searchFields = { rubrik: true, arr: true, med: true, plats: true, besk: true };
   state.sortMode = 'auto';
   saveSortMode();
   updateFilterBadge();
@@ -5394,7 +5394,7 @@ document.getElementById('filterReset').addEventListener('click', function(){
   state.filterLive = false;
   state.filterMat = false;
   state.filterEko = false;
-  state.searchFields = { rubrik: true, arr: true, med: true, plats: true, besk: false };
+  state.searchFields = { rubrik: true, arr: true, med: true, plats: true, besk: true };
   populateFilterModal();
   bindFilterPanelLiveListeners();
   updateFilterBadge();
