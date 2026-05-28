@@ -1007,7 +1007,7 @@
       <button class="sort-chip" data-sort="arr">Arrangör</button>
     </div>
     <div class="agenda-actions" id="agendaActions" style="display:none">
-      <button class="chip alt" id="exportAllBtn">Exportera hela agendan (.ics)</button>
+      <button class="chip alt chip-pill" id="exportMenuBtn" type="button" aria-haspopup="true" aria-expanded="false">Exportera agenda<span class="caret">▾</span></button>
       <button class="chip alt" id="clearAgendaBtn">Töm agenda</button>
     </div>
     <div class="list" id="list"></div>
@@ -2321,12 +2321,96 @@ function requestPositionForSort(){
 }
 
 // Agenda bulk actions
-document.getElementById('exportAllBtn').addEventListener('click', function(){
+// Export menu: offers ICS, PDF, Excel (CSV) and Word formats. Built as a body-level popover.
+var exportMenuBtn = document.getElementById('exportMenuBtn');
+var exportPopoverEl = document.createElement('div');
+exportPopoverEl.className = 'more-popover export-popover';
+exportPopoverEl.id = 'exportPopover';
+exportPopoverEl.setAttribute('role', 'menu');
+exportPopoverEl.innerHTML =
+  '<button class="more-item" type="button" data-export="ics">' +
+    '<span class="more-item-label">Kalender (.ics)</span>' +
+    '<span class="more-item-sub">Outlook, Google Calendar, Apple Kalender</span>' +
+  '</button>' +
+  '<button class="more-item" type="button" data-export="pdf">' +
+    '<span class="more-item-label">PDF</span>' +
+    '<span class="more-item-sub">Skriv ut eller spara som PDF</span>' +
+  '</button>' +
+  '<button class="more-item" type="button" data-export="excel">' +
+    '<span class="more-item-label">Excel (.csv)</span>' +
+    '<span class="more-item-sub">Öppnas i Excel, Numbers eller Google Sheets</span>' +
+  '</button>' +
+  '<button class="more-item" type="button" data-export="word">' +
+    '<span class="more-item-label">Word (.doc)</span>' +
+    '<span class="more-item-sub">Öppnas i Word eller Google Dokument</span>' +
+  '</button>';
+document.body.appendChild(exportPopoverEl);
+
+function getAgendaEventsForExport(){
+  var ids = profiles[state.profile].agenda || [];
+  if(ids.length === 0) return [];
+  // Return events sorted by day + start time, so all exports are chronological
+  return ids.map(function(id){ return EVENTS.find(function(e){ return e.id === id; }); })
+    .filter(Boolean)
+    .sort(function(a, b){
+      if(a.dag !== b.dag) return a.dag < b.dag ? -1 : 1;
+      return (a.start || '').localeCompare(b.start || '');
+    });
+}
+
+function positionExportPopover(){
+  var rect = exportMenuBtn.getBoundingClientRect();
+  var popW = exportPopoverEl.offsetWidth || 280;
+  var viewportW = document.documentElement.clientWidth;
+  var top = rect.bottom + 6;
+  var left = rect.left;
+  if(left + popW > viewportW - 8) left = viewportW - 8 - popW;
+  if(left < 8) left = 8;
+  exportPopoverEl.style.top = top + 'px';
+  exportPopoverEl.style.left = left + 'px';
+}
+exportMenuBtn.addEventListener('click', function(e){
+  e.preventDefault();
+  e.stopPropagation();
   var ids = profiles[state.profile].agenda || [];
   if(ids.length === 0){ alert('Agendan är tom.'); return; }
-  var events = ids.map(function(id){ return EVENTS.find(function(e){ return e.id === id; }); }).filter(Boolean);
-  downloadICS(events, 'almedalskartan_agenda_' + state.profile + '.ics');
+  var willOpen = !exportPopoverEl.classList.contains('open');
+  if(willOpen){
+    exportPopoverEl.classList.add('open');
+    requestAnimationFrame(positionExportPopover);
+  } else {
+    exportPopoverEl.classList.remove('open');
+  }
+  exportMenuBtn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
 });
+exportPopoverEl.addEventListener('click', function(e){
+  var item = e.target.closest('.more-item');
+  if(!item) return;
+  e.stopPropagation();
+  var fmt = item.getAttribute('data-export');
+  exportPopoverEl.classList.remove('open');
+  exportMenuBtn.setAttribute('aria-expanded', 'false');
+  var events = getAgendaEventsForExport();
+  if(events.length === 0){ alert('Agendan är tom.'); return; }
+  var fname = 'almedalskartan_agenda_' + state.profile;
+  if(fmt === 'ics') downloadICS(events, fname + '.ics');
+  else if(fmt === 'pdf') exportAgendaPDF(events);
+  else if(fmt === 'excel') exportAgendaCSV(events, fname + '.csv');
+  else if(fmt === 'word') exportAgendaWord(events, fname + '.doc');
+});
+document.addEventListener('click', function(e){
+  if(!exportPopoverEl.classList.contains('open')) return;
+  if(e.target === exportMenuBtn || exportMenuBtn.contains(e.target)) return;
+  if(e.target === exportPopoverEl || exportPopoverEl.contains(e.target)) return;
+  exportPopoverEl.classList.remove('open');
+  exportMenuBtn.setAttribute('aria-expanded', 'false');
+});
+window.addEventListener('resize', function(){
+  if(exportPopoverEl.classList.contains('open')) positionExportPopover();
+});
+window.addEventListener('scroll', function(){
+  if(exportPopoverEl.classList.contains('open')) positionExportPopover();
+}, true);
 document.getElementById('clearAgendaBtn').addEventListener('click', function(){
   if(!confirm('Töm hela agendan för "'+state.profile+'"?')) return;
   profiles[state.profile].agenda = [];
@@ -4278,6 +4362,134 @@ function downloadICS(events, filename){
   a.click();
   document.body.removeChild(a);
   setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+}
+
+// ============== Agenda export: CSV, Word, PDF ==============
+// These build on the same agenda event list as the ICS export. They avoid any external
+// libraries: CSV is plain text, Word is an HTML document with a .doc extension (Word opens it),
+// and PDF uses a print-friendly window the user saves via the browser's print-to-PDF.
+
+function dayLabelFor(e){
+  for(var k in DAY_LABELS){ if((e.dag || '').indexOf(k) === 0) return DAY_LABELS[k]; }
+  return (e.dag || '').slice(0, 10);
+}
+
+function genericDownload(content, filename, mime){
+  var blob = new Blob([content], { type: mime });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+}
+
+function exportAgendaCSV(events, filename){
+  // CSV with a header row. Use semicolon separator (Excel in Swedish locale expects ;).
+  // Prefix with UTF-8 BOM so Excel reads åäö correctly.
+  var sep = ';';
+  function cell(v){
+    v = (v === null || v === undefined) ? '' : String(v);
+    // Escape quotes; wrap in quotes if it contains separator, quote, or newline
+    if(v.indexOf('"') >= 0) v = v.replace(/"/g, '""');
+    if(v.indexOf(sep) >= 0 || v.indexOf('"') >= 0 || v.indexOf('\n') >= 0 || v.indexOf('\r') >= 0){
+      v = '"' + v + '"';
+    }
+    return v;
+  }
+  var header = ['Dag', 'Datum', 'Start', 'Slut', 'Rubrik', 'Plats', 'Arrangör', 'Ämne 1', 'Ämne 2', 'Medverkande', 'Webb'];
+  var rows = [header.map(cell).join(sep)];
+  events.forEach(function(e){
+    var med = (e.med || []).map(function(p){ return p.n + (p.t ? ', ' + p.t : '') + (p.o ? ' (' + p.o + ')' : ''); }).join(' | ');
+    rows.push([
+      dayLabelFor(e),
+      (e.dag || '').slice(0, 10),
+      e.start || '',
+      e.slut || '',
+      e.rubrik || '',
+      (e.plats || '') + (e.platsbeskr ? ', ' + e.platsbeskr : ''),
+      (e.arr || []).join(', '),
+      e.amne1 || '',
+      e.amne2 || '',
+      med,
+      e.web || ''
+    ].map(cell).join(sep));
+  });
+  var csv = '\uFEFF' + rows.join('\r\n'); // BOM + CRLF line endings for Excel
+  genericDownload(csv, filename, 'text/csv;charset=utf-8');
+}
+
+function exportAgendaWord(events, filename){
+  // Word opens HTML documents saved with a .doc extension. We build a clean HTML document.
+  var rowsHtml = events.map(function(e){
+    var med = (e.med || []).map(function(p){ return escapeHtml(p.n + (p.t ? ', ' + p.t : '') + (p.o ? ' (' + p.o + ')' : '')); }).join('<br>');
+    var amnen = [e.amne1, e.amne2].filter(Boolean).map(escapeHtml).join(', ');
+    return '<div style="margin:0 0 18px 0;padding:0 0 16px 0;border-bottom:1px solid #ccc">' +
+      '<div style="font-size:11pt;color:#555;margin-bottom:3px">' + escapeHtml(dayLabelFor(e)) + ' &nbsp; ' + escapeHtml((e.start||'') + (e.slut ? '–' + e.slut : '')) + '</div>' +
+      '<div style="font-size:14pt;font-weight:bold;margin-bottom:5px">' + escapeHtml(e.rubrik || '') + '</div>' +
+      (e.plats ? '<div style="font-size:11pt;margin-bottom:3px"><b>Plats:</b> ' + escapeHtml(e.plats) + (e.platsbeskr ? ', ' + escapeHtml(e.platsbeskr) : '') + '</div>' : '') +
+      ((e.arr && e.arr.length) ? '<div style="font-size:11pt;margin-bottom:3px"><b>Arrangör:</b> ' + escapeHtml(e.arr.join(', ')) + '</div>' : '') +
+      (amnen ? '<div style="font-size:11pt;margin-bottom:3px"><b>Ämne:</b> ' + amnen + '</div>' : '') +
+      (med ? '<div style="font-size:11pt;margin-bottom:3px"><b>Medverkande:</b><br>' + med + '</div>' : '') +
+      (e.besk ? '<div style="font-size:11pt;margin-top:6px;color:#333">' + escapeHtml(e.besk) + '</div>' : '') +
+      (e.web ? '<div style="font-size:10pt;margin-top:4px;color:#0563C1">' + escapeHtml(e.web) + '</div>' : '') +
+    '</div>';
+  }).join('');
+
+  var html = '<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">' +
+    '<head><meta charset="utf-8"><title>Min Almedalsagenda</title></head>' +
+    '<body style="font-family:Calibri, Arial, sans-serif;color:#1a1a1a">' +
+    '<h1 style="font-size:20pt;margin-bottom:4px">Min Almedalsagenda</h1>' +
+    '<div style="font-size:11pt;color:#555;margin-bottom:20px">Profil: ' + escapeHtml(state.profile) + ' &nbsp;·&nbsp; ' + events.length + ' programpunkter &nbsp;·&nbsp; Skapad via almedalskartan.se</div>' +
+    rowsHtml +
+    '</body></html>';
+  genericDownload(html, filename, 'application/msword;charset=utf-8');
+}
+
+function exportAgendaPDF(events){
+  // Open a print-friendly window and trigger the browser's print dialog. The user picks
+  // "Save as PDF". Works on desktop and iOS Safari. No library needed.
+  var rowsHtml = events.map(function(e){
+    var med = (e.med || []).map(function(p){ return escapeHtml(p.n + (p.t ? ', ' + p.t : '') + (p.o ? ' (' + p.o + ')' : '')); }).join('<br>');
+    var amnen = [e.amne1, e.amne2].filter(Boolean).map(escapeHtml).join(', ');
+    return '<div class="ev">' +
+      '<div class="ev-when">' + escapeHtml(dayLabelFor(e)) + ' · ' + escapeHtml((e.start||'') + (e.slut ? '–' + e.slut : '')) + '</div>' +
+      '<div class="ev-title">' + escapeHtml(e.rubrik || '') + '</div>' +
+      (e.plats ? '<div class="ev-row"><b>Plats:</b> ' + escapeHtml(e.plats) + (e.platsbeskr ? ', ' + escapeHtml(e.platsbeskr) : '') + '</div>' : '') +
+      ((e.arr && e.arr.length) ? '<div class="ev-row"><b>Arrangör:</b> ' + escapeHtml(e.arr.join(', ')) + '</div>' : '') +
+      (amnen ? '<div class="ev-row"><b>Ämne:</b> ' + amnen + '</div>' : '') +
+      (med ? '<div class="ev-row"><b>Medverkande:</b><br>' + med + '</div>' : '') +
+      (e.besk ? '<div class="ev-desc">' + escapeHtml(e.besk) + '</div>' : '') +
+    '</div>';
+  }).join('');
+
+  var doc = '<!DOCTYPE html><html lang="sv"><head><meta charset="utf-8"><title>Min Almedalsagenda</title>' +
+    '<style>' +
+    '@page{margin:18mm 16mm}' +
+    'body{font-family:Georgia, "Times New Roman", serif;color:#1a1a1a;line-height:1.5;margin:0}' +
+    'h1{font-size:22px;margin:0 0 2px}' +
+    '.meta{font-size:12px;color:#666;margin-bottom:22px;font-family:Arial, sans-serif}' +
+    '.ev{margin:0 0 16px;padding:0 0 14px;border-bottom:1px solid #ddd;page-break-inside:avoid}' +
+    '.ev-when{font-size:11px;letter-spacing:0.5px;color:#777;text-transform:uppercase;margin-bottom:3px;font-family:Arial, sans-serif}' +
+    '.ev-title{font-size:16px;font-weight:bold;margin-bottom:5px}' +
+    '.ev-row{font-size:12px;margin-bottom:3px;font-family:Arial, sans-serif}' +
+    '.ev-desc{font-size:12px;margin-top:6px;color:#333}' +
+    '</style></head><body>' +
+    '<h1>Min Almedalsagenda</h1>' +
+    '<div class="meta">Profil: ' + escapeHtml(state.profile) + ' · ' + events.length + ' programpunkter · almedalskartan.se</div>' +
+    rowsHtml +
+    '<script>window.onload=function(){setTimeout(function(){window.print();},300);};<\/script>' +
+    '</body></html>';
+
+  var w = window.open('', '_blank');
+  if(!w){
+    alert('Kunde inte öppna utskriftsfönster. Tillåt popup-fönster för den här sidan och försök igen.');
+    return;
+  }
+  w.document.open();
+  w.document.write(doc);
+  w.document.close();
 }
 
 // ============== Utils ==============
