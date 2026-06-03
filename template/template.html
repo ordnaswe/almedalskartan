@@ -357,6 +357,7 @@
   .sort-chip.active{background:var(--gold);color:#FFFFFF;border-color:var(--gold);font-weight:600}
   .sort-result-count{margin-left:auto;font-size:13px;font-weight:600;color:var(--influera-red);letter-spacing:0;font-variant-numeric:tabular-nums;text-transform:none}
   .sort-result-count::after{content:" resultat";font-size:9.5px;color:var(--muted);font-weight:500;letter-spacing:1.3px;text-transform:uppercase;margin-left:3px}
+  html[lang="en"] .sort-result-count::after{content:" results"}
   .sort-mode{color:var(--gold);font-weight:600}
   .page-bar{display:flex;align-items:center;gap:8px;padding:6px 14px;background:var(--bg);border-top:1px solid var(--border-s);font-size:10.5px;justify-content:space-between}
   .page-size{display:flex;align-items:center;gap:5px}
@@ -872,7 +873,7 @@
     </svg>
     <div class="brand-text">
       <div class="brand-title">Almedalskartan</div>
-      <div class="brand-by">av <strong>Narva Communications</strong></div>
+      <div class="brand-by" id="brandBy">av <strong>Narva Communications</strong></div>
     </div>
   </div>
   <div class="header-right">
@@ -888,17 +889,17 @@
 
 <div class="toolbar">
   <!-- Mobile rad 1: sökfält + reset + kombinerad DAGAR/TID-knapp -->
-  <span class="tbl-label">Sök</span>
+  <span class="tbl-label" data-i18n="searchLabel">Sök</span>
   <div class="search-wrap">
-    <input type="text" class="search" id="search" placeholder="rubrik, arrangör, plats, talare">
-    <button class="chip alt reset-icon" id="resetBtn" title="Återställ alla filter" aria-label="Återställ alla filter">
+    <input type="text" class="search" id="search" placeholder="rubrik, arrangör, plats, talare" data-i18n-ph="searchPlaceholder">
+    <button class="chip alt reset-icon" id="resetBtn" title="Återställ alla filter" aria-label="Återställ alla filter" data-i18n-title="resetTitle">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 4 3 9 8 9"/></svg>
     </button>
   </div>
 
   <!-- Combined day+time popover trigger. Replaces the old day-chip row + Tid button. -->
   <button class="chip alt chip-pill daytime-btn" id="dayTimeBtn" type="button" aria-haspopup="true" aria-expanded="false">
-    <span id="dayTimeBtnLabel">Dagar / tid</span><span class="caret">▾</span>
+    <span id="dayTimeBtnLabel" data-i18n="dagarTid">Dagar / tid</span><span class="caret">▾</span>
   </button>
 
   <!-- Hidden state for day chips and time inputs. Popover writes to these. -->
@@ -914,12 +915,12 @@
   </div>
 
   <div class="toolbar-right">
-    <button class="chip featured chip-pill" id="topicBtn">Ämnen <span class="chip-badge" id="topicCount">0</span></button>
+    <button class="chip featured chip-pill" id="topicBtn"><span data-i18n="amnen">Ämnen</span> <span class="chip-badge" id="topicCount">0</span></button>
     <!-- "Mer" dropdown hides Nu, Nära mig, Nu & nästa -->
     <button class="chip alt chip-pill" id="moreBtn" type="button" aria-haspopup="true" aria-expanded="false">
-      Mer<span class="caret">▾</span>
+      <span data-i18n="mer">Mer</span><span class="caret">▾</span>
     </button>
-    <button class="chip alt chip-pill" id="filterBtn">Filter <span class="chip-badge" id="filterCount">0</span></button>
+    <button class="chip alt chip-pill" id="filterBtn"><span data-i18n="filter">Filter</span> <span class="chip-badge" id="filterCount">0</span></button>
   </div>
 </div>
 
@@ -928,61 +929,61 @@
 <aside class="filter-panel" id="filterPanel" aria-hidden="true">
   <div class="filter-panel-head">
     <div>
-      <h3 class="filter-panel-title">Filter</h3>
-      <div class="filter-panel-sub">Avancerad filtrering. Listan uppdateras direkt.</div>
+      <h3 class="filter-panel-title" data-i18n="filterTitle">Filter</h3>
+      <div class="filter-panel-sub" data-i18n="filterSub">Avancerad filtrering. Listan uppdateras direkt.</div>
     </div>
     <button class="icon-btn" id="filterClose">✕</button>
   </div>
   <div class="filter-panel-body">
     <div class="filter-group">
-      <div class="filter-label">Sök i fält</div>
+      <div class="filter-label" data-i18n="filterSearchFields">Sök i fält</div>
       <div class="filter-checks">
-        <label><input type="checkbox" data-field="search-rubrik" checked> Rubrik</label>
-        <label><input type="checkbox" data-field="search-arr" checked> Arrangör</label>
-        <label><input type="checkbox" data-field="search-med" checked> Medverkande</label>
-        <label><input type="checkbox" data-field="search-plats" checked> Plats</label>
-        <label><input type="checkbox" data-field="search-besk"> Beskrivning</label>
+        <label><input type="checkbox" data-field="search-rubrik" checked> <span data-i18n="fieldRubrik">Rubrik</span></label>
+        <label><input type="checkbox" data-field="search-arr" checked> <span data-i18n="fieldArr">Arrangör</span></label>
+        <label><input type="checkbox" data-field="search-med" checked> <span data-i18n="fieldMed">Medverkande</span></label>
+        <label><input type="checkbox" data-field="search-plats" checked> <span data-i18n="fieldPlats">Plats</span></label>
+        <label><input type="checkbox" data-field="search-besk"> <span data-i18n="fieldBesk">Beskrivning</span></label>
       </div>
     </div>
 
     <div class="filter-group">
-      <div class="filter-label">Evenemangstyp</div>
+      <div class="filter-label" data-i18n="filterEventType">Evenemangstyp</div>
       <select class="filter-select" id="filterTyp">
-        <option value="">Alla typer</option>
+        <option value="" data-i18n="filterAllTypes">Alla typer</option>
       </select>
     </div>
 
     <div class="filter-group">
-      <div class="filter-label">Organisationstyp</div>
+      <div class="filter-label" data-i18n="filterOrgType">Organisationstyp</div>
       <select class="filter-select" id="filterTypOrg">
-        <option value="">Alla organisationstyper</option>
+        <option value="" data-i18n="filterAllOrgTypes">Alla organisationstyper</option>
       </select>
     </div>
 
     <div class="filter-group">
-      <div class="filter-label">Språk</div>
+      <div class="filter-label" data-i18n="filterLang">Språk</div>
       <select class="filter-select" id="filterSprak">
-        <option value="">Alla språk</option>
+        <option value="" data-i18n="filterAllLangs">Alla språk</option>
       </select>
     </div>
 
     <div class="filter-group">
-      <div class="filter-label">Tillgänglighet</div>
+      <div class="filter-label" data-i18n="filterAccessibility">Tillgänglighet</div>
       <div class="filter-checks" id="filterTillg"></div>
     </div>
 
     <div class="filter-group">
-      <div class="filter-label">Övriga egenskaper</div>
+      <div class="filter-label" data-i18n="filterOther">Övriga egenskaper</div>
       <div class="filter-checks">
-        <label><input type="checkbox" id="filterLive"> Webbsänt</label>
-        <label><input type="checkbox" id="filterMat"> Förtäring erbjuds</label>
-        <label><input type="checkbox" id="filterEko"> Miljödiplomerat</label>
+        <label><input type="checkbox" id="filterLive"> <span data-i18n="filterWebcast">Webbsänt</span></label>
+        <label><input type="checkbox" id="filterMat"> <span data-i18n="filterFood">Förtäring erbjuds</span></label>
+        <label><input type="checkbox" id="filterEko"> <span data-i18n="filterEco">Miljödiplomerat</span></label>
       </div>
     </div>
   </div>
   <div class="filter-panel-foot">
-    <button class="chip" id="filterReset">Återställ filter</button>
-    <button class="chip active" id="filterApply">Stäng</button>
+    <button class="chip" id="filterReset" data-i18n="filterResetBtn">Återställ filter</button>
+    <button class="chip active" id="filterApply" data-i18n="filterCloseBtn">Stäng</button>
   </div>
 </aside>
 
@@ -990,37 +991,37 @@
   <aside class="sidebar">
     <div class="tabs">
       <div class="tab-switch" role="tablist">
-        <button class="tab active" data-tab="all" role="tab" aria-selected="true">Sökträffar <span class="tab-count" id="cntAll">0</span></button>
-        <button class="tab" data-tab="agenda" role="tab" aria-selected="false">Min agenda <span class="tab-count" id="cntAgenda">0</span></button>
+        <button class="tab active" data-tab="all" role="tab" aria-selected="true"><span data-i18n="searchResults">Sökträffar</span> <span class="tab-count" id="cntAll">0</span></button>
+        <button class="tab" data-tab="agenda" role="tab" aria-selected="false"><span data-i18n="myAgenda">Min agenda</span> <span class="tab-count" id="cntAgenda">0</span></button>
       </div>
       <button class="urval-info" id="urvalInfo" type="button" title="Vad betyder Sökträffar?" aria-label="Vad betyder Sökträffar?">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
       </button>
     </div>
     <div class="sort-bar" id="sortBar">
-      <span class="sort-label">Sortera:</span>
-      <button class="sort-chip" data-sort="auto">Auto</button>
-      <button class="sort-chip" data-sort="tid">Tid</button>
-      <button class="sort-chip" data-sort="amne">Ämne</button>
-      <button class="sort-chip" data-sort="plats">Plats</button>
-      <button class="sort-chip" data-sort="arr">Arrangör</button>
+      <span class="sort-label" data-i18n="sortera">Sortera:</span>
+      <button class="sort-chip" data-sort="auto" data-i18n="sortAuto">Auto</button>
+      <button class="sort-chip" data-sort="tid" data-i18n="sortTid">Tid</button>
+      <button class="sort-chip" data-sort="amne" data-i18n="sortAmne">Ämne</button>
+      <button class="sort-chip" data-sort="plats" data-i18n="sortPlats">Plats</button>
+      <button class="sort-chip" data-sort="arr" data-i18n="sortArr">Arrangör</button>
     </div>
     <div class="agenda-actions" id="agendaActions" style="display:none">
-      <button class="chip alt chip-pill" id="exportMenuBtn" type="button" aria-haspopup="true" aria-expanded="false">Exportera agenda<span class="caret">▾</span></button>
-      <button class="chip alt" id="clearAgendaBtn">Töm agenda</button>
+      <button class="chip alt chip-pill" id="exportMenuBtn" type="button" aria-haspopup="true" aria-expanded="false"><span data-i18n="exportAgenda">Exportera agenda</span><span class="caret">▾</span></button>
+      <button class="chip alt" id="clearAgendaBtn" data-i18n="clearAgenda">Töm agenda</button>
     </div>
     <div class="list" id="list"></div>
     <div class="page-bar" id="pageBar">
       <div class="page-size">
-        <span class="page-label">Visa</span>
+        <span class="page-label" data-i18n="showLabel">Visa</span>
         <button class="page-size-btn" data-size="20">20</button>
         <button class="page-size-btn" data-size="50">50</button>
         <button class="page-size-btn" data-size="100">100</button>
       </div>
       <div class="page-nav">
-        <button class="page-arrow" id="pagePrev" aria-label="Föregående sida">‹</button>
+        <button class="page-arrow" id="pagePrev" aria-label="Föregående sida" data-i18n-title="prevPage">‹</button>
         <span class="page-info" id="pageInfo">1 / 1</span>
-        <button class="page-arrow" id="pageNext" aria-label="Nästa sida">›</button>
+        <button class="page-arrow" id="pageNext" aria-label="Nästa sida" data-i18n-title="nextPage">›</button>
       </div>
     </div>
   </aside>
@@ -1028,9 +1029,9 @@
   <div class="map-wrap">
     <div id="map"></div>
     <div class="map-legend">
-      <div class="legend-row"><div class="legend-dot"></div>Programpunkt</div>
-      <div class="legend-row"><div class="legend-dot hot"></div>Mest viktad</div>
-      <div class="legend-row"><div class="legend-dot user"></div>Din position</div>
+      <div class="legend-row"><div class="legend-dot"></div><span data-i18n="legendProgram">Programpunkt</span></div>
+      <div class="legend-row"><div class="legend-dot hot"></div><span data-i18n="legendWeighted">Mest viktad</span></div>
+      <div class="legend-row"><div class="legend-dot user"></div><span data-i18n="legendPosition">Din position</span></div>
     </div>
   </div>
 
@@ -1042,11 +1043,11 @@
 <!-- Overview stats (between layout and footer) -->
 <section class="overview" id="overview">
   <div class="overview-inner">
-    <div class="overview-eyebrow">Almedalsveckan 2026</div>
-    <h2 class="overview-title">Veckan i siffror</h2>
-    <p class="overview-sub">Översikt över årets program. Andelar är räknade på programpunkter, inte timmar. Veteran-markering baseras på arrangörer som var med 5 år eller fler under 2009-2024.</p>
+    <div class="overview-eyebrow" data-i18n="overviewEyebrow">Almedalsveckan 2026</div>
+    <h2 class="overview-title" data-i18n="overviewTitle">Veckan i siffror</h2>
+    <p class="overview-sub" data-i18n="overviewSub">Översikt över årets program. Andelar är räknade på programpunkter, inte timmar. Veteran-markering baseras på arrangörer som var med 5 år eller fler under 2009-2024.</p>
     <div class="overview-grid" id="overviewGrid">
-      <div class="overview-loading">Bygger översikt...</div>
+      <div class="overview-loading" data-i18n="overviewLoading">Bygger översikt...</div>
     </div>
   </div>
 </section>
@@ -1055,8 +1056,8 @@
 <footer class="site-footer">
   <div class="footer-inner">
     <div class="footer-newsletter">
-      <h3 class="footer-h">Få Narvas Almedalsrapport</h3>
-      <p class="footer-text">Välj vad du vill ha. Båda är frivilliga och kan avregistreras när du vill.</p>
+      <h3 class="footer-h" data-i18n="footerH">Få Narvas Almedalsrapport</h3>
+      <p class="footer-text" data-i18n="footerText">Välj vad du vill ha. Båda är frivilliga och kan avregistreras när du vill.</p>
       <form name="narva-newsletter" method="POST" data-netlify="true" netlify-honeypot="bot-field" class="newsletter-form" id="newsletterForm">
         <input type="hidden" name="form-name" value="narva-newsletter">
         <p style="display:none"><label>Lämna tomt: <input name="bot-field"></label></p>
@@ -1071,7 +1072,7 @@
             <span>Skicka löpande kommunikation från Narva Communications till mig (inbjudningar, rapporter och nyheter).</span>
           </label>
         </div>
-        <button type="submit" class="footer-submit" id="newsletterSubmit">Anmäl mig</button>
+        <button type="submit" class="footer-submit" id="newsletterSubmit" data-i18n="footerSubmit">Anmäl mig</button>
         <div class="footer-status" id="newsletterStatus"></div>
       </form>
     </div>
@@ -1106,15 +1107,15 @@
   <div class="modal">
     <div class="modal-head">
       <div>
-        <h3 class="modal-title">Ämnen</h3>
-        <div class="modal-sub">Dra spaken högre för ämnen du vill se mest av. Listan sorteras efter relevans, så att ämnen du viktar högt hamnar överst. Ett ämne som är ett events primära ämne väger fullt, ett sekundärt ämne väger halvt.</div>
+        <h3 class="modal-title" data-i18n="topicModalTitle">Ämnen</h3>
+        <div class="modal-sub" data-i18n="topicModalSub">Dra spaken högre för ämnen du vill se mest av. Listan sorteras efter relevans, så att ämnen du viktar högt hamnar överst. Ett ämne som är ett events primära ämne väger fullt, ett sekundärt ämne väger halvt.</div>
       </div>
       <button class="icon-btn" id="topicClose">✕</button>
     </div>
     <div class="modal-body" id="topicBody"></div>
     <div class="modal-foot">
-      <button class="chip" id="topicReset">Nollställ för session</button>
-      <button class="chip active" id="topicApply">Klar</button>
+      <button class="chip" id="topicReset" data-i18n="resetSession">Nollställ för session</button>
+      <button class="chip active" id="topicApply" data-i18n="done">Klar</button>
     </div>
   </div>
 </div>
@@ -1124,17 +1125,17 @@
   <div class="modal" style="max-width:420px">
     <div class="modal-head">
       <div>
-        <h3 class="modal-title">Ny profil</h3>
-        <div class="modal-sub">Profiler sparas lokalt i denna webbläsare. Varje profil har sin egen agenda och sina egna ämnesvikter.</div>
+        <h3 class="modal-title" data-i18n="profileModalTitle">Ny profil</h3>
+        <div class="modal-sub" data-i18n="profileModalSub">Profiler sparas lokalt i denna webbläsare. Varje profil har sin egen agenda och sina egna ämnesvikter.</div>
       </div>
       <button class="icon-btn" id="profileModalClose">✕</button>
     </div>
     <div class="modal-body">
-      <input type="text" id="profileNameInput" class="search" placeholder="Profilnamn" style="width:100%;padding:10px 12px;font-size:14px;height:auto" maxlength="40">
+      <input type="text" id="profileNameInput" class="search" placeholder="Profilnamn" data-i18n-ph="profileNamePlaceholder" style="width:100%;padding:10px 12px;font-size:14px;height:auto" maxlength="40">
     </div>
     <div class="modal-foot">
-      <button class="chip" id="profileCancel">Avbryt</button>
-      <button class="chip active" id="profileCreate">Skapa</button>
+      <button class="chip" id="profileCancel" data-i18n="cancel">Avbryt</button>
+      <button class="chip active" id="profileCreate" data-i18n="create">Skapa</button>
     </div>
   </div>
 </div>
@@ -1152,7 +1153,7 @@
     <div class="modal-body" id="orgProfileBody"></div>
     <div class="modal-foot">
       <button class="chip" id="orgProfileBatchAdd" style="display:none">Lägg till alla i agenda</button>
-      <button class="chip active" id="orgProfileDone">Klar</button>
+      <button class="chip active" id="orgProfileDone" data-i18n="done">Klar</button>
     </div>
   </div>
 </div>
@@ -1166,7 +1167,7 @@
 <!-- Toast for save/unsave confirmation with undo -->
 <div class="toast" id="toast" role="status" aria-live="polite">
   <span class="toast-msg" id="toastMsg"></span>
-  <button class="toast-undo" id="toastUndo">Ångra</button>
+  <button class="toast-undo" id="toastUndo" data-i18n="undo">Ångra</button>
 </div>
 
 <script>__LEAFLET_JS__</script>
@@ -1315,6 +1316,8 @@ var state = {
   filterEko: false,
   // Accessibility
   fontSize: loadFontSize(),
+  // UI language: 'sv' (default) or 'en'. Only the interface is translated, not program data.
+  lang: loadLang(),
   // Sort mode: 'auto' (default — Ämnesvikt if topics chosen, else Tid), 'tid', 'amne', 'plats', 'arr'
   sortMode: loadSortMode()
 };
@@ -1341,6 +1344,483 @@ function applyFontSize(){
   var base = sizes[state.fontSize] || 13.5;
   document.body.style.fontSize = base + 'px';
   document.documentElement.setAttribute('data-fs', state.fontSize);
+}
+
+// ============== Internationalisation (UI only, not program data) ==============
+// Only the interface is translated. Program content (event titles, descriptions,
+// organisers, venue categories) stays in its original language. Topic names and
+// weekday labels ARE translated for display, but their Swedish form remains the
+// internal key that matches the program data.
+var LS_LANG = 'influera_almedal_lang_v1';
+function loadLang(){
+  try {
+    var l = safeStore.get(LS_LANG);
+    return (l === 'en' || l === 'sv') ? l : 'sv';
+  } catch(e){ return 'sv'; }
+}
+function saveLang(){ try { safeStore.set(LS_LANG, state.lang); } catch(e){} }
+
+// Translation dictionary. Key = stable identifier, value = { sv, en }.
+var I18N = {
+  // Header / chrome
+  byNarva: { sv: 'av Narva Communications', en: 'by Narva Communications' },
+  // Toolbar
+  searchLabel: { sv: 'Sök', en: 'Search' },
+  searchPlaceholder: { sv: 'rubrik, arrangör, plats, talare', en: 'title, organiser, venue, speaker' },
+  resetTitle: { sv: 'Återställ alla filter', en: 'Reset all filters' },
+  dagarTid: { sv: 'Dagar / tid', en: 'Days / time' },
+  allDays: { sv: 'Alla dagar', en: 'All days' },
+  amnen: { sv: 'Ämnen', en: 'Topics' },
+  mer: { sv: 'Mer', en: 'More' },
+  filter: { sv: 'Filter', en: 'Filters' },
+  // Day/time popover
+  dayHeading: { sv: 'Dag', en: 'Day' },
+  timeHeading: { sv: 'Tid på dagen', en: 'Time of day' },
+  wholeDay: { sv: 'Hela dagen', en: 'All day' },
+  morning: { sv: 'Förmiddag', en: 'Morning' },
+  afternoon: { sv: 'Eftermiddag', en: 'Afternoon' },
+  evening: { sv: 'Kväll', en: 'Evening' },
+  customTime: { sv: 'Egen tid…', en: 'Custom time…' },
+  fromLabel: { sv: 'Från', en: 'From' },
+  toLabel: { sv: 'Till', en: 'To' },
+  // More menu
+  nowItem: { sv: 'Nu', en: 'Now' },
+  nowSub: { sv: 'Filtrera till det som pågår nu', en: 'Filter to what is happening now' },
+  nearMe: { sv: 'Nära mig', en: 'Near me' },
+  nearMeSub: { sv: 'Sortera efter avstånd från din position', en: 'Sort by distance from your location' },
+  nowNext: { sv: 'Nu & nästa', en: 'Now & next' },
+  nowNextSub: { sv: 'Realtidsvy över vad som pågår och vad som börjar snart', en: 'Live view of what is on now and starting soon' },
+  // Tabs
+  searchResults: { sv: 'Sökträffar', en: 'Results' },
+  myAgenda: { sv: 'Min agenda', en: 'My agenda' },
+  resultsInfoTitle: { sv: 'Vad betyder Sökträffar?', en: 'What does Results mean?' },
+  resultsInfoBody: { sv: 'Sökträffar visar programpunkter som matchar din sökning och dina filter. Ämnesvikt påverkar bara ordningen, inte antalet. Använd Filter för att begränsa antalet.', en: 'Results shows the program items matching your search and filters. Topic weighting only affects the order, not the number. Use Filters to narrow the list.' },
+  // Sort bar
+  sortera: { sv: 'Sortera:', en: 'Sort:' },
+  sortAuto: { sv: 'Auto', en: 'Auto' },
+  sortTid: { sv: 'Tid', en: 'Time' },
+  sortAmne: { sv: 'Ämne', en: 'Topic' },
+  sortPlats: { sv: 'Plats', en: 'Venue' },
+  sortArr: { sv: 'Arrangör', en: 'Organiser' },
+  // Agenda actions
+  exportAgenda: { sv: 'Exportera agenda', en: 'Export agenda' },
+  clearAgenda: { sv: 'Töm agenda', en: 'Clear agenda' },
+  exportIcsLabel: { sv: 'Kalender (.ics)', en: 'Calendar (.ics)' },
+  exportIcsSub: { sv: 'Outlook, Google Calendar, Apple Kalender', en: 'Outlook, Google Calendar, Apple Calendar' },
+  exportPdfLabel: { sv: 'PDF', en: 'PDF' },
+  exportPdfSub: { sv: 'Skriv ut eller spara som PDF', en: 'Print or save as PDF' },
+  exportExcelLabel: { sv: 'Excel (.csv)', en: 'Excel (.csv)' },
+  exportExcelSub: { sv: 'Öppnas i Excel, Numbers eller Google Sheets', en: 'Opens in Excel, Numbers or Google Sheets' },
+  exportWordLabel: { sv: 'Word (.doc)', en: 'Word (.doc)' },
+  exportWordSub: { sv: 'Öppnas i Word eller Google Dokument', en: 'Opens in Word or Google Docs' },
+  agendaEmpty: { sv: 'Agendan är tom.', en: 'Your agenda is empty.' },
+  // Map legend
+  legendProgram: { sv: 'Programpunkt', en: 'Program item' },
+  legendWeighted: { sv: 'Mest viktad', en: 'Top match' },
+  legendPosition: { sv: 'Din position', en: 'Your location' },
+  locateTitle: { sv: 'Visa min plats på kartan', en: 'Show my location on the map' },
+  // List / empty states
+  emptyNowTitle: { sv: 'Inga programpunkter just nu', en: 'Nothing on right now' },
+  emptyNowBody: { sv: 'Inget startar inom 15 minuter bakåt eller den närmaste timmen.', en: 'Nothing started in the last 15 minutes or starts within the next hour.' },
+  emptyOutsideTitle: { sv: 'Utanför veckan', en: 'Outside the week' },
+  emptyOutsideBody: { sv: 'Almedalsveckan pågår 22 till 26 juni 2026. "Nu" filtrerar i realtid under veckan, baserat på enhetens klocka.', en: 'Almedalen Week runs 22 to 26 June 2026. "Now" filters in real time during the week, based on your device clock.' },
+  emptySearchTitle: { sv: 'Inga träffar på', en: 'No matches for' },
+  emptySearchBody: { sv: 'Pröva ett bredare sökord, kontrollera stavningen, eller återställ filtren om du har aktiverat någon avgränsning.', en: 'Try a broader search term, check the spelling, or reset the filters if you have any active.' },
+  emptyFilterTitle: { sv: 'Inga programpunkter matchar dina filter', en: 'No program items match your filters' },
+  emptyFilterBody: { sv: 'Pröva att vidga tidsintervallet, byta dag eller återställa filtren.', en: 'Try widening the time range, switching day, or resetting the filters.' },
+  resetAllBtn: { sv: 'Återställ alla filter', en: 'Reset all filters' },
+  // Detail view
+  backToList: { sv: 'Tillbaka till listan', en: 'Back to list' },
+  programItem: { sv: 'Programpunkt', en: 'Program item' },
+  matchHigh: { sv: 'Hög matchning', en: 'High match' },
+  matchPartial: { sv: 'Delvis matchning', en: 'Partial match' },
+  matchLow: { sv: 'Låg matchning', en: 'Low match' },
+  dPlats: { sv: 'Plats', en: 'Venue' },
+  dArrangor: { sv: 'Arrangör', en: 'Organiser' },
+  dMedverkande: { sv: 'Medverkande', en: 'Participants' },
+  dBeskrivning: { sv: 'Beskrivning', en: 'Description' },
+  dSamhallsfraga: { sv: 'Samhällsfråga', en: 'Societal issue' },
+  dMoreAbout: { sv: 'Mer om evenemanget', en: 'More about the event' },
+  dPraktiskt: { sv: 'Praktiskt', en: 'Practical' },
+  showOnMap: { sv: 'Visa på karta', en: 'Show on map' },
+  langLabel: { sv: 'Språk', en: 'Language' },
+  orgHistoryLink: { sv: 'visa arrangörshistorik', en: 'show organiser history' },
+  legendNew2026: { sv: 'ny 2026', en: 'new 2026' },
+  legend14: { sv: '1-4 år tidigare', en: '1-4 prior years' },
+  legend5plus: { sv: '5+ år tidigare', en: '5+ prior years' },
+  accessibility: { sv: 'Tillgänglighet', en: 'Accessibility' },
+  refreshments: { sv: 'Förtäring', en: 'Refreshments' },
+  ecoCert: { sv: 'Miljödiplomerat', en: 'Eco-certified' },
+  webcast: { sv: 'Webbsändning', en: 'Webcast' },
+  contact: { sv: 'Kontakt', en: 'Contact' },
+  samePlace: { sv: 'Samma plats, samma dag', en: 'Same venue, same day' },
+  noCoords: { sv: 'Den här programpunkten saknar exakt koordinat och visas därför inte på kartan. Adressen ovan är från det officiella programmet.', en: 'This program item has no exact coordinates and is therefore not shown on the map. The address above is from the official program.' },
+  saveToAgenda: { sv: 'Spara till agenda', en: 'Save to agenda' },
+  savedToAgenda: { sv: 'Sparad', en: 'Saved' },
+  addToCalendar: { sv: 'Lägg i kalender (.ics)', en: 'Add to calendar (.ics)' },
+  walkDirections: { sv: 'Vägbeskrivning', en: 'Directions' },
+  web: { sv: 'Webb', en: 'Website' },
+  noParticipants: { sv: 'Ingen medverkande angiven i programmet.', en: 'No participants listed in the program.' },
+  contactNarva: { sv: 'Kontakta Narva i Almedalen', en: 'Contact Narva in Almedalen' },
+  conflictsHeading: { sv: 'Konflikter i din agenda', en: 'Conflicts in your agenda' },
+  clashesWith: { sv: 'Krockar i tid med', en: 'Time clash with' },
+  tightWalk: { sv: 'Knapp gångtid från', en: 'Tight walking time from' },
+  walkFrom: { sv: 'min promenad från', en: 'min walk from' },
+  endsAt: { sv: 'som slutar', en: 'ending at' },
+  onlyGap: { sv: 'Bara', en: 'Only' },
+  gapBuffer: { sv: 'min lucka, beräknat på 4 km/h i Visby', en: 'min gap, based on 4 km/h in Visby' },
+  samePlaceSameDay: { sv: 'Samma plats, samma dag', en: 'Same venue, same day' },
+  // Topic modal
+  topicModalTitle: { sv: 'Ämnen', en: 'Topics' },
+  topicModalSub: { sv: 'Dra spaken högre för ämnen du vill se mest av. Listan sorteras efter relevans, så att ämnen du viktar högt hamnar överst. Ett ämne som är ett events primära ämne väger fullt, ett sekundärt ämne väger halvt.', en: 'Slide higher for topics you want to see most of. The list is sorted by relevance, so topics you weight highly appear at the top. A topic that is an event\u2019s primary topic counts fully, a secondary topic counts half.' },
+  weightOff: { sv: 'Av', en: 'Off' },
+  weightLow: { sv: 'Lite', en: 'Low' },
+  weightMore: { sv: 'Mer', en: 'More' },
+  weightMax: { sv: 'Max', en: 'Max' },
+  // Profile / gear menu
+  newProfile: { sv: '+ Ny profil', en: '+ New profile' },
+  deleteProfile: { sv: 'Ta bort denna profil', en: 'Delete this profile' },
+  textSize: { sv: 'Textstorlek', en: 'Text size' },
+  language: { sv: 'Språk', en: 'Language' },
+  exportData: { sv: 'Exportera mina data', en: 'Export my data' },
+  importData: { sv: 'Importera mina data', en: 'Import my data' },
+  profileModalTitle: { sv: 'Ny profil', en: 'New profile' },
+  profileModalSub: { sv: 'Profiler sparas lokalt i denna webbläsare. Varje profil har sin egen agenda och sina egna ämnesvikter.', en: 'Profiles are stored locally in this browser. Each profile has its own agenda and topic weights.' },
+  profileNamePlaceholder: { sv: 'Profilnamn', en: 'Profile name' },
+  cancel: { sv: 'Avbryt', en: 'Cancel' },
+  create: { sv: 'Skapa', en: 'Create' },
+  done: { sv: 'Klar', en: 'Done' },
+  // Organiser profile
+  orgProfileSub: { sv: 'Översikt av arrangörens program och historik. Klick på en programpunkt öppnar den.', en: 'Overview of the organiser\u2019s program and history. Click a program item to open it.' },
+  orgStatusVeteran: { sv: 'Veteran', en: 'Veteran' },
+  orgStatusExperienced: { sv: 'Erfaren', en: 'Experienced' },
+  orgStatusNew: { sv: 'Ny 2026', en: 'New 2026' },
+  orgYears: { sv: 'år 2009-2025', en: 'years 2009-2025' },
+  orgItems2026: { sv: 'programpunkter 2026', en: 'program items 2026' },
+  orgSectionItems: { sv: 'Programpunkter 2026', en: 'Program items 2026' },
+  orgSectionTopics: { sv: 'Vanligaste ämnen', en: 'Most common topics' },
+  orgSectionPlaces: { sv: 'Vanligaste platser', en: 'Most common venues' },
+  orgSectionHistory: { sv: 'Historik 2009-2026', en: 'History 2009-2026' },
+  orgHistoryNote: { sv: 'Baserat på exakt namnmatchning. Ifyllda rutor = arrangören finns med det året. Tomma rutor = ingen post i historiken med denna stavning.', en: 'Based on exact name matching. Filled squares = organiser present that year. Empty squares = no record in the history with this spelling.' },
+  orgNoItems: { sv: 'Inga programpunkter 2026.', en: 'No program items in 2026.' },
+  orgNoTopics: { sv: 'Inga ämnen taggade.', en: 'No topics tagged.' },
+  orgNoPlaces: { sv: 'Inga platser angivna.', en: 'No venues listed.' },
+  orgAddAll: { sv: 'Lägg till', en: 'Add' },
+  orgAddAllSuffix: { sv: 'i agenda', en: 'to agenda' },
+  orgAllInAgenda: { sv: 'Alla redan i agenda', en: 'All already in agenda' },
+  alreadyInAgenda: { sv: 'Redan i din agenda', en: 'Already in your agenda' },
+  clashBadge: { sv: 'krock', en: 'clash' },
+  // Match indicator
+  matchLabel: { sv: 'Match', en: 'Match' },
+  // Toasts
+  addedToAgenda: { sv: 'Tillagd i agenda', en: 'Added to agenda' },
+  removedFromAgenda: { sv: 'Borttagen ur agenda', en: 'Removed from agenda' },
+  undo: { sv: 'Ångra', en: 'Undo' },
+  // Misc
+  weatherFrom: { sv: 'Prognos från SMHI', en: 'Forecast from SMHI' },
+  resetSession: { sv: 'Nollställ för session', en: 'Reset for session' },
+  closeBtn: { sv: 'Stäng', en: 'Close' },
+  // Page bar
+  showLabel: { sv: 'Visa', en: 'Show' },
+  prevPage: { sv: 'Föregående sida', en: 'Previous page' },
+  nextPage: { sv: 'Nästa sida', en: 'Next page' },
+  // Overview
+  overviewEyebrow: { sv: 'Almedalsveckan 2026', en: 'Almedalen Week 2026' },
+  overviewTitle: { sv: 'Veckan i siffror', en: 'The week in numbers' },
+  overviewSub: { sv: 'Översikt över årets program. Andelar är räknade på programpunkter, inte timmar. Veteran-markering baseras på arrangörer som var med 5 år eller fler under 2009-2024.', en: 'Overview of this year\u2019s program. Shares are counted by program items, not hours. Veteran marking is based on organisers present 5 years or more during 2009-2024.' },
+  overviewLoading: { sv: 'Bygger översikt...', en: 'Building overview...' },
+  // Newsletter footer
+  footerH: { sv: 'Få Narvas Almedalsrapport', en: 'Get Narva\u2019s Almedalen report' },
+  footerText: { sv: 'Välj vad du vill ha. Båda är frivilliga och kan avregistreras när du vill.', en: 'Choose what you want. Both are optional and can be unsubscribed anytime.' },
+  footerSubmit: { sv: 'Anmäl mig', en: 'Sign me up' },
+  // Filter panel
+  filterTitle: { sv: 'Filter', en: 'Filters' },
+  filterSub: { sv: 'Avancerad filtrering. Listan uppdateras direkt.', en: 'Advanced filtering. The list updates instantly.' },
+  filterSearchFields: { sv: 'Sök i fält', en: 'Search in fields' },
+  fieldRubrik: { sv: 'Rubrik', en: 'Title' },
+  fieldArr: { sv: 'Arrangör', en: 'Organiser' },
+  fieldMed: { sv: 'Medverkande', en: 'Participants' },
+  fieldPlats: { sv: 'Plats', en: 'Venue' },
+  fieldBesk: { sv: 'Beskrivning', en: 'Description' },
+  filterEventType: { sv: 'Evenemangstyp', en: 'Event type' },
+  filterAllTypes: { sv: 'Alla typer', en: 'All types' },
+  filterOrgType: { sv: 'Organisationstyp', en: 'Organisation type' },
+  filterAllOrgTypes: { sv: 'Alla organisationstyper', en: 'All organisation types' },
+  filterLang: { sv: 'Språk', en: 'Language' },
+  filterAllLangs: { sv: 'Alla språk', en: 'All languages' },
+  filterAccessibility: { sv: 'Tillgänglighet', en: 'Accessibility' },
+  filterOther: { sv: 'Övriga egenskaper', en: 'Other attributes' },
+  filterWebcast: { sv: 'Webbsänt', en: 'Webcast' },
+  filterFood: { sv: 'Förtäring erbjuds', en: 'Refreshments offered' },
+  filterEco: { sv: 'Miljödiplomerat', en: 'Eco-certified' },
+  filterResetBtn: { sv: 'Återställ filter', en: 'Reset filters' },
+  filterCloseBtn: { sv: 'Stäng', en: 'Close' },
+  // Nu & nästa view
+  nnEyebrow: { sv: 'Nu & nästa', en: 'Now & next' },
+  nnTitle: { sv: 'Vad pågår omkring dig', en: 'What\u2019s happening around you' },
+  nnSimulated: { sv: 'simulerad tid', en: 'simulated time' },
+  nnGeoOn: { sv: 'Position på, listor sorterade efter avstånd.', en: 'Location on, lists sorted by distance.' },
+  nnGeoOff: { sv: 'Stäng av', en: 'Turn off' },
+  nnGeoPrompt: { sv: 'Tillåt platsbehörighet för avstånd och gångtid.', en: 'Allow location access for distance and walking time.' },
+  nnGeoAllow: { sv: 'Tillåt', en: 'Allow' },
+  nnWeekStarts: { sv: 'Almedalsveckan börjar', en: 'Almedalen Week starts' },
+  nnWeekStartsTail: { sv: '. Här är ett urval från första dagen att förbereda sig med.', en: '. Here is a selection from the first day to prepare with.' },
+  nnWeekOver: { sv: 'Almedalsveckan är slut för i år. Här är ett urval från sista dagen.', en: 'Almedalen Week is over for this year. Here is a selection from the last day.' },
+  nnPreview: { sv: 'Förhandsvisning', en: 'Preview' },
+  nnItems: { sv: 'programpunkter', en: 'program items' },
+  nnDayOver: { sv: 'Dagen är slut', en: 'The day is over' },
+  nnDayOverBody: { sv: 'Imorgon börjar nästa dag i Almedalsveckan. Bläddra i listan till vänster för att förbereda dig.', en: 'Tomorrow the next day of Almedalen Week begins. Browse the list on the left to prepare.' },
+  nnNothingNow: { sv: 'Inget just nu.', en: 'Nothing right now.' },
+  nnLive: { sv: 'Pågår nu', en: 'On now' },
+  nnIn30: { sv: 'Inom 30 minuter', en: 'Within 30 minutes' },
+  nnIn60: { sv: 'Inom en timme', en: 'Within an hour' },
+  nnLater: { sv: 'Senare idag', en: 'Later today' },
+  // Org profile modal (additional)
+  orgStatusVeteranFmt: { sv: 'Veteran', en: 'Veteran' },
+  orgStatusExperiencedFmt: { sv: 'Erfaren', en: 'Experienced' },
+  orgYearsShort: { sv: 'år 2009-2025', en: 'years 2009-2025' },
+  orgPlaceNotGiven: { sv: 'Plats ej angiven', en: 'Venue not specified' },
+  orgSavedTitle: { sv: 'Redan i din agenda', en: 'Already in your agenda' },
+  // Overview blocks
+  ovTotal: { sv: 'Totalt', en: 'Total' },
+  ovTotalSub: { sv: 'programpunkter över fem dagar', en: 'program items over five days' },
+  ovUniqueOrgs: { sv: 'unika arrangörer', en: 'unique organisers' },
+  ovParticipants: { sv: 'medverkande totalt', en: 'participants in total' },
+  ovTopTopics: { sv: 'Mest behandlade ämnen', en: 'Most covered topics' },
+  ovTopOrgs: { sv: 'Mest aktiva arrangörer', en: 'Most active organisers' },
+  ovPerDay: { sv: 'Programpunkter per dag', en: 'Program items per day' },
+  ovEventTypes: { sv: 'Typer av programpunkt', en: 'Types of program item' },
+  ovAccessForm: { sv: 'Tillgänglighet och form', en: 'Accessibility and format' },
+  ovLang: { sv: 'Språk', en: 'Language' },
+  ovOrgTypes: { sv: 'Typer av organisation', en: 'Types of organisation' },
+  ovOrgsOverTime: { sv: 'Arrangörer över tid', en: 'Organisers over time' },
+  ovVeterans: { sv: 'Veteraner (5+ år)', en: 'Veterans (5+ years)' },
+  ovExperienced: { sv: 'Erfarna (1-4 år)', en: 'Experienced (1-4 years)' },
+  ovNew2026: { sv: 'Nya 2026', en: 'New 2026' },
+  ovCountSuffix: { sv: 'st', en: '' },
+  ovHistNote: { sv: 'Baserat på exakt namnmatchning mot 2009-2025. Avvikande stavning räknas som ny arrangör.', en: 'Based on exact name matching against 2009-2025. Differing spelling counts as a new organiser.' },
+  ovWebcast: { sv: 'Webbsänt', en: 'Webcast' },
+  ovFood: { sv: 'Förtäring', en: 'Refreshments' },
+  ovEco: { sv: 'Miljödiplomerat', en: 'Eco-certified' },
+  ovTagVet: { sv: 'Vet', en: 'Vet' },
+  ovTagErf: { sv: 'Erf', en: 'Exp' },
+  ovTagNew: { sv: 'Ny', en: 'New' },
+  // Topic pause banner
+  topicsPaused1: { sv: 'val', en: 'choices' },
+  topicsPaused2: { sv: 'är pausade för sessionen. Sparade i profilen.', en: 'are paused for this session. Saved in the profile.' },
+  topicsReactivate: { sv: 'Aktivera igen', en: 'Reactivate' },
+  createdVia: { sv: 'Skapad via almedalskartan.se', en: 'Created via almedalskartan.se' },
+  exportProfile: { sv: 'Profil', en: 'Profile' },
+  exportItems: { sv: 'programpunkter', en: 'program items' },
+  exportTitle: { sv: 'Min Almedalsagenda', en: 'My Almedalen agenda' },
+  // Batch add dialog (built with sv/en sentence templates due to embedded counts)
+  batchAddConfirm: {
+    sv: function(n, org){ return 'Lägg till ' + n + ' programpunkter från ' + org + ' i din agenda?'; },
+    en: function(n, org){ return 'Add ' + n + ' program items from ' + org + ' to your agenda?'; }
+  },
+  batchAllClash: {
+    sv: function(n){ return 'Alla ' + n + ' programpunkter krockar med din befintliga agenda. Lägg till ändå?'; },
+    en: function(n){ return 'All ' + n + ' program items clash with your existing agenda. Add anyway?'; }
+  },
+  batchMixed: {
+    sv: function(ok, clash, total){ return ok + ' programpunkter kan läggas till utan krock. ' + clash + ' krockar med befintlig agenda.\n\nOK = lägg till alla ' + total + ' (inklusive krockar).\nAvbryt = lägg bara till de ' + ok + ' som inte krockar.'; },
+    en: function(ok, clash, total){ return ok + ' program items can be added without clashes. ' + clash + ' clash with your existing agenda.\n\nOK = add all ' + total + ' (including clashes).\nCancel = add only the ' + ok + ' that do not clash.'; }
+  },
+  batchAddedToast: {
+    sv: function(n, org){ return 'Tillagda i agenda: ' + n + ' programpunkter från ' + org; },
+    en: function(n, org){ return 'Added to agenda: ' + n + ' program items from ' + org; }
+  },
+  // CSV column headers
+  csvDay: { sv: 'Dag', en: 'Day' },
+  csvDate: { sv: 'Datum', en: 'Date' },
+  csvStart: { sv: 'Start', en: 'Start' },
+  csvEnd: { sv: 'Slut', en: 'End' },
+  csvTitle: { sv: 'Rubrik', en: 'Title' },
+  csvVenue: { sv: 'Plats', en: 'Venue' },
+  csvOrganiser: { sv: 'Arrangör', en: 'Organiser' },
+  csvTopic1: { sv: 'Ämne 1', en: 'Topic 1' },
+  csvTopic2: { sv: 'Ämne 2', en: 'Topic 2' },
+  csvParticipants: { sv: 'Medverkande', en: 'Participants' },
+  csvWeb: { sv: 'Webb', en: 'Website' },
+  // Dialogs and data toasts
+  confirmDeleteProfile: {
+    sv: function(name){ return 'Ta bort profilen "' + name + '"? Agendan och vikterna försvinner. Detta går inte att ångra.'; },
+    en: function(name){ return 'Delete the profile "' + name + '"? Its agenda and weights will be lost. This cannot be undone.'; }
+  },
+  confirmImportOverwrite: { sv: 'Detta skriver över alla profiler, agendor och inställningar du har sparat just nu. Fortsätt?', en: 'This will overwrite all profiles, agendas and settings you currently have saved. Continue?' },
+  confirmClearAgenda: {
+    sv: function(name){ return 'Töm hela agendan för "' + name + '"?'; },
+    en: function(name){ return 'Clear the entire agenda for "' + name + '"?'; }
+  },
+  toastDataDownloaded: { sv: 'Dina data har laddats ner som backup-fil.', en: 'Your data has been downloaded as a backup file.' },
+  toastExportFailed: { sv: 'Kunde inte exportera. Försök igen.', en: 'Could not export. Please try again.' },
+  toastNotBackup: { sv: 'Filen verkar inte vara en backup från Almedalskartan.', en: 'The file does not appear to be an Almedalskartan backup.' },
+  toastDataImported: { sv: 'Dina data har importerats.', en: 'Your data has been imported.' },
+  toastReadFailed: { sv: 'Kunde inte läsa filen. Är det rätt JSON-format?', en: 'Could not read the file. Is it the correct JSON format?' },
+  topicResetSession: { sv: 'Nollställ för sessionen', en: 'Reset for this session' },
+  topicDeletePermanent: { sv: 'Radera permanent för profil', en: 'Delete permanently for profile' },
+  orgHistoryHide: { sv: 'dölj arrangörshistorik', en: 'hide organiser history' },
+  newsletterPickOne: { sv: 'Välj minst ett av alternativen ovan.', en: 'Please select at least one of the options above.' },
+  newsletterThanks: { sv: 'Tack! Vi hör av oss enligt det du valt.', en: 'Thank you! We will be in touch according to your choice.' },
+  newsletterError: { sv: 'Något gick fel. Försök igen om en stund, eller mejla sandro.wennberg@narva.se.', en: 'Something went wrong. Please try again shortly, or email sandro.wennberg@narva.se.' }
+};
+
+// Topic name translations. Swedish remains the data key; English is display-only.
+var TOPIC_I18N = {
+  'Säkerhet/försvar': 'Security/defence',
+  'Demokrati': 'Democracy',
+  'Vård och Omsorg': 'Health & care',
+  'Vård och omsorg': 'Health & care',
+  'Hållbarhet': 'Sustainability',
+  'Ekonomi': 'Economy',
+  'Näringsliv': 'Business',
+  'Innovation': 'Innovation',
+  'Digitalisering': 'Digitalisation',
+  'Barn/Ungdom': 'Children/youth',
+  'Barn/ungdom': 'Children/youth',
+  'Byggande': 'Construction',
+  'Klimat/miljö': 'Climate/environment',
+  'Internationella frågor': 'International affairs',
+  'Jämställdhet': 'Gender equality',
+  'Integration/mångfald': 'Integration/diversity',
+  'EU': 'EU',
+  'Regionfrågor': 'Regional issues',
+  'Djur/natur': 'Animals/nature',
+  'Mat': 'Food',
+  'Religion': 'Religion',
+  'Yttrandefrihet': 'Freedom of speech',
+  'Äldre': 'Elderly',
+  'Partiets halvdag': 'Party half-day',
+  'Besöksnäring': 'Tourism'
+};
+
+// Weekday short labels per language. Keyed by date.
+var DAY_LABELS_I18N = {
+  sv: { '2026-06-22':'Mån 22', '2026-06-23':'Tis 23', '2026-06-24':'Ons 24', '2026-06-25':'Tor 25', '2026-06-26':'Fre 26' },
+  en: { '2026-06-22':'Mon 22', '2026-06-23':'Tue 23', '2026-06-24':'Wed 24', '2026-06-25':'Thu 25', '2026-06-26':'Fri 26' }
+};
+
+// Translate a UI string by key. Falls back to Swedish, then to the key itself.
+function t(key){
+  var entry = I18N[key];
+  if(!entry) return key;
+  return entry[state.lang] || entry.sv || key;
+}
+// Translate a function-valued (parameterised) entry, e.g. counts embedded in a sentence.
+function tf(key){
+  var entry = I18N[key];
+  if(!entry) return key;
+  var fn = entry[state.lang] || entry.sv;
+  if(typeof fn !== 'function') return key;
+  return fn.apply(null, Array.prototype.slice.call(arguments, 1));
+}
+// Translate a topic name for display (data key stays Swedish).
+function topicLabel(name){
+  if(state.lang === 'en' && TOPIC_I18N[name]) return TOPIC_I18N[name];
+  return name;
+}
+
+// Apply the current language across the whole UI. Called at load and on toggle.
+function applyLanguage(){
+  document.documentElement.setAttribute('lang', state.lang);
+  refreshDayLabels();
+
+  // 1. Static elements tagged with data-i18n / data-i18n-ph / data-i18n-title
+  document.querySelectorAll('[data-i18n]').forEach(function(el){
+    var key = el.getAttribute('data-i18n');
+    if(I18N[key]) el.textContent = t(key);
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(function(el){
+    var key = el.getAttribute('data-i18n-ph');
+    if(I18N[key]) el.setAttribute('placeholder', t(key));
+  });
+  document.querySelectorAll('[data-i18n-title]').forEach(function(el){
+    var key = el.getAttribute('data-i18n-title');
+    if(I18N[key]){ el.setAttribute('title', t(key)); el.setAttribute('aria-label', t(key)); }
+  });
+
+  // 2. The results-info tooltip (title + aria-label on the button, plus its tip text)
+  var infoBtn = document.getElementById('urvalInfo');
+  if(infoBtn){
+    infoBtn.setAttribute('title', t('resultsInfoTitle'));
+    infoBtn.setAttribute('aria-label', t('resultsInfoTitle'));
+  }
+  // Header byline: only the prefix word ("av"/"by") changes, the brand stays
+  var brandBy = document.getElementById('brandBy');
+  if(brandBy) brandBy.innerHTML = (state.lang === 'en' ? 'by ' : 'av ') + '<strong>Narva Communications</strong>';
+
+  // 3. Day/time popover: update text in place (do NOT rebuild — handlers are bound to nodes)
+  if(dayTimePopoverEl){
+    var sectionHeads = dayTimePopoverEl.querySelectorAll('.daytime-section-h');
+    if(sectionHeads[0]) sectionHeads[0].textContent = t('dayHeading');
+    if(sectionHeads[1]) sectionHeads[1].textContent = t('timeHeading');
+    var allDaysLbl = dayTimePopoverEl.querySelector('.daytime-day-btn[data-day="all"] .ddb-label');
+    if(allDaysLbl) allDaysLbl.textContent = t('allDays');
+    DAYS.forEach(function(d){
+      var lbl = dayTimePopoverEl.querySelector('.daytime-day-btn[data-day="' + d + '"] .ddb-label');
+      if(lbl) lbl.textContent = DAY_LABELS[d];
+    });
+    var presetMap = { all: 'wholeDay', fm: 'morning', em: 'afternoon', kvall: 'evening', custom: 'customTime' };
+    Object.keys(presetMap).forEach(function(p){
+      var btn = dayTimePopoverEl.querySelector('.time-preset[data-preset="' + p + '"] span:first-child');
+      if(btn) btn.textContent = t(presetMap[p]);
+    });
+    var customRows = dayTimePopoverEl.querySelectorAll('.time-custom-row');
+    if(customRows[0]) customRows[0].querySelector('span').textContent = t('fromLabel');
+    if(customRows[1]) customRows[1].querySelector('span').textContent = t('toLabel');
+  }
+
+  // 4. More popover: update text in place
+  if(morePopoverEl){
+    var moreMap = [['now','nowItem','nowSub'],['geo','nearMe','nearMeSub'],['nunaesta','nowNext','nowNextSub']];
+    moreMap.forEach(function(row){
+      var item = morePopoverEl.querySelector('.more-item[data-more="' + row[0] + '"]');
+      if(item){
+        var lbl = item.querySelector('.more-item-label');
+        var sub = item.querySelector('.more-item-sub');
+        if(lbl) lbl.textContent = t(row[1]);
+        if(sub) sub.textContent = t(row[2]);
+      }
+    });
+  }
+
+  // 5. Export popover (built once at body level): update text in place
+  var exportPop = document.getElementById('exportPopover');
+  if(exportPop){
+    var expMap = [['ics','exportIcsLabel','exportIcsSub'],['pdf','exportPdfLabel','exportPdfSub'],['excel','exportExcelLabel','exportExcelSub'],['word','exportWordLabel','exportWordSub']];
+    expMap.forEach(function(row){
+      var item = exportPop.querySelector('.more-item[data-export="' + row[0] + '"]');
+      if(item){
+        var lbl = item.querySelector('.more-item-label');
+        var sub = item.querySelector('.more-item-sub');
+        if(lbl) lbl.textContent = t(row[1]);
+        if(sub) sub.textContent = t(row[2]);
+      }
+    });
+  }
+
+  // 6. The Dagar/tid trigger label reflects current selection — recompute
+  if(typeof updateDayTimeBtnLabel === 'function') updateDayTimeBtnLabel();
+  // Rebuild filter dropdowns so their default options ("All types" etc.) switch language
+  if(typeof populateFilterModal === 'function') populateFilterModal();
+
+  // 7. Re-render dynamic surfaces so list cards, detail view, counts, sort chips refresh
+  if(typeof renderProfileMenu === 'function') renderProfileMenu();
+  if(typeof render === 'function') render();
+  // Re-render overview (it has its own builder)
+  if(typeof renderOverview === 'function') renderOverview();
+  // Re-render the Nu & nästa desktop panel (shown when no event is selected)
+  if(typeof renderNuNasta === 'function'){
+    if(!state.selectedId) renderNuNasta('nunaestaDesktopBody');
+    var nnMob = document.getElementById('nunaestaMobileOverlay');
+    if(nnMob && nnMob.classList.contains('open')) renderNuNasta('nunaestaMobileBody');
+  }
+  // If the topic modal is open, re-render its rows (topic labels + weight labels)
+  var topicModalEl = document.getElementById('topicModal');
+  if(topicModalEl && topicModalEl.classList.contains('open') && typeof buildTopicPanel === 'function') buildTopicPanel();
+  // If an org profile modal is open, re-render it
+  var orgModal = document.getElementById('orgProfileModal');
+  if(orgModal && orgModal.classList.contains('open') && typeof orgProfileCurrentName !== 'undefined' && orgProfileCurrentName && typeof openOrgProfile === 'function') openOrgProfile(orgProfileCurrentName);
 }
 
 var LS_PAGESIZE = 'influera_almedal_pagesize_v1';
@@ -1380,11 +1860,19 @@ function renderProfileMenu(){
     '</div>';
   }).join('') +
   '<div class="profile-divider"></div>' +
-  '<div class="profile-action" id="addProfile">+ Ny profil</div>' +
-  (state.profile !== 'Gäst' ? '<div class="profile-action" id="deleteProfile" style="color:var(--red)">Ta bort denna profil</div>' : '') +
+  '<div class="profile-action" id="addProfile">' + t('newProfile') + '</div>' +
+  (state.profile !== 'Gäst' ? '<div class="profile-action" id="deleteProfile" style="color:var(--red)">' + t('deleteProfile') + '</div>' : '') +
   '<div class="profile-divider"></div>' +
   '<div class="font-size-row">' +
-    '<span class="font-size-label">Textstorlek</span>' +
+    '<span class="font-size-label">' + t('language') + '</span>' +
+    '<div class="font-size-btns">' +
+      '<button class="font-size-btn '+(state.lang==='sv'?'active':'')+'" data-lang="sv">SV</button>' +
+      '<button class="font-size-btn '+(state.lang==='en'?'active':'')+'" data-lang="en">EN</button>' +
+    '</div>' +
+  '</div>' +
+  '<div class="profile-divider"></div>' +
+  '<div class="font-size-row">' +
+    '<span class="font-size-label">' + t('textSize') + '</span>' +
     '<div class="font-size-btns">' +
       '<button class="font-size-btn '+(state.fontSize==='sm'?'active':'')+'" data-fs="sm" aria-label="Mindre text">A−</button>' +
       '<button class="font-size-btn '+(state.fontSize==='md'?'active':'')+'" data-fs="md" aria-label="Normal text">A</button>' +
@@ -1393,8 +1881,8 @@ function renderProfileMenu(){
     '</div>' +
   '</div>' +
   '<div class="profile-divider"></div>' +
-  '<div class="profile-action" id="exportData">Exportera mina data</div>' +
-  '<div class="profile-action" id="importData">Importera mina data</div>';
+  '<div class="profile-action" id="exportData">' + t('exportData') + '</div>' +
+  '<div class="profile-action" id="importData">' + t('importData') + '</div>';
 
   menu.querySelectorAll('.profile-item').forEach(function(it){
     it.addEventListener('click', function(){
@@ -1414,7 +1902,7 @@ function renderProfileMenu(){
   });
   var del = document.getElementById('deleteProfile');
   if(del) del.addEventListener('click', function(){
-    if(confirm('Ta bort profilen "'+state.profile+'"? Agendan och vikterna försvinner. Detta går inte att ångra.')){
+    if(confirm(tf('confirmDeleteProfile', state.profile))){
       delete profiles[state.profile];
       saveProfiles();
       state.profile = 'Gäst';
@@ -1427,6 +1915,16 @@ function renderProfileMenu(){
   menu.querySelectorAll('.font-size-btn').forEach(function(b){
     b.addEventListener('click', function(ev){
       ev.stopPropagation();
+      var lang = b.getAttribute('data-lang');
+      if(lang){
+        if(lang !== state.lang){
+          state.lang = lang;
+          saveLang();
+          applyLanguage();
+        }
+        renderProfileMenu();
+        return;
+      }
       state.fontSize = b.getAttribute('data-fs');
       applyFontSize();
       saveFontSize();
@@ -1463,9 +1961,9 @@ function renderProfileMenu(){
       a.click();
       document.body.removeChild(a);
       setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
-      showToast('Dina data har laddats ner som backup-fil.', null);
+      showToast(t('toastDataDownloaded'), null);
     } catch(err){
-      showToast('Kunde inte exportera. Försök igen.', null);
+      showToast(t('toastExportFailed'), null);
     }
   });
 
@@ -1473,7 +1971,7 @@ function renderProfileMenu(){
   var imp = document.getElementById('importData');
   if(imp) imp.addEventListener('click', function(){
     menu.classList.remove('open');
-    if(!confirm('Detta skriver över alla profiler, agendor och inställningar du har sparat just nu. Fortsätt?')) return;
+    if(!confirm(t('confirmImportOverwrite'))) return;
     var input = document.createElement('input');
     input.type = 'file';
     input.accept = 'application/json,.json';
@@ -1485,7 +1983,7 @@ function renderProfileMenu(){
         try {
           var data = JSON.parse(reader.result);
           if(!data || data.app !== 'almedalskartan' || !data.profiles){
-            showToast('Filen verkar inte vara en backup från Almedalskartan.', null);
+            showToast(t('toastNotBackup'), null);
             return;
           }
           // Apply imported data
@@ -1513,9 +2011,9 @@ function renderProfileMenu(){
           }
           renderProfileMenu();
           render();
-          showToast('Dina data har importerats.', null);
+          showToast(t('toastDataImported'), null);
         } catch(err){
-          showToast('Kunde inte läsa filen. Är det rätt JSON-format?', null);
+          showToast(t('toastReadFailed'), null);
         }
       };
       reader.readAsText(file);
@@ -1558,14 +2056,14 @@ document.getElementById('profileNameInput').addEventListener('keydown', function
 });
 
 // Day labels
-var DAY_LABELS = {
-  '2026-06-22':'Mån 22',
-  '2026-06-23':'Tis 23',
-  '2026-06-24':'Ons 24',
-  '2026-06-25':'Tor 25',
-  '2026-06-26':'Fre 26'
-};
-var DAYS = Object.keys(DAY_LABELS);
+// DAY_LABELS is now language-aware. It's a live getter that reflects the current language.
+// Code that reads DAY_LABELS[date] keeps working because we expose it as an object that is
+// rebuilt on language change. DAYS stays the fixed list of date keys.
+var DAY_LABELS = DAY_LABELS_I18N[state.lang] || DAY_LABELS_I18N.sv;
+var DAYS = Object.keys(DAY_LABELS_I18N.sv);
+function refreshDayLabels(){
+  DAY_LABELS = DAY_LABELS_I18N[state.lang] || DAY_LABELS_I18N.sv;
+}
 
 // Weather: fetched directly from SMHI client-side. No server-side build step needed,
 // so changes to weather don't trigger Netlify builds and credits aren't burned.
@@ -1803,12 +2301,13 @@ var dayTimePopoverEl = document.createElement('div');
 dayTimePopoverEl.className = 'daytime-popover';
 dayTimePopoverEl.id = 'dayTimePopover';
 dayTimePopoverEl.setAttribute('role', 'menu');
-dayTimePopoverEl.innerHTML =
-  '<div class="daytime-section-h">Dag</div>' +
+function buildDayTimePopover(){
+  dayTimePopoverEl.innerHTML =
+  '<div class="daytime-section-h">' + t('dayHeading') + '</div>' +
   '<div class="daytime-day-grid" id="dayTimeDayGrid">' +
-    '<button class="daytime-day-btn active" data-day="all" type="button"><span class="ddb-label">Alla dagar</span></button>' +
+    '<button class="daytime-day-btn' + (state.day==='all'?' active':'') + '" data-day="all" type="button"><span class="ddb-label">' + t('allDays') + '</span></button>' +
     DAYS.map(function(d){
-      return '<button class="daytime-day-btn" data-day="' + d + '" type="button">' +
+      return '<button class="daytime-day-btn' + (state.day===d?' active':'') + '" data-day="' + d + '" type="button">' +
         '<span class="ddb-label">' + DAY_LABELS[d] + '</span>' +
         '<span class="ddb-weather" data-day-weather="' + d + '"></span>' +
       '</button>';
@@ -1817,35 +2316,37 @@ dayTimePopoverEl.innerHTML =
 
   '<div class="daytime-divider"></div>' +
 
-  '<div class="daytime-section-h">Tid på dagen</div>' +
+  '<div class="daytime-section-h">' + t('timeHeading') + '</div>' +
   '<button class="time-preset active" data-preset="all" type="button" role="menuitemradio" aria-checked="true">' +
-    '<span>Hela dagen</span><span class="time-preset-sub">00-24</span><span class="check">✓</span>' +
+    '<span>' + t('wholeDay') + '</span><span class="time-preset-sub">00-24</span><span class="check">✓</span>' +
   '</button>' +
   '<button class="time-preset" data-preset="fm" type="button" role="menuitemradio" aria-checked="false">' +
-    '<span>Förmiddag</span><span class="time-preset-sub">08-12</span>' +
+    '<span>' + t('morning') + '</span><span class="time-preset-sub">08-12</span>' +
   '</button>' +
   '<button class="time-preset" data-preset="em" type="button" role="menuitemradio" aria-checked="false">' +
-    '<span>Eftermiddag</span><span class="time-preset-sub">12-17</span>' +
+    '<span>' + t('afternoon') + '</span><span class="time-preset-sub">12-17</span>' +
   '</button>' +
   '<button class="time-preset" data-preset="kvall" type="button" role="menuitemradio" aria-checked="false">' +
-    '<span>Kväll</span><span class="time-preset-sub">17-23</span>' +
+    '<span>' + t('evening') + '</span><span class="time-preset-sub">17-23</span>' +
   '</button>' +
   '<div class="time-divider"></div>' +
   '<button class="time-preset" data-preset="custom" type="button" role="menuitem">' +
-    '<span>Egen tid…</span>' +
+    '<span>' + t('customTime') + '</span>' +
   '</button>' +
   '<div class="time-custom" id="timeCustom">' +
     '<div class="time-custom-row">' +
-      '<span style="text-transform:uppercase;letter-spacing:1.3px;font-size:9.5px">Från</span>' +
+      '<span style="text-transform:uppercase;letter-spacing:1.3px;font-size:9.5px">' + t('fromLabel') + '</span>' +
       '<input type="range" id="timeFromRange" min="0" max="24" step="0.5" value="0">' +
       '<span class="time-custom-val" id="timeFromVal">00:00</span>' +
     '</div>' +
     '<div class="time-custom-row">' +
-      '<span style="text-transform:uppercase;letter-spacing:1.3px;font-size:9.5px">Till</span>' +
+      '<span style="text-transform:uppercase;letter-spacing:1.3px;font-size:9.5px">' + t('toLabel') + '</span>' +
       '<input type="range" id="timeToRange" min="0" max="24" step="0.5" value="24">' +
       '<span class="time-custom-val" id="timeToVal">24:00</span>' +
     '</div>' +
   '</div>';
+}
+buildDayTimePopover();
 document.body.appendChild(dayTimePopoverEl);
 
 // "Mer"-popover: hides Nu, Nära mig, Nu & nästa behind a dropdown
@@ -1853,19 +2354,22 @@ var morePopoverEl = document.createElement('div');
 morePopoverEl.className = 'more-popover';
 morePopoverEl.id = 'morePopover';
 morePopoverEl.setAttribute('role', 'menu');
-morePopoverEl.innerHTML =
+function buildMorePopover(){
+  morePopoverEl.innerHTML =
   '<button class="more-item" type="button" data-more="now">' +
-    '<span class="more-item-label">Nu</span>' +
-    '<span class="more-item-sub">Filtrera till det som pågår nu</span>' +
+    '<span class="more-item-label">' + t('nowItem') + '</span>' +
+    '<span class="more-item-sub">' + t('nowSub') + '</span>' +
   '</button>' +
   '<button class="more-item" type="button" data-more="geo">' +
-    '<span class="more-item-label">Nära mig</span>' +
-    '<span class="more-item-sub">Sortera efter avstånd från din position</span>' +
+    '<span class="more-item-label">' + t('nearMe') + '</span>' +
+    '<span class="more-item-sub">' + t('nearMeSub') + '</span>' +
   '</button>' +
   '<button class="more-item" type="button" data-more="nunaesta">' +
-    '<span class="more-item-label">Nu &amp; nästa</span>' +
-    '<span class="more-item-sub">Realtidsvy över vad som pågår och vad som börjar snart</span>' +
+    '<span class="more-item-label">' + t('nowNext') + '</span>' +
+    '<span class="more-item-sub">' + t('nowNextSub') + '</span>' +
   '</button>';
+}
+buildMorePopover();
 document.body.appendChild(morePopoverEl);
 
 var moreBtn = document.getElementById('moreBtn');
@@ -2247,7 +2751,7 @@ var urvalInfoBtn = document.getElementById('urvalInfo');
 if(urvalInfoBtn){
   var urvalTipEl = document.createElement('div');
   urvalTipEl.className = 'urval-tip';
-  urvalTipEl.textContent = 'Sökträffar visar programpunkter som matchar din sökning och dina filter. Ämnesvikt påverkar bara ordningen, inte antalet. Använd Filter för att begränsa antalet.';
+  urvalTipEl.textContent = t('resultsInfoBody');
   document.body.appendChild(urvalTipEl);
 
   function positionUrvalTip(){
@@ -2372,7 +2876,7 @@ exportMenuBtn.addEventListener('click', function(e){
   e.preventDefault();
   e.stopPropagation();
   var ids = profiles[state.profile].agenda || [];
-  if(ids.length === 0){ alert('Agendan är tom.'); return; }
+  if(ids.length === 0){ alert(t('agendaEmpty')); return; }
   var willOpen = !exportPopoverEl.classList.contains('open');
   if(willOpen){
     exportPopoverEl.classList.add('open');
@@ -2390,7 +2894,7 @@ exportPopoverEl.addEventListener('click', function(e){
   exportPopoverEl.classList.remove('open');
   exportMenuBtn.setAttribute('aria-expanded', 'false');
   var events = getAgendaEventsForExport();
-  if(events.length === 0){ alert('Agendan är tom.'); return; }
+  if(events.length === 0){ alert(t('agendaEmpty')); return; }
   var fname = 'almedalskartan_agenda_' + state.profile;
   if(fmt === 'ics') downloadICS(events, fname + '.ics');
   else if(fmt === 'pdf') exportAgendaPDF(events);
@@ -2411,7 +2915,7 @@ window.addEventListener('scroll', function(){
   if(exportPopoverEl.classList.contains('open')) positionExportPopover();
 }, true);
 document.getElementById('clearAgendaBtn').addEventListener('click', function(){
-  if(!confirm('Töm hela agendan för "'+state.profile+'"?')) return;
+  if(!confirm(tf('confirmClearAgenda', state.profile))) return;
   profiles[state.profile].agenda = [];
   saveProfiles();
   renderProfileMenu();
@@ -2513,31 +3017,31 @@ function buildTopicPanel(){
   var bannerHtml = '';
   if(state.weightsMuted && stored > 0){
     bannerHtml = '<div style="background:rgba(220,69,32,0.08);border:1px solid var(--influera-red);padding:9px 12px;margin-bottom:10px;border-radius:2px;display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:11.5px">' +
-      '<span style="color:var(--influera-red);letter-spacing:0.3px"><strong>'+stored+' val</strong> är pausade för sessionen. Sparade i profilen.</span>' +
-      '<button class="chip" id="topicReactivate" style="padding:4px 9px;font-size:10px;letter-spacing:1px">Aktivera igen</button>' +
+      '<span style="color:var(--influera-red);letter-spacing:0.3px"><strong>'+stored+' '+t('topicsPaused1')+'</strong> '+t('topicsPaused2')+'</span>' +
+      '<button class="chip" id="topicReactivate" style="padding:4px 9px;font-size:10px;letter-spacing:1px">'+t('topicsReactivate')+'</button>' +
     '</div>';
   }
   topicBody.innerHTML = bannerHtml + TOPICS.map(function(pair){
     var name = pair[0], count = pair[1];
     var w = weights[name] || 0;
-    var labels = ['Av','Lite','Mer','Max'];
+    var labels = [t('weightOff'), t('weightLow'), t('weightMore'), t('weightMax')];
     var segs = '';
     for(var i=0;i<4;i++){
       var on = i>0 && i<=w;
       var lvl = i===1?'lv1':i===2?'lv2':i===3?'lv3':'';
       var dot = i===0 ? '<div style="width:6px;height:6px;border-radius:50%;background:'+(w===0?'#000000':'rgba(244,239,227,0.3)')+';margin:auto"></div>' : '';
-      segs += '<button class="spak-seg '+(on?'on '+lvl:'')+'" data-topic="'+escapeAttr(name)+'" data-val="'+i+'" title="'+labels[i]+'">'+dot+'</button>';
+      segs += '<button class="spak-seg '+(on?'on '+lvl:'')+'" data-topic="'+escapeAttr(name)+'" data-val="'+i+'" title="'+escapeAttr(labels[i])+'">'+dot+'</button>';
     }
     // Dim row visually when muted
     var rowStyle = state.weightsMuted && w > 0 ? 'opacity:0.5' : '';
     return '<div class="topic-row '+(w>0?'active':'')+'" style="'+rowStyle+'">' +
       '<div class="topic-info">' +
-        '<span class="topic-name">'+escapeHtml(name)+'</span>' +
+        '<span class="topic-name">'+escapeHtml(topicLabel(name))+'</span>' +
         '<span class="topic-count">'+count+'</span>' +
       '</div>' +
       '<div class="spak">' +
         '<div class="spak-track">'+segs+'</div>' +
-        '<div class="spak-label '+(w>0?'active':'')+'">'+labels[w]+'</div>' +
+        '<div class="spak-label '+(w>0?'active':'')+'">'+escapeHtml(labels[w])+'</div>' +
       '</div>' +
     '</div>';
   }).join('');
@@ -2587,7 +3091,7 @@ function updateTopicResetButton(){
     btn.style.opacity = '0.4';
     btn.style.cursor = 'default';
   } else if(topicResetClicks === 0 && !state.weightsMuted){
-    btn.textContent = 'Nollställ för sessionen';
+    btn.textContent = t('topicResetSession');
     btn.disabled = false;
     btn.style.opacity = '';
     btn.style.cursor = '';
@@ -2595,7 +3099,7 @@ function updateTopicResetButton(){
     btn.style.borderColor = '';
   } else {
     // Either weights are muted (one click done) or user has reached step 2
-    btn.textContent = 'Radera permanent för profil';
+    btn.textContent = t('topicDeletePermanent');
     btn.disabled = false;
     btn.style.opacity = '';
     btn.style.cursor = '';
@@ -3111,24 +3615,24 @@ function render(){
     if(state.now){
       var n2 = nuWindow();
       if(n2.inEvent){
-        emptyTitle = 'Inga programpunkter just nu';
-        emptyBody = 'Inget startar inom 15 minuter bakåt eller den närmaste timmen.';
+        emptyTitle = t('emptyNowTitle');
+        emptyBody = t('emptyNowBody');
       } else {
-        emptyTitle = 'Utanför veckan';
-        emptyBody = 'Almedalsveckan pågår 22 till 26 juni 2026. "Nu" filtrerar i realtid under veckan, baserat på enhetens klocka.';
+        emptyTitle = t('emptyOutsideTitle');
+        emptyBody = t('emptyOutsideBody');
       }
     } else if(state.q){
       // Search returned nothing
-      emptyTitle = 'Inga träffar på "' + escapeHtml(state.q) + '"';
-      emptyBody = 'Pröva ett bredare sökord, kontrollera stavningen, eller återställ filtren om du har aktiverat någon avgränsning.';
+      emptyTitle = t('emptySearchTitle') + ' "' + escapeHtml(state.q) + '"';
+      emptyBody = t('emptySearchBody');
       showResetBtn = true;
     } else {
-      emptyTitle = 'Inga programpunkter matchar dina filter';
-      emptyBody = 'Pröva att vidga tidsintervallet, byta dag eller återställa filtren.';
+      emptyTitle = t('emptyFilterTitle');
+      emptyBody = t('emptyFilterBody');
       showResetBtn = true;
     }
     var resetBtnHtml = showResetBtn
-      ? '<button class="chip alt" id="emptyResetBtn" style="margin-top:14px" type="button">Återställ alla filter</button>'
+      ? '<button class="chip alt" id="emptyResetBtn" style="margin-top:14px" type="button">' + t('resetAllBtn') + '</button>'
       : '';
     listEl.innerHTML = conflictBanner +
       '<div class="empty empty-rich">' +
@@ -3180,8 +3684,8 @@ function render(){
           (function(){
             var lvl = pct >= 67 ? 3 : (pct >= 34 ? 2 : 1);
             var cls = 'card-score lvl-' + lvl;
-            return '<div class="' + cls + '" title="Matchning mot dina ämnesvikter">' +
-              '<span class="match-label">Match</span>' +
+            return '<div class="' + cls + '" title="' + escapeAttr(state.lang === 'en' ? 'Match against your topic weights' : 'Matchning mot dina ämnesvikter') + '">' +
+              '<span class="match-label">' + t('matchLabel') + '</span>' +
               '<div class="match-bars">' +
                 '<span class="match-bar' + (lvl >= 1 ? ' on' : '') + '"></span>' +
                 '<span class="match-bar' + (lvl >= 2 ? ' on' : '') + '"></span>' +
@@ -3199,8 +3703,8 @@ function render(){
         walkNote +
         '<div class="card-meta">' +
           '<div class="card-meta-tags">' +
-            (e.amne1 ? '<span class="tag primary">'+escapeHtml(e.amne1)+'</span>' : '') +
-            (e.amne2 ? '<span class="tag">'+escapeHtml(e.amne2)+'</span>' : '') +
+            (e.amne1 ? '<span class="tag primary">'+escapeHtml(topicLabel(e.amne1))+'</span>' : '') +
+            (e.amne2 ? '<span class="tag">'+escapeHtml(topicLabel(e.amne2))+'</span>' : '') +
             (e.typ ? '<span class="tag t-type">'+escapeHtml(e.typ)+'</span>' : '') +
           '</div>' +
           saveBtn +
@@ -3317,7 +3821,7 @@ function selectEvent(id, panTo){
         items += '<div class="conflict-item">' +
           '<span class="conflict-item-icon">!</span>' +
           '<div class="conflict-item-text">' +
-            'Krockar i tid med <strong data-jump="' + o.withId + '">' + escapeHtml(o.withRubrik) + '</strong>' +
+            t('clashesWith') + ' <strong data-jump="' + o.withId + '">' + escapeHtml(o.withRubrik) + '</strong>' +
             '<div class="conflict-item-meta">' + escapeHtml(formatHM(o.withStart)) + (o.withSlut ? '-' + escapeHtml(formatHM(o.withSlut)) : '') + '</div>' +
           '</div>' +
         '</div>';
@@ -3326,14 +3830,14 @@ function selectEvent(id, panTo){
         items += '<div class="conflict-item">' +
           '<span class="conflict-item-icon" style="background:#C9A055">⤳</span>' +
           '<div class="conflict-item-text">' +
-            tw.walkMin + ' min promenad från <strong data-jump="' + tw.fromId + '">' + escapeHtml(tw.fromRubrik) + '</strong>' +
-            ' som slutar ' + escapeHtml(formatHM(tw.fromSlut)) +
-            '<div class="conflict-item-meta">Bara ' + tw.gapMin + ' min lucka, beräknat på 4 km/h i Visby</div>' +
+            tw.walkMin + ' ' + t('walkFrom') + ' <strong data-jump="' + tw.fromId + '">' + escapeHtml(tw.fromRubrik) + '</strong>' +
+            ' ' + t('endsAt') + ' ' + escapeHtml(formatHM(tw.fromSlut)) +
+            '<div class="conflict-item-meta">' + t('onlyGap') + ' ' + tw.gapMin + ' ' + t('gapBuffer') + '</div>' +
           '</div>' +
         '</div>';
       });
       conflictBlock = '<div class="d-conflicts">' +
-        '<div class="d-label">Konflikter i din agenda</div>' +
+        '<div class="d-label">' + t('conflictsHeading') + '</div>' +
         items +
       '</div>';
     }
@@ -3352,7 +3856,7 @@ function selectEvent(id, panTo){
       '</div>';
     }).join('') + '</div>';
   } else {
-    medHtml = '<div class="d-text d-muted">Ingen medverkande angiven i programmet.</div>';
+    medHtml = '<div class="d-text d-muted">'+t('noParticipants')+'</div>';
   }
 
   var linksRow = '';
@@ -3365,12 +3869,12 @@ function selectEvent(id, panTo){
   for(var k in DAY_LABELS){ if(e.dag.indexOf(k)===0){ dayLabel = DAY_LABELS[k]; break; } }
 
   detailEl.innerHTML =
-    '<button class="mobile-back" id="mobileBack"><span class="mb-arrow">←</span><span>Tillbaka till listan</span></button>' +
+    '<button class="mobile-back" id="mobileBack"><span class="mb-arrow">←</span><span>'+t('backToList')+'</span></button>' +
     '<div class="detail-head">' +
       '<div class="d-eyebrow">' +
-        '<span>Programpunkt' + (hasW && score>0 ? (function(){
+        '<span>' + t('programItem') + (hasW && score>0 ? (function(){
           var p = scorePercent(e);
-          var lbl = p >= 67 ? 'Hög matchning' : (p >= 34 ? 'Delvis matchning' : 'Låg matchning');
+          var lbl = p >= 67 ? t('matchHigh') : (p >= 34 ? t('matchPartial') : t('matchLow'));
           return ' • ' + lbl;
         })() : '') + '</span>' +
         '<button class="d-close" id="detClose">✕</button>' +
@@ -3382,34 +3886,34 @@ function selectEvent(id, panTo){
         (e.typ ? '<span class="d-muted">| '+escapeHtml(e.typ)+'</span>' : '') +
       '</div>' +
       '<div class="d-pill-row" style="margin-top:10px">' +
-        (e.amne1 ? '<span class="d-pill on">'+escapeHtml(e.amne1)+'</span>' : '') +
-        (e.amne2 ? '<span class="d-pill">'+escapeHtml(e.amne2)+'</span>' : '') +
-        (e.sprak ? '<span class="d-pill">Språk: '+escapeHtml(e.sprak)+'</span>' : '') +
+        (e.amne1 ? '<span class="d-pill on">'+escapeHtml(topicLabel(e.amne1))+'</span>' : '') +
+        (e.amne2 ? '<span class="d-pill">'+escapeHtml(topicLabel(e.amne2))+'</span>' : '') +
+        (e.sprak ? '<span class="d-pill">'+t('langLabel')+': '+escapeHtml(e.sprak)+'</span>' : '') +
       '</div>' +
       '<div class="d-actions">' +
-        '<button class="d-btn '+(saved?'saved':'')+'" id="saveBtn">'+(saved?'✓ Sparad'+(state.profile!=='Gäst'?' ('+escapeHtml(state.profile)+')':''):'Spara till agenda')+'</button>' +
-        '<button class="d-btn alt" id="icsBtn">Lägg i kalender (.ics)</button>' +
-        (e.lat && e.lon ? '<button class="d-btn alt" id="panBtn">Visa på karta</button>' : '') +
-        (e.lat && e.lon ? '<button class="d-btn alt" id="walkBtn">Vägbeskrivning</button>' : '') +
+        '<button class="d-btn '+(saved?'saved':'')+'" id="saveBtn">'+(saved?'✓ '+t('savedToAgenda')+(state.profile!=='Gäst'?' ('+escapeHtml(state.profile)+')':''):t('saveToAgenda'))+'</button>' +
+        '<button class="d-btn alt" id="icsBtn">'+t('addToCalendar')+'</button>' +
+        (e.lat && e.lon ? '<button class="d-btn alt" id="panBtn">'+t('showOnMap')+'</button>' : '') +
+        (e.lat && e.lon ? '<button class="d-btn alt" id="walkBtn">'+t('walkDirections')+'</button>' : '') +
       '</div>' +
       '<a class="d-btn hotline" href="https://www.narva.se/almedalen" target="_blank" rel="noopener" style="margin-top:10px;display:inline-flex;align-items:center;gap:7px">' +
         '<span style="display:inline-block;width:8px;height:8px;background:var(--accent);border-radius:50%"></span>' +
-        'Kontakta Narva i Almedalen' +
+        t('contactNarva') +
       '</a>' +
     '</div>' +
 
     conflictBlock +
 
     (e.plats ? '<div class="d-section">' +
-      '<div class="d-label">Plats</div>' +
+      '<div class="d-label">'+t('dPlats')+'</div>' +
       '<div class="d-text">'+escapeHtml(e.plats)+(e.platsbeskr ? '\n<span class="d-muted">'+escapeHtml(e.platsbeskr)+'</span>' : '')+'</div>' +
       (typeof e.lat !== 'number' || typeof e.lon !== 'number'
-        ? '<div class="d-no-coords">Den här programpunkten saknar exakt koordinat och visas därför inte på kartan. Adressen ovan är från det officiella programmet.</div>'
+        ? '<div class="d-no-coords">'+t('noCoords')+'</div>'
         : '') +
     '</div>' : '') +
 
     (e.arr && e.arr.length ? '<div class="d-section">' +
-      '<div class="d-label">Arrangör</div>' +
+      '<div class="d-label">'+t('dArrangor')+'</div>' +
       '<div class="d-text">'+e.arr.map(function(orgName){
         var status = orgStatus(orgName);
         var prefix = '';
@@ -3435,10 +3939,10 @@ function selectEvent(id, panTo){
           else nDeb++;
         });
         var legendBits = [];
-        if(nDeb > 0) legendBits.push('<span class="org-legend-item"><span class="org-mark debutant">○</span>ny 2026</span>');
-        if(nErf > 0) legendBits.push('<span class="org-legend-item"><span class="org-mark erfaren">◐</span>1-4 år tidigare</span>');
-        if(nVet > 0) legendBits.push('<span class="org-legend-item"><span class="org-mark veteran">●</span>5+ år tidigare</span>');
-        legendBits.push('<button class="org-legend-link" data-action="org-details" data-event-id="' + escapeAttr(e.id) + '">visa arrangörshistorik</button>');
+        if(nDeb > 0) legendBits.push('<span class="org-legend-item"><span class="org-mark debutant">○</span>'+t('legendNew2026')+'</span>');
+        if(nErf > 0) legendBits.push('<span class="org-legend-item"><span class="org-mark erfaren">◐</span>'+t('legend14')+'</span>');
+        if(nVet > 0) legendBits.push('<span class="org-legend-item"><span class="org-mark veteran">●</span>'+t('legend5plus')+'</span>');
+        legendBits.push('<button class="org-legend-link" data-action="org-details" data-event-id="' + escapeAttr(e.id) + '">'+t('orgHistoryLink')+'</button>');
         return '<div class="org-legend">' + legendBits.join('<span style="color:var(--border)">·</span>') + '</div>' +
           '<div class="org-details-popover" id="orgDetailsPopover-' + escapeAttr(e.id) + '" style="display:none"></div>';
       })() +
@@ -3446,33 +3950,33 @@ function selectEvent(id, panTo){
     '</div>' : '') +
 
     '<div class="d-section">' +
-      '<div class="d-label">Medverkande</div>' +
+      '<div class="d-label">'+t('dMedverkande')+'</div>' +
       medHtml +
     '</div>' +
 
     (e.besk ? '<div class="d-section">' +
-      '<div class="d-label">Samhällsfråga</div>' +
+      '<div class="d-label">'+t('dSamhallsfraga')+'</div>' +
       '<div class="d-text">'+escapeHtml(e.besk)+'</div>' +
     '</div>' : '') +
 
     (e.info && e.info !== e.besk ? '<div class="d-section">' +
-      '<div class="d-label">Mer om evenemanget</div>' +
+      '<div class="d-label">'+t('dMoreAbout')+'</div>' +
       '<div class="d-text">'+escapeHtml(e.info)+'</div>' +
     '</div>' : '') +
 
     '<div class="d-section">' +
-      '<div class="d-label">Praktiskt</div>' +
+      '<div class="d-label">'+t('dPraktiskt')+'</div>' +
       '<div class="d-pill-row">' +
-        (e.tillg ? '<span class="d-pill on">Tillgänglighet: '+escapeHtml(e.tillg)+'</span>' : '') +
-        (e.mat === 'Ja' ? '<span class="d-pill on">Förtäring</span>' : '') +
-        (e.eko === 'Ja' ? '<span class="d-pill on">Miljödiplomerat</span>' : '') +
-        (e.live && e.live !== 'Nej' ? '<span class="d-pill on">Webbsändning</span>' : '') +
+        (e.tillg ? '<span class="d-pill on">'+t('accessibility')+': '+escapeHtml(e.tillg)+'</span>' : '') +
+        (e.mat === 'Ja' ? '<span class="d-pill on">'+t('refreshments')+'</span>' : '') +
+        (e.eko === 'Ja' ? '<span class="d-pill on">'+t('ecoCert')+'</span>' : '') +
+        (e.live && e.live !== 'Nej' ? '<span class="d-pill on">'+t('webcast')+'</span>' : '') +
       '</div>' +
-      (e.kp1n ? '<div class="d-text d-muted" style="margin-top:8px;font-size:11px">Kontakt: '+escapeHtml(e.kp1n)+(e.kp1e?' ('+escapeHtml(e.kp1e)+')':'')+'</div>' : '') +
+      (e.kp1n ? '<div class="d-text d-muted" style="margin-top:8px;font-size:11px">'+t('contact')+': '+escapeHtml(e.kp1n)+(e.kp1e?' ('+escapeHtml(e.kp1e)+')':'')+'</div>' : '') +
     '</div>' +
 
     (same.length ? '<div class="d-section">' +
-      '<div class="d-label">Samma plats, samma dag</div>' +
+      '<div class="d-label">'+t('samePlace')+'</div>' +
       '<div class="same-place-list">' +
       same.slice(0,12).map(function(x){
         return '<div class="spl-item" data-id="'+x.id+'">' +
@@ -3589,10 +4093,10 @@ function selectEvent(id, panTo){
         '</div>';
         pop.innerHTML = rows + disclaimer;
         pop.style.display = 'block';
-        btn.textContent = 'dölj arrangörshistorik';
+        btn.textContent = t('orgHistoryHide');
       } else {
         pop.style.display = 'none';
-        btn.textContent = 'visa arrangörshistorik';
+        btn.textContent = t('orgHistoryLink');
       }
     });
   });
@@ -3660,18 +4164,18 @@ function openOrgProfile(orgName){
   var statusLabel = '';
   var statusCls = '';
   if(status === 'veteran'){
-    statusLabel = 'Veteran (' + yrs + ' år 2009-2025)';
+    statusLabel = t('orgStatusVeteranFmt') + ' (' + yrs + ' ' + t('orgYearsShort') + ')';
     statusCls = 'veteran';
   } else if(status === 'erfaren'){
-    statusLabel = 'Erfaren (' + yrs + ' år 2009-2025)';
+    statusLabel = t('orgStatusExperiencedFmt') + ' (' + yrs + ' ' + t('orgYearsShort') + ')';
     statusCls = 'erfaren';
   } else {
-    statusLabel = 'Ny 2026';
+    statusLabel = t('orgStatusNew');
     statusCls = 'debutant';
   }
 
   orgProfileTitle.textContent = orgName;
-  orgProfileSub.textContent = 'Översikt av arrangörens program och historik. Klick på en programpunkt öppnar den.';
+  orgProfileSub.textContent = t('orgProfileSub');
 
   // Topic counts in 2026
   var topicCounts = {};
@@ -3717,7 +4221,7 @@ function openOrgProfile(orgName){
 
   var eventsHtml = '';
   if(orgEvents.length === 0){
-    eventsHtml = '<div class="org-prof-empty">Inga programpunkter 2026.</div>';
+    eventsHtml = '<div class="org-prof-empty">' + t('orgNoItems') + '</div>';
   } else {
     eventsHtml = '<div class="org-prof-events">' + orgEvents.map(function(ev){
       var dayLabel = '';
@@ -3730,12 +4234,12 @@ function openOrgProfile(orgName){
         '</div>' +
         '<div class="org-prof-event-main">' +
           '<div class="org-prof-event-title">' + escapeHtml(ev.rubrik) +
-            (saved ? '<span class="org-prof-event-saved" title="Redan i din agenda">✓</span>' : '') +
-            (hasConflict ? '<span class="org-prof-event-conflict">krock</span>' : '') +
+            (saved ? '<span class="org-prof-event-saved" title="' + escapeAttr(t('orgSavedTitle')) + '">✓</span>' : '') +
+            (hasConflict ? '<span class="org-prof-event-conflict">' + t('clashBadge') + '</span>' : '') +
           '</div>' +
           '<div class="org-prof-event-place">' +
             (dayLabel ? escapeHtml(dayLabel) + ' · ' : '') +
-            escapeHtml(ev.plats || 'Plats ej angiven') +
+            escapeHtml(ev.plats || t('orgPlaceNotGiven')) +
           '</div>' +
         '</div>' +
       '</div>';
@@ -3743,13 +4247,13 @@ function openOrgProfile(orgName){
   }
 
   var topicsHtml = topTopics.length === 0
-    ? '<div class="org-prof-empty">Inga ämnen taggade.</div>'
+    ? '<div class="org-prof-empty">' + t('orgNoTopics') + '</div>'
     : '<div class="org-prof-tag-list">' + topTopics.map(function(p){
-        return '<span class="org-prof-tag">' + escapeHtml(p[0]) + '<span class="org-prof-tag-n">' + p[1] + '</span></span>';
+        return '<span class="org-prof-tag">' + escapeHtml(topicLabel(p[0])) + '<span class="org-prof-tag-n">' + p[1] + '</span></span>';
       }).join('') + '</div>';
 
   var placesHtml = topPlaces.length === 0
-    ? '<div class="org-prof-empty">Inga platser angivna.</div>'
+    ? '<div class="org-prof-empty">' + t('orgNoPlaces') + '</div>'
     : '<div class="org-prof-tag-list">' + topPlaces.map(function(p){
         return '<span class="org-prof-tag">' + escapeHtml(p[0]) + (p[1] > 1 ? '<span class="org-prof-tag-n">' + p[1] + '</span>' : '') + '</span>';
       }).join('') + '</div>';
@@ -3760,40 +4264,43 @@ function openOrgProfile(orgName){
   orgProfileBody.innerHTML =
     '<div class="org-prof-stat-row">' +
       '<span class="org-prof-status ' + statusCls + '">' + escapeHtml(statusLabel) + '</span>' +
-      '<span class="org-prof-count"><strong>' + orgEvents.length + '</strong> programpunkter 2026</span>' +
+      '<span class="org-prof-count"><strong>' + orgEvents.length + '</strong> ' + t('orgItems2026') + '</span>' +
     '</div>' +
 
     '<div class="org-prof-section">' +
-      '<div class="org-prof-section-h">Programpunkter 2026</div>' +
+      '<div class="org-prof-section-h">' + t('orgSectionItems') + '</div>' +
       eventsHtml +
     '</div>' +
 
     (topTopics.length ? '<div class="org-prof-section">' +
-      '<div class="org-prof-section-h">Vanligaste ämnen</div>' +
+      '<div class="org-prof-section-h">' + t('orgSectionTopics') + '</div>' +
       topicsHtml +
     '</div>' : '') +
 
     (topPlaces.length ? '<div class="org-prof-section">' +
-      '<div class="org-prof-section-h">Vanligaste platser</div>' +
+      '<div class="org-prof-section-h">' + t('orgSectionPlaces') + '</div>' +
       placesHtml +
     '</div>' : '') +
 
     '<div class="org-prof-section">' +
-      '<div class="org-prof-section-h">Historik 2009-2026</div>' +
+      '<div class="org-prof-section-h">' + t('orgSectionHistory') + '</div>' +
       '<div class="org-prof-timeline">' + timelineHtml + '</div>' +
-      '<div class="org-prof-timeline-note">Baserat på exakt namnmatchning. Ifyllda rutor = arrangören finns med det året. Tomma rutor = ingen post i historiken med denna stavning.</div>' +
+      '<div class="org-prof-timeline-note">' + t('orgHistoryNote') + '</div>' +
     '</div>';
 
   // Configure batch-add button
   if(notYetInAgenda.length > 0){
     orgProfileBatchAdd.style.display = '';
-    orgProfileBatchAdd.textContent = 'Lägg till ' + notYetInAgenda.length + ' i agenda';
+    orgProfileBatchAdd.textContent = t('orgAddAll') + ' ' + notYetInAgenda.length + ' ' + t('orgAddAllSuffix');
+    orgProfileBatchAdd.disabled = false;
+    orgProfileBatchAdd.style.opacity = '';
+    orgProfileBatchAdd.style.cursor = '';
     orgProfileBatchAdd.onclick = function(){
       doBatchAddOrgEvents(orgName, notYetInAgenda);
     };
   } else {
     orgProfileBatchAdd.style.display = '';
-    orgProfileBatchAdd.textContent = 'Alla redan i agenda';
+    orgProfileBatchAdd.textContent = t('orgAllInAgenda');
     orgProfileBatchAdd.disabled = true;
     orgProfileBatchAdd.style.opacity = '0.5';
     orgProfileBatchAdd.style.cursor = 'default';
@@ -3844,16 +4351,13 @@ function doBatchAddOrgEvents(orgName, candidateEvents){
   var msg;
   var toAdd;
   if(willConflict.length === 0){
-    msg = 'Lägg till ' + candidateEvents.length + ' programpunkter från ' + orgName + ' i din agenda?';
+    msg = tf('batchAddConfirm', candidateEvents.length, orgName);
     toAdd = candidateEvents;
   } else if(noConflict.length === 0){
-    msg = 'Alla ' + candidateEvents.length + ' programpunkter krockar med din befintliga agenda. Lägg till ändå?';
+    msg = tf('batchAllClash', candidateEvents.length);
     toAdd = candidateEvents;
   } else {
-    msg = noConflict.length + ' programpunkter kan läggas till utan krock. ' +
-          willConflict.length + ' krockar med befintlig agenda.\n\n' +
-          'OK = lägg till alla ' + candidateEvents.length + ' (inklusive krockar).\n' +
-          'Avbryt = lägg bara till de ' + noConflict.length + ' som inte krockar.';
+    msg = tf('batchMixed', noConflict.length, willConflict.length, candidateEvents.length);
     toAdd = null; // handled below
   }
 
@@ -3870,7 +4374,7 @@ function doBatchAddOrgEvents(orgName, candidateEvents){
   setAgenda(ag);
   renderProfileMenu();
   render();
-  showToast('Tillagda i agenda: ' + toAdd.length + ' programpunkter från ' + orgName, null);
+  showToast(tf('batchAddedToast', toAdd.length, orgName), null);
   // Refresh the profile modal so saved-markers update
   if(orgProfileCurrentName === orgName) openOrgProfile(orgName);
 }
@@ -4044,8 +4548,8 @@ function renderNuNastaItem(e, hasWeights){
   var scoreCell = '';
   if(pct > 0){
     var lvl = pct >= 67 ? 3 : (pct >= 34 ? 2 : 1);
-    scoreCell = '<div class="card-score lvl-' + lvl + '" title="Matchning mot dina ämnesvikter" style="position:static">' +
-      '<span class="match-label">Match</span>' +
+    scoreCell = '<div class="card-score lvl-' + lvl + '" title="' + escapeAttr(state.lang === 'en' ? 'Match against your topic weights' : 'Matchning mot dina ämnesvikter') + '" style="position:static">' +
+      '<span class="match-label">' + t('matchLabel') + '</span>' +
       '<div class="match-bars">' +
         '<span class="match-bar' + (lvl >= 1 ? ' on' : '') + '"></span>' +
         '<span class="match-bar' + (lvl >= 2 ? ' on' : '') + '"></span>' +
@@ -4077,10 +4581,10 @@ function renderNuNasta(targetId){
   var clockText = fmtClockHM(now) + ' ' + fmtSwDayShort(now);
   var headHtml =
     '<div class="nunaesta-head">' +
-      '<div class="nunaesta-eyebrow">Nu &amp; nästa</div>' +
-      '<h2 class="nunaesta-title">Vad pågår omkring dig</h2>' +
+      '<div class="nunaesta-eyebrow">' + t('nnEyebrow') + '</div>' +
+      '<h2 class="nunaesta-title">' + t('nnTitle') + '</h2>' +
       '<div class="nunaesta-sub"><span class="nunaesta-clock">' + escapeHtml(clockText) + '</span>' +
-        (override ? '<span class="nunaesta-clock-override" title="Tid satt via URL: ?now=...">simulerad tid</span>' : '') +
+        (override ? '<span class="nunaesta-clock-override" title="Tid satt via URL: ?now=...">' + t('nnSimulated') + '</span>' : '') +
       '</div>' +
     '</div>';
 
@@ -4088,13 +4592,13 @@ function renderNuNasta(targetId){
   var geoBarHtml;
   if(state.userPos){
     geoBarHtml = '<div class="nunaesta-geo-bar has-pos">' +
-      '<span>Position på, listor sorterade efter avstånd.</span>' +
-      '<button class="nunaesta-geo-btn" data-action="geo-off">Stäng av</button>' +
+      '<span>' + t('nnGeoOn') + '</span>' +
+      '<button class="nunaesta-geo-btn" data-action="geo-off">' + t('nnGeoOff') + '</button>' +
     '</div>';
   } else {
     geoBarHtml = '<div class="nunaesta-geo-bar">' +
-      '<span>Tillåt platsbehörighet för avstånd och gångtid.</span>' +
-      '<button class="nunaesta-geo-btn" data-action="geo-on">Tillåt</button>' +
+      '<span>' + t('nnGeoPrompt') + '</span>' +
+      '<button class="nunaesta-geo-btn" data-action="geo-on">' + t('nnGeoAllow') + '</button>' +
     '</div>';
   }
 
@@ -4110,8 +4614,8 @@ function renderNuNasta(targetId){
       dayLabel = fmtSwDayShort(d);
     }
     var msg = p.status === 'before-week'
-      ? 'Almedalsveckan börjar ' + escapeHtml(dayLabel) + '. Här är ett urval från första dagen att förbereda sig med.'
-      : 'Almedalsveckan är slut för i år. Här är ett urval från sista dagen.';
+      ? t('nnWeekStarts') + ' ' + escapeHtml(dayLabel) + t('nnWeekStartsTail')
+      : t('nnWeekOver');
     sectionsHtml =
       '<div class="nunaesta-offstate">' +
         '<span class="nunaesta-offstate-big">' + escapeHtml(dayLabel.charAt(0).toUpperCase() + dayLabel.slice(1)) + '</span>' +
@@ -4119,8 +4623,8 @@ function renderNuNasta(targetId){
       '</div>' +
       (p.tomorrow.length ? '<div class="nunaesta-section">' +
         '<div class="nunaesta-section-head">' +
-          '<span class="nunaesta-section-title">Förhandsvisning</span>' +
-          '<span class="nunaesta-section-count">' + p.tomorrow.length + ' programpunkter</span>' +
+          '<span class="nunaesta-section-title">' + t('nnPreview') + '</span>' +
+          '<span class="nunaesta-section-count">' + p.tomorrow.length + ' ' + t('nnItems') + '</span>' +
         '</div>' +
         '<div class="nunaesta-items">' + p.tomorrow.map(function(e){ return renderNuNastaItem(e, hasWeights); }).join('') + '</div>' +
       '</div>' : '');
@@ -4128,8 +4632,8 @@ function renderNuNasta(targetId){
     // Within week but today's events all finished
     sectionsHtml =
       '<div class="nunaesta-offstate">' +
-        '<span class="nunaesta-offstate-big">Dagen är slut</span>' +
-        'Imorgon börjar nästa dag i Almedalsveckan. Bläddra i listan till vänster för att förbereda dig.' +
+        '<span class="nunaesta-offstate-big">' + t('nnDayOver') + '</span>' +
+        t('nnDayOverBody') +
       '</div>';
   } else {
     // In-week, normal four sections
@@ -4143,24 +4647,24 @@ function renderNuNasta(targetId){
             '<span class="nunaesta-section-title' + liveCls + '">' + escapeHtml(title) + '</span>' +
             '<span class="nunaesta-section-count">0</span>' +
           '</div>' +
-          '<div class="nunaesta-empty">Inget just nu.</div>' +
+          '<div class="nunaesta-empty">' + t('nnNothingNow') + '</div>' +
         '</div>';
       }
       var collapsibleCls = opts.collapsibleStart ? ' collapsible collapsed' : (opts.collapsible ? ' collapsible' : '');
       return '<div class="nunaesta-section' + collapsibleCls + '" data-section="' + escapeAttr(opts.key || title) + '">' +
         '<div class="nunaesta-section-head">' +
           '<span class="nunaesta-section-title' + liveCls + '">' + escapeHtml(title) + '</span>' +
-          '<span class="nunaesta-section-count">' + items.length + (opts.collapsible || opts.collapsibleStart ? ' programpunkter' : '') + '</span>' +
+          '<span class="nunaesta-section-count">' + items.length + (opts.collapsible || opts.collapsibleStart ? ' ' + t('nnItems') : '') + '</span>' +
         '</div>' +
         '<div class="nunaesta-items">' + items.map(function(e){ return renderNuNastaItem(e, hasWeights); }).join('') + '</div>' +
       '</div>';
     };
 
     sectionsHtml =
-      mkSection('Pågår nu', p.live, { live: true, key: 'live' }) +
-      mkSection('Inom 30 minuter', p.in30, { key: 'in30' }) +
-      mkSection('Inom en timme', p.in60, { hideIfEmpty: p.in60.length === 0 && (p.live.length || p.in30.length), key: 'in60' }) +
-      mkSection('Senare idag', p.laterToday, { collapsibleStart: true, key: 'later' });
+      mkSection(t('nnLive'), p.live, { live: true, key: 'live' }) +
+      mkSection(t('nnIn30'), p.in30, { key: 'in30' }) +
+      mkSection(t('nnIn60'), p.in60, { hideIfEmpty: p.in60.length === 0 && (p.live.length || p.in30.length), key: 'in60' }) +
+      mkSection(t('nnLater'), p.laterToday, { collapsibleStart: true, key: 'later' });
   }
 
   el.innerHTML = headHtml + geoBarHtml +
@@ -4397,7 +4901,7 @@ function exportAgendaCSV(events, filename){
     }
     return v;
   }
-  var header = ['Dag', 'Datum', 'Start', 'Slut', 'Rubrik', 'Plats', 'Arrangör', 'Ämne 1', 'Ämne 2', 'Medverkande', 'Webb'];
+  var header = [t('csvDay'), t('csvDate'), t('csvStart'), t('csvEnd'), t('csvTitle'), t('csvVenue'), t('csvOrganiser'), t('csvTopic1'), t('csvTopic2'), t('csvParticipants'), t('csvWeb')];
   var rows = [header.map(cell).join(sep)];
   events.forEach(function(e){
     var med = (e.med || []).map(function(p){ return p.n + (p.t ? ', ' + p.t : '') + (p.o ? ' (' + p.o + ')' : ''); }).join(' | ');
@@ -4437,10 +4941,10 @@ function exportAgendaWord(events, filename){
   }).join('');
 
   var html = '<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">' +
-    '<head><meta charset="utf-8"><title>Min Almedalsagenda</title></head>' +
+    '<head><meta charset="utf-8"><title>'+t('exportTitle')+'</title></head>' +
     '<body style="font-family:Calibri, Arial, sans-serif;color:#1a1a1a">' +
-    '<h1 style="font-size:20pt;margin-bottom:4px">Min Almedalsagenda</h1>' +
-    '<div style="font-size:11pt;color:#555;margin-bottom:20px">Profil: ' + escapeHtml(state.profile) + ' &nbsp;·&nbsp; ' + events.length + ' programpunkter &nbsp;·&nbsp; Skapad via almedalskartan.se</div>' +
+    '<h1 style="font-size:20pt;margin-bottom:4px">'+t('exportTitle')+'</h1>' +
+    '<div style="font-size:11pt;color:#555;margin-bottom:20px">'+t('exportProfile')+': ' + escapeHtml(state.profile) + ' &nbsp;·&nbsp; ' + events.length + ' '+t('exportItems')+' &nbsp;·&nbsp; '+t('createdVia')+'</div>' +
     rowsHtml +
     '</body></html>';
   genericDownload(html, filename, 'application/msword;charset=utf-8');
@@ -4463,7 +4967,7 @@ function exportAgendaPDF(events){
     '</div>';
   }).join('');
 
-  var doc = '<!DOCTYPE html><html lang="sv"><head><meta charset="utf-8"><title>Min Almedalsagenda</title>' +
+  var doc = '<!DOCTYPE html><html lang="'+state.lang+'"><head><meta charset="utf-8"><title>'+t('exportTitle')+'</title>' +
     '<style>' +
     '@page{margin:18mm 16mm}' +
     'body{font-family:Georgia, "Times New Roman", serif;color:#1a1a1a;line-height:1.5;margin:0}' +
@@ -4475,8 +4979,8 @@ function exportAgendaPDF(events){
     '.ev-row{font-size:12px;margin-bottom:3px;font-family:Arial, sans-serif}' +
     '.ev-desc{font-size:12px;margin-top:6px;color:#333}' +
     '</style></head><body>' +
-    '<h1>Min Almedalsagenda</h1>' +
-    '<div class="meta">Profil: ' + escapeHtml(state.profile) + ' · ' + events.length + ' programpunkter · almedalskartan.se</div>' +
+    '<h1>'+t('exportTitle')+'</h1>' +
+    '<div class="meta">'+t('exportProfile')+': ' + escapeHtml(state.profile) + ' · ' + events.length + ' '+t('exportItems')+' · almedalskartan.se</div>' +
     rowsHtml +
     '<script>window.onload=function(){setTimeout(function(){window.print();},300);};<\/script>' +
     '</body></html>';
@@ -4547,8 +5051,8 @@ function toggleAgendaWithToast(id){
   var label = ev ? (ev.rubrik || '') : '';
   var shortLabel = label.length > 48 ? label.slice(0, 47) + '…' : label;
   var msg = wasSaved
-    ? 'Borttagen från agenda' + (shortLabel ? ': ' + shortLabel : '')
-    : 'Tillagd i agenda' + (shortLabel ? ': ' + shortLabel : '');
+    ? t('removedFromAgenda') + (shortLabel ? ': ' + shortLabel : '')
+    : t('addedToAgenda') + (shortLabel ? ': ' + shortLabel : '');
   showToast(msg, function(){
     // Undo: flip back to previous state
     var ag2 = currentAgenda();
@@ -4582,7 +5086,7 @@ if(newsletterForm){
     }
     if(!r && !l){
       status.className = 'footer-status err';
-      status.textContent = 'Välj minst ett av alternativen ovan.';
+      status.textContent = t('newsletterPickOne');
       return;
     }
 
@@ -4598,14 +5102,14 @@ if(newsletterForm){
     }).then(function(resp){
       if(resp.ok){
         status.className = 'footer-status ok';
-        status.textContent = 'Tack! Vi hör av oss enligt det du valt.';
+        status.textContent = t('newsletterThanks');
         newsletterForm.reset();
       } else {
         throw new Error('HTTP ' + resp.status);
       }
     }).catch(function(err){
       status.className = 'footer-status err';
-      status.textContent = 'Något gick fel. Försök igen om en stund, eller mejla sandro.wennberg@narva.se.';
+      status.textContent = t('newsletterError');
     }).then(function(){
       submit.disabled = false;
     });
@@ -4621,17 +5125,17 @@ var TILLG_TOKENS = ['Entré och lokal tillgänglig för rullstol','Toalett tillg
 function populateFilterModal(){
   // Dropdowns
   var typSel = document.getElementById('filterTyp');
-  typSel.innerHTML = '<option value="">Alla typer</option>' + TYPE_VALUES.map(function(v){
+  typSel.innerHTML = '<option value="">'+t('filterAllTypes')+'</option>' + TYPE_VALUES.map(function(v){
     return '<option value="'+escapeAttr(v)+'"'+(state.filterTyp===v?' selected':'')+'>'+escapeHtml(v)+'</option>';
   }).join('');
 
   var typOrgSel = document.getElementById('filterTypOrg');
-  typOrgSel.innerHTML = '<option value="">Alla organisationstyper</option>' + TYPORG_VALUES.map(function(v){
+  typOrgSel.innerHTML = '<option value="">'+t('filterAllOrgTypes')+'</option>' + TYPORG_VALUES.map(function(v){
     return '<option value="'+escapeAttr(v)+'"'+(state.filterTypOrg===v?' selected':'')+'>'+escapeHtml(v)+'</option>';
   }).join('');
 
   var sprakSel = document.getElementById('filterSprak');
-  sprakSel.innerHTML = '<option value="">Alla språk</option>' + SPRAK_VALUES.map(function(v){
+  sprakSel.innerHTML = '<option value="">'+t('filterAllLangs')+'</option>' + SPRAK_VALUES.map(function(v){
     return '<option value="'+escapeAttr(v)+'"'+(state.filterSprak===v?' selected':'')+'>'+escapeHtml(v)+'</option>';
   }).join('');
 
@@ -4837,7 +5341,9 @@ function renderOverview(){
     var d = (e.dag || '').slice(0, 10);
     if(dayCounts.hasOwnProperty(d)) dayCounts[d]++;
   });
-  var dayLabels = { '2026-06-22': 'Mån', '2026-06-23': 'Tis', '2026-06-24': 'Ons', '2026-06-25': 'Tor', '2026-06-26': 'Fre' };
+  var dayLabels = state.lang === 'en'
+    ? { '2026-06-22': 'Mon', '2026-06-23': 'Tue', '2026-06-24': 'Wed', '2026-06-25': 'Thu', '2026-06-26': 'Fri' }
+    : { '2026-06-22': 'Mån', '2026-06-23': 'Tis', '2026-06-24': 'Ons', '2026-06-25': 'Tor', '2026-06-26': 'Fre' };
 
   // Event types
   var typeCounts = {};
@@ -4886,16 +5392,16 @@ function renderOverview(){
   // Block 1: top-level numbers
   blocks.push(
     '<div class="overview-block featured">' +
-      '<div class="overview-block-h">Totalt</div>' +
+      '<div class="overview-block-h">'+t('ovTotal')+'</div>' +
       '<div class="overview-num">' + total.toLocaleString('sv-SE') + '</div>' +
-      '<div class="overview-num-sub">programpunkter över fem dagar</div>' +
+      '<div class="overview-num-sub">'+t('ovTotalSub')+'</div>' +
       '<div style="margin-top:14px">' +
         '<div class="overview-num" style="font-size:24px">' + orgUnique.toLocaleString('sv-SE') + '</div>' +
-        '<div class="overview-num-sub">unika arrangörer</div>' +
+        '<div class="overview-num-sub">'+t('ovUniqueOrgs')+'</div>' +
       '</div>' +
       '<div style="margin-top:12px">' +
         '<div class="overview-num" style="font-size:24px">' + medTotal.toLocaleString('sv-SE') + '</div>' +
-        '<div class="overview-num-sub">medverkande totalt</div>' +
+        '<div class="overview-num-sub">'+t('ovParticipants')+'</div>' +
       '</div>' +
     '</div>'
   );
@@ -4903,11 +5409,11 @@ function renderOverview(){
   // Block 2: top topics
   blocks.push(
     '<div class="overview-block">' +
-      '<div class="overview-block-h">Mest behandlade ämnen</div>' +
+      '<div class="overview-block-h">'+t('ovTopTopics')+'</div>' +
       '<div class="overview-list">' +
         topTopics.map(function(p){
           return '<div class="overview-list-row">' +
-            '<span class="overview-list-name" title="' + escapeAttr(p[0]) + '">' + escapeHtml(p[0]) + '</span>' +
+            '<span class="overview-list-name" title="' + escapeAttr(topicLabel(p[0])) + '">' + escapeHtml(topicLabel(p[0])) + '</span>' +
             '<span class="overview-list-count">' + p[1] + '</span>' +
           '</div>';
         }).join('') +
@@ -4918,14 +5424,14 @@ function renderOverview(){
   // Block 3: top organisers (with veteran/erfaren/debutant tags)
   blocks.push(
     '<div class="overview-block">' +
-      '<div class="overview-block-h">Mest aktiva arrangörer</div>' +
+      '<div class="overview-block-h">'+t('ovTopOrgs')+'</div>' +
       '<div class="overview-list">' +
         topOrgs.map(function(p){
           var status = HISTORY ? orgStatus(p[0]) : null;
           var tag = '';
-          if(status === 'veteran') tag = '<span class="overview-org-tag vet" title="' + orgYearCount(p[0]) + ' år tidigare">Vet</span>';
-          else if(status === 'erfaren') tag = '<span class="overview-org-tag erf" title="' + orgYearCount(p[0]) + ' år tidigare">Erf</span>';
-          else if(status === 'debutant') tag = '<span class="overview-org-tag deb">Ny</span>';
+          if(status === 'veteran') tag = '<span class="overview-org-tag vet" title="' + orgYearCount(p[0]) + ' år tidigare">'+t('ovTagVet')+'</span>';
+          else if(status === 'erfaren') tag = '<span class="overview-org-tag erf" title="' + orgYearCount(p[0]) + ' år tidigare">'+t('ovTagErf')+'</span>';
+          else if(status === 'debutant') tag = '<span class="overview-org-tag deb">'+t('ovTagNew')+'</span>';
           return '<div class="overview-org-row">' +
             '<span class="overview-org-name">' +
               '<span class="overview-org-name-text" title="' + escapeAttr(p[0]) + '">' + escapeHtml(p[0]) + '</span>' +
@@ -4941,7 +5447,7 @@ function renderOverview(){
   // Block 4: per-day distribution
   blocks.push(
     '<div class="overview-block">' +
-      '<div class="overview-block-h">Programpunkter per dag</div>' +
+      '<div class="overview-block-h">'+t('ovPerDay')+'</div>' +
       '<div class="overview-day-grid">' +
         Object.keys(dayCounts).map(function(d){
           return '<div class="overview-day-col">' +
@@ -4956,7 +5462,7 @@ function renderOverview(){
   // Block 5: event types
   blocks.push(
     '<div class="overview-block">' +
-      '<div class="overview-block-h">Typer av programpunkt</div>' +
+      '<div class="overview-block-h">'+t('ovEventTypes')+'</div>' +
       '<div class="overview-list">' +
         topTypes.map(function(p){
           return '<div class="overview-list-row">' +
@@ -4981,22 +5487,22 @@ function renderOverview(){
   });
   blocks.push(
     '<div class="overview-block">' +
-      '<div class="overview-block-h">Tillgänglighet och form</div>' +
+      '<div class="overview-block-h">'+t('ovAccessForm')+'</div>' +
       '<div class="overview-bars">' +
         '<div class="overview-bar-row">' +
-          '<div class="overview-bar-label"><span>Webbsänt</span><span class="overview-bar-pct">' + pct(live) + '%</span></div>' +
+          '<div class="overview-bar-label"><span>'+t('ovWebcast')+'</span><span class="overview-bar-pct">' + pct(live) + '%</span></div>' +
           '<div class="overview-bar-track"><div class="overview-bar-fill alt" style="width:' + pct(live) + '%"></div></div>' +
         '</div>' +
         '<div class="overview-bar-row">' +
-          '<div class="overview-bar-label"><span>Förtäring</span><span class="overview-bar-pct">' + pct(mat) + '%</span></div>' +
+          '<div class="overview-bar-label"><span>'+t('ovFood')+'</span><span class="overview-bar-pct">' + pct(mat) + '%</span></div>' +
           '<div class="overview-bar-track"><div class="overview-bar-fill" style="width:' + pct(mat) + '%"></div></div>' +
         '</div>' +
         '<div class="overview-bar-row">' +
-          '<div class="overview-bar-label"><span>Miljödiplomerat</span><span class="overview-bar-pct">' + pct(eko) + '%</span></div>' +
+          '<div class="overview-bar-label"><span>'+t('ovEco')+'</span><span class="overview-bar-pct">' + pct(eko) + '%</span></div>' +
           '<div class="overview-bar-track"><div class="overview-bar-fill" style="width:' + pct(eko) + '%"></div></div>' +
         '</div>' +
       '</div>' +
-      (langRows ? '<div class="overview-block-h" style="margin-top:16px">Språk</div>' +
+      (langRows ? '<div class="overview-block-h" style="margin-top:16px">'+t('ovLang')+'</div>' +
         '<div class="overview-bars">' + langRows + '</div>' : '') +
     '</div>'
   );
@@ -5005,7 +5511,7 @@ function renderOverview(){
   if(topTypOrg.length > 0){
     blocks.push(
       '<div class="overview-block">' +
-        '<div class="overview-block-h">Typer av organisation</div>' +
+        '<div class="overview-block-h">'+t('ovOrgTypes')+'</div>' +
         '<div class="overview-list">' +
           topTypOrg.map(function(p){
             return '<div class="overview-list-row">' +
@@ -5022,22 +5528,22 @@ function renderOverview(){
   if(HISTORY && (vetCount > 0 || erfCount > 0 || debCount > 0)){
     blocks.push(
       '<div class="overview-block">' +
-        '<div class="overview-block-h">Arrangörer över tid</div>' +
+        '<div class="overview-block-h">'+t('ovOrgsOverTime')+'</div>' +
         '<div class="overview-bars">' +
           '<div class="overview-bar-row">' +
-            '<div class="overview-bar-label"><span>Veteraner (5+ år)</span><span class="overview-bar-pct">' + vetCount + ' st</span></div>' +
+            '<div class="overview-bar-label"><span>'+t('ovVeterans')+'</span><span class="overview-bar-pct">' + vetCount + ' ' + t('ovCountSuffix') + '</span></div>' +
             '<div class="overview-bar-track"><div class="overview-bar-fill" style="width:' + Math.round(vetCount/orgUnique*100) + '%;background:#7A5A1C"></div></div>' +
           '</div>' +
           '<div class="overview-bar-row">' +
-            '<div class="overview-bar-label"><span>Erfarna (1-4 år)</span><span class="overview-bar-pct">' + erfCount + ' st</span></div>' +
+            '<div class="overview-bar-label"><span>'+t('ovExperienced')+'</span><span class="overview-bar-pct">' + erfCount + ' ' + t('ovCountSuffix') + '</span></div>' +
             '<div class="overview-bar-track"><div class="overview-bar-fill" style="width:' + Math.round(erfCount/orgUnique*100) + '%;background:#B8862A"></div></div>' +
           '</div>' +
           '<div class="overview-bar-row">' +
-            '<div class="overview-bar-label"><span>Nya 2026</span><span class="overview-bar-pct">' + debCount + ' st</span></div>' +
+            '<div class="overview-bar-label"><span>'+t('ovNew2026')+'</span><span class="overview-bar-pct">' + debCount + ' ' + t('ovCountSuffix') + '</span></div>' +
             '<div class="overview-bar-track"><div class="overview-bar-fill alt" style="width:' + Math.round(debCount/orgUnique*100) + '%"></div></div>' +
           '</div>' +
         '</div>' +
-        '<div class="overview-num-sub" style="margin-top:10px">Baserat på exakt namnmatchning mot 2009-2025. Avvikande stavning räknas som ny arrangör.</div>' +
+        '<div class="overview-num-sub" style="margin-top:10px">'+t('ovHistNote')+'</div>' +
       '</div>'
     );
   }
@@ -5048,6 +5554,7 @@ if(!storageAvail){
   try { document.getElementById('storageWarn').style.display = 'inline-block'; } catch(e){}
 }
 applyFontSize();
+applyLanguage();
 renderProfileMenu();
 updateTopicBadge();
 updateFilterBadge();
