@@ -822,6 +822,9 @@
   .overview-day-count{font-size:17px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;line-height:1}
   .overview-org-row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:12px;line-height:1.35;padding:4px 0;border-bottom:1px dotted var(--border-s)}
   .overview-org-row:last-child{border-bottom:none}
+  .overview-org-row.org-clickable{cursor:pointer;border-radius:2px;transition:background .12s}
+  .overview-org-row.org-clickable:hover{background:rgba(0,0,0,0.05)}
+  .overview-org-row.org-clickable:hover .overview-org-name-text{color:var(--gold);text-decoration:underline;text-decoration-color:var(--border);text-underline-offset:2px}
   .overview-org-name{display:flex;align-items:baseline;gap:6px;min-width:0;flex:1}
   .overview-org-name-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .overview-org-tag{font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:1px 5px;border-radius:1px;font-weight:600;flex-shrink:0}
@@ -3917,7 +3920,7 @@ function selectEvent(id, panTo){
         (e.lat && e.lon ? '<button class="d-btn alt" id="panBtn">'+t('showOnMap')+'</button>' : '') +
         (e.lat && e.lon ? '<button class="d-btn alt" id="walkBtn">'+t('walkDirections')+'</button>' : '') +
       '</div>' +
-      '<a class="d-btn hotline" href="https://www.narva.se/almedalen" target="_blank" rel="noopener" style="margin-top:10px;display:inline-flex;align-items:center;gap:7px">' +
+      '<a class="d-btn hotline" href="https://www.narva.se" target="_blank" rel="noopener" style="margin-top:10px;display:inline-flex;align-items:center;gap:7px">' +
         '<span style="display:inline-block;width:8px;height:8px;background:var(--accent);border-radius:50%"></span>' +
         t('contactNarva') +
       '</a>' +
@@ -5453,7 +5456,7 @@ function renderOverview(){
           if(status === 'veteran') tag = '<span class="overview-org-tag vet" title="' + orgYearCount(p[0]) + ' år tidigare">'+t('ovTagVet')+'</span>';
           else if(status === 'erfaren') tag = '<span class="overview-org-tag erf" title="' + orgYearCount(p[0]) + ' år tidigare">'+t('ovTagErf')+'</span>';
           else if(status === 'debutant') tag = '<span class="overview-org-tag deb">'+t('ovTagNew')+'</span>';
-          return '<div class="overview-org-row">' +
+          return '<div class="overview-org-row org-clickable" data-org-profile="' + escapeAttr(p[0]) + '" role="button" tabindex="0" title="Visa arrangörsprofil">' +
             '<span class="overview-org-name">' +
               '<span class="overview-org-name-text" title="' + escapeAttr(p[0]) + '">' + escapeHtml(p[0]) + '</span>' +
               tag +
@@ -5570,6 +5573,16 @@ function renderOverview(){
   }
 
   grid.innerHTML = blocks.join('');
+
+  // Make "Mest aktiva arrangörer" rows clickable: open the organiser profile modal,
+  // same as clicking an organiser name inside an event.
+  grid.querySelectorAll('.overview-org-row[data-org-profile]').forEach(function(el){
+    var openOrg = function(){ openOrgProfile(el.getAttribute('data-org-profile')); };
+    el.addEventListener('click', openOrg);
+    el.addEventListener('keydown', function(ev){
+      if(ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); openOrg(); }
+    });
+  });
 }
 if(!storageAvail){
   try { document.getElementById('storageWarn').style.display = 'inline-block'; } catch(e){}
