@@ -3827,9 +3827,19 @@ function drawMarkers(list, hasWeights){
 }
 
 // ============== Detail panel ==============
+// Remembers where the user was in the results list when they opened an event,
+// so closing the detail returns them there instead of the top of the list.
+var savedListScroll = null;
 function selectEvent(id, panTo){
   var e = EVENTS.find(function(x){ return x.id === id; });
   if(!e) return;
+  // Capture the list position only when entering from the list view, not when
+  // switching between events while the detail is already open (e.g. via the
+  // organiser profile or the same-place list).
+  if(!document.body.classList.contains('has-selection')){
+    var _le = document.getElementById('list');
+    savedListScroll = { win: (window.scrollY || window.pageYOffset || 0), list: (_le ? _le.scrollTop : 0) };
+  }
   state.selectedId = id;
   document.body.classList.add('has-selection');
   document.querySelectorAll('.card').forEach(function(c){ c.classList.toggle('selected', c.getAttribute('data-id')===id); });
@@ -4435,6 +4445,18 @@ function clearDetail(){
   renderNuNasta('nunaestaDesktopBody');
   // Redraw markers so the pulsing ring is removed
   if(lastMarkerList.length) drawMarkers(lastMarkerList, lastMarkerHasWeights);
+  // Return the user to where they were in the results list (not the top).
+  // Deferred so the list is visible again before we set the scroll position.
+  if(savedListScroll){
+    var pos = savedListScroll;
+    savedListScroll = null;
+    var restore = function(){
+      var _le = document.getElementById('list');
+      if(_le) _le.scrollTop = pos.list;
+      window.scrollTo(0, pos.win);
+    };
+    if(window.requestAnimationFrame){ requestAnimationFrame(restore); } else { setTimeout(restore, 0); }
+  }
 }
 
 // ============== A1: Nu+nästa view ==============
