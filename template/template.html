@@ -775,6 +775,12 @@
   .org-prof-event-place{font-size:11px;color:var(--muted);line-height:1.35}
   .org-prof-event-conflict{display:inline-block;margin-left:6px;background:#B8862A;color:#FFFFFF;font-size:9px;padding:1px 5px;border-radius:1px;letter-spacing:0.6px;text-transform:uppercase;font-weight:600;vertical-align:1px}
   .org-prof-event-saved{display:inline-block;margin-left:6px;color:var(--influera-red);font-size:11px;font-weight:700}
+  /* Cancelled events (Status "Inställd" in the official program). Grey, kept distinct from match-red and clash-amber. */
+  .installt-badge{display:inline-block;background:#6E6E6E;color:#FFFFFF;font-size:9px;padding:1px 6px;border-radius:1px;letter-spacing:0.6px;text-transform:uppercase;font-weight:600;vertical-align:1px;text-decoration:none;white-space:nowrap}
+  .card.cancelled .card-title{text-decoration:line-through;text-decoration-color:#9A9A9A;color:var(--muted)}
+  .d-title.cancelled{text-decoration:line-through;text-decoration-color:#9A9A9A}
+  .d-cancelled-note{margin-top:10px;background:rgba(110,110,110,0.10);border-left:3px solid #6E6E6E;color:var(--text);font-size:12.5px;line-height:1.4;padding:8px 11px;border-radius:1px}
+  .org-prof-event-title.cancelled{text-decoration:line-through;text-decoration-color:#9A9A9A}
   .org-prof-empty{color:var(--muted);font-style:italic;font-size:12px}
   .org-legend{font-size:10.5px;color:var(--muted);letter-spacing:0.2px;margin-top:8px;line-height:1.5;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
   .org-legend-item{display:inline-flex;align-items:center;gap:5px}
@@ -1534,6 +1540,8 @@ var I18N = {
   orgAllInAgenda: { sv: 'Alla redan i agenda', en: 'All already in agenda' },
   alreadyInAgenda: { sv: 'Redan i din agenda', en: 'Already in your agenda' },
   clashBadge: { sv: 'krock', en: 'clash' },
+  cancelled: { sv: 'Inställt', en: 'Cancelled' },
+  cancelledNote: { sv: 'Det här evenemanget är inställt i det officiella programmet.', en: 'This event is cancelled in the official program.' },
   // Match indicator
   matchLabel: { sv: 'Match', en: 'Match' },
   // Toasts
@@ -3700,7 +3708,7 @@ function render(){
         ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16.5" rx="2"/><line x1="3" y1="9.5" x2="21" y2="9.5"/><line x1="8" y1="2.5" x2="8" y2="6.5"/><line x1="16" y1="2.5" x2="16" y2="6.5"/><polyline points="8.5,14.5 11,17 16,12"/></svg>'
         : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16.5" rx="2"/><line x1="3" y1="9.5" x2="21" y2="9.5"/><line x1="8" y1="2.5" x2="8" y2="6.5"/><line x1="16" y1="2.5" x2="16" y2="6.5"/></svg>';
       var saveBtn = '<button class="card-save'+(isSaved?' saved':'')+'" data-save-id="'+e.id+'" title="'+(isSaved?'Ta bort från agenda':'Spara till agenda')+'" aria-label="'+(isSaved?'Ta bort från agenda':'Spara till agenda')+'">'+saveIcon+'</button>';
-      return '<div class="card '+(state.selectedId===e.id?'selected':'')+'" data-id="'+e.id+'">' +
+      return '<div class="card '+(state.selectedId===e.id?'selected':'')+(e.installt?' cancelled':'')+'" data-id="'+e.id+'">' +
         conflictMark +
         (hasWeights && pct > 0 ? (
           // B.4: three-bar visual match indicator instead of percentage.
@@ -3722,7 +3730,7 @@ function render(){
           '<span class="card-time">'+escapeHtml(formatHM(e.start))+(e.slut?'-'+escapeHtml(formatHM(e.slut)):'')+'</span>' +
           '<span class="card-day">'+(dayLabel||e.dag)+'</span>' +
         '</div>' +
-        '<div class="card-title">'+escapeHtml(e.rubrik)+'</div>' +
+        '<div class="card-title">'+(e.installt?'<span class="installt-badge">'+t('cancelled')+'</span> ':'')+escapeHtml(e.rubrik)+'</div>' +
         (e.plats?'<div class="card-place">'+escapeHtml(e.plats)+'</div>':'') +
         walkNote +
         '<div class="card-meta">' +
@@ -3903,7 +3911,7 @@ function selectEvent(id, panTo){
         })() : '') + '</span>' +
         '<button class="d-close" id="detClose">✕</button>' +
       '</div>' +
-      '<h2 class="d-title">'+escapeHtml(e.rubrik)+'</h2>' +
+      '<h2 class="d-title'+(e.installt?' cancelled':'')+'">'+(e.installt?'<span class="installt-badge">'+t('cancelled')+'</span> ':'')+escapeHtml(e.rubrik)+'</h2>' +
       '<div class="d-when">' +
         '<strong>'+(dayLabel||e.dag)+'</strong>' +
         '<span>'+escapeHtml(formatHM(e.start))+(e.slut?'-'+escapeHtml(formatHM(e.slut)):'')+'</span>' +
@@ -3914,6 +3922,7 @@ function selectEvent(id, panTo){
         (e.amne2 ? '<span class="d-pill">'+escapeHtml(topicLabel(e.amne2))+'</span>' : '') +
         (e.sprak ? '<span class="d-pill">'+t('langLabel')+': '+escapeHtml(e.sprak)+'</span>' : '') +
       '</div>' +
+      (e.installt ? '<div class="d-cancelled-note">'+t('cancelledNote')+'</div>' : '') +
       '<div class="d-actions">' +
         '<button class="d-btn '+(saved?'saved':'')+'" id="saveBtn">'+(saved?'✓ '+t('savedToAgenda')+(state.profile!=='Gäst'?' ('+escapeHtml(state.profile)+')':''):t('saveToAgenda'))+'</button>' +
         '<button class="d-btn alt" id="icsBtn">'+t('addToCalendar')+'</button>' +
@@ -4257,7 +4266,7 @@ function openOrgProfile(orgName){
           escapeHtml(formatHM(ev.start)) + (ev.slut ? '<br>' + escapeHtml(formatHM(ev.slut)) : '') +
         '</div>' +
         '<div class="org-prof-event-main">' +
-          '<div class="org-prof-event-title">' + escapeHtml(ev.rubrik) +
+          '<div class="org-prof-event-title' + (ev.installt ? ' cancelled' : '') + '">' + (ev.installt ? '<span class="installt-badge">' + t('cancelled') + '</span> ' : '') + escapeHtml(ev.rubrik) +
             (saved ? '<span class="org-prof-event-saved" title="' + escapeAttr(t('orgSavedTitle')) + '">✓</span>' : '') +
             (hasConflict ? '<span class="org-prof-event-conflict">' + t('clashBadge') + '</span>' : '') +
           '</div>' +
@@ -4337,6 +4346,10 @@ function openOrgProfile(orgName){
       var jumpId = el.getAttribute('data-jump-id');
       orgProfileModal.classList.remove('open');
       selectEvent(jumpId, true);
+      // The profile modal can be opened from the overview section far down the page.
+      // selectEvent renders the detail at the top of the layout, so bring it into view.
+      var det = document.getElementById('detail');
+      if(det){ try { det.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch(e){ det.scrollIntoView(); } }
     });
   });
 
