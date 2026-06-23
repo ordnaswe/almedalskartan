@@ -263,6 +263,11 @@ def normalize_event(raw):
     out['med'] = extract_persons(raw)
     out['kp1n'] = str(raw.get('ContactPerson1Name') or '')
     out['kp1e'] = str(raw.get('ContactPerson1Email') or '')
+    # Cancelled events keep showing in the program but are flagged. The official
+    # export uses Status 'Inställd' for these; only set the flag when cancelled so
+    # the data stays small (the template treats a missing flag as not cancelled).
+    if str(raw.get('Status') or '').strip().lower() == 'inställd':
+        out['installt'] = True
     return out
 
 
